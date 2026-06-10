@@ -1,0 +1,17 @@
+{
+  "name": "Ru-Le ルール",
+  "short_name": "Ru-Le",
+  "description": "エンブレムでルールを書き換える大富豪",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen"],
+  "orientation": "landscape",
+  "background_color": "#05060f",
+  "theme_color": "#0d1020",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
