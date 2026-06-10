@@ -2775,12 +2775,27 @@ const AUDIO = (function(){
     for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
     return 'rule-v9-'+h.toString(36);
   }
+  // ── 再接続トークンの永続化(localStorage) ── 参考: GobblNarabe
+  //   クライアントがタイトルへ戻って NET をリセットしても、合言葉(roomId)ごとにトークンを残す。
+  //   同じ合言葉で入り直したときホストへ提示し、対戦中の同じ席へ復帰できる(=本不具合の修正)。
+  const RECO_KEY='rule_reconnect';
+  const RECO_TTL=5*60*1000;   // 5分で失効(古い卓へ誤復帰しない)
+  function saveReco(room, token, idx, session){
+    try{ localStorage.setItem(RECO_KEY, JSON.stringify({room, token, idx, session:session||'', ts:Date.now()})); }catch(e){}
+  }
+  function loadReco(room){
+    try{ const o=JSON.parse(localStorage.getItem(RECO_KEY)||'null');
+      if(!o || o.room!==room) return null;
+      if(Date.now()-(o.ts||0)>RECO_TTL) return null;
+      return o; }catch(e){ return null; }
+  }
+  function clearReco(){ try{ localStorage.removeItem(RECO_KEY); }catch(e){} }
 
   const NET = {
     active:false, isHost:false, myIdx:0, paused:false,
     peer:null, hostConn:null, conns:new Map(),
     keyword:'', roomId:'', myName:'', myBuild:null,
-    seats:[], matchId:'', stateVer:0, lastVer:0, token:'', _actSeq:0,
+    seats:[], matchId:'', stateVer:0, lastVer:0, token:'', session:'', hostSession:'', _actSeq:0,
     _hbTimer:null, _watchTimer:null, _lastRx:0, _recoOn:false, _recoTries:0, _intentional:false,
 
     _send(conn,obj){ try{ if(conn&&conn.open!==false) conn.send(obj); return true; }catch(e){ return false; } },
@@ -2791,7 +2806,7 @@ const AUDIO = (function(){
       //   ブローカーへ再登録してしまい、ソケットが開いたままIDが「使用中」として居残る(=再ホスト不可の原因)。
       this._intentional=true;
       this.active=false; this.isHost=false; this.myIdx=0; this.paused=false;
-      this.seats=[]; this.matchId=''; this.stateVer=0; this.lastVer=0; this.token=''; this._actSeq=0; this._recoOn=false; this._recoTries=0;
+      this.seats=[]; this.matchId=''; this.stateVer=0; this.lastVer=0; this.token=''; this.session=''; this.hostSession=''; this._actSeq=0; this._recoOn=false; this._recoTries=0;
       try{ this.conns.forEach(c=>{ try{c.close();}catch(e){} }); }catch(e){}
       this.conns.clear(); this.hostConn=null;
       try{ if(this.peer){ if(!this.peer.destroyed && !this.peer.disconnected){ try{ this.peer.disconnect(); }catch(e){} } if(!this.peer.destroyed) this.peer.destroy(); } }catch(e){}
@@ -2805,6 +2820,8 @@ const AUDIO = (function(){
     host(kw, name){
       this.reset();
       this._intentional=false;   // 新規ホスト開始＝以後の回線瞬断は再接続して復旧させる
+      this.hostSession=Math.random().toString(36).slice(2,10);   // この卓固有のセッション。古い卓のトークン誤復帰を防ぐ(welcomeで配布)
+      clearReco();               // ホストは自分のゲスト用復帰トークンを持ち越さない
       this.isHost=true; this.active=true; this.keyword=kw; this.roomId=roomIdFor(kw);
       this.myName=(name||T('host_default_name')).slice(0,12);
       rememberNet(kw, this.myName);   // 合言葉とプレイヤー名を記録(次回プリフィル用)
@@ -2849,6 +2866,8 @@ const AUDIO = (function(){
       this.reset();
       this._intentional=false;   // 参加開始＝以後の回線瞬断は再接続して復旧させる
       this.isHost=false; this.active=true; this.keyword=kw; this.roomId=roomIdFor(kw);
+      // 同じ合言葉で前回つかんだ復帰トークンがあれば提示用に復元(タイトルへ戻った後の再接続用)。
+      const prev=loadReco(this.roomId); if(prev){ this.token=prev.token||''; this.session=prev.session||''; }
       this.myName=(name||T('guest_default_name')).slice(0,12);
       rememberNet(kw, this.myName);   // 合言葉とプレイヤー名を記録(次回プリフィル用)
       this.myBuild = store.savedBuild ? RL.normalizeBuild(JSON.parse(JSON.stringify(store.savedBuild))) : RL.emptyBuild();
@@ -2862,7 +2881,7 @@ const AUDIO = (function(){
         let conn; try{ conn=this.peer.connect(this.roomId,{reliable:true}); }catch(e){ this._scheduleReco(); return; }
         let opened=false;
         conn.on('open', ()=>{ opened=true; this.hostConn=conn; this._lastRx=Date.now(); this._wireClientConn(conn);
-          this._send(conn,{type:'hello', ver:NET_VER, name:this.myName, build:this.myBuild, token:this.token||undefined});
+          this._send(conn,{type:'hello', ver:NET_VER, name:this.myName, build:this.myBuild, token:this.token||undefined, session:this.session||undefined});
         });
         conn.on('error', ()=>{ if(!opened) this._scheduleReco(); });
         setTimeout(()=>{ if(this.active && !opened && (!this.hostConn||this.hostConn.open===false)){ try{conn.close();}catch(e){} this._scheduleReco(); } }, 2600);
@@ -2964,28 +2983,22 @@ const AUDIO = (function(){
       if(m.type==='ping'){ this._send(conn,{type:'pong',t:m.t}); return; }
       if(m.type==='hello'){
         if(m.ver!==NET_VER){ this._send(conn,{type:'reject',reason:T('reject_ver')}); setTimeout(()=>{try{conn.close();}catch(e){}},200); return; }
-        // 再接続(token一致)
+        // 再接続① token一致(最も確実。同一ホストセッションのトークンのみ有効)。
         if(m.token){ const seat=this.seats.find(s=>s.token===m.token);
-          if(seat){ const old=seat.peerId; if(old&&old!==conn.peer){ const oc=this.conns.get(old); if(oc){try{oc.close();}catch(e){}} this.conns.delete(old); }
-            seat.peerId=conn.peer; seat.connected=true; seat.cpu=false; seat.kind='client'; conn.__rx=Date.now();
-            this.conns.set(conn.peer,conn);
-            this._send(conn,{type:'welcome', yourIdx:seat.idx, token:seat.token, reconnected:true, ver:NET_VER});
-            // 切断していた人が全員戻ったら盤面を再開(複数同時切断にも対応)。
-            const stillOff = this.seats.some(s=> s.kind==='client' && !s.connected && !s.cpu);
-            if(this.paused && !stillOff){ this.paused=false; this._pausedFor=null; this.conns.forEach(c=>this._send(c,{type:'resume'})); }
-            this.closeOvl();
-            if(G && !G.gameOver){ this.sendStateTo(seat.idx); afterStep(); } else this.broadcastLobby();
-            this.renderLobby();
-            return;
-          }
+          if(seat && (!m.session || m.session===this.hostSession)){ this._reseat(seat, conn, null); return; }
         }
-        if(G && !G.gameOver){ this._send(conn,{type:'reject',reason:T('reject_started')}); setTimeout(()=>{try{conn.close();}catch(e){}},200); return; }
+        // 再接続② 名前フォールバック: 対戦中に切断席が残っていれば、退室でトークンを失った／別端末/ストレージ消去でも合言葉だけで復帰させる。
+        if(G && !G.gameOver){
+          const disc=this.seats.filter(s=> s.kind==='client' && !s.connected);
+          if(disc.length){ const want=(m.name||'').slice(0,12); const seat=disc.find(s=>s.name===want)||disc[0]; this._reseat(seat, conn, m); return; }
+          this._send(conn,{type:'reject',reason:T('reject_started')}); setTimeout(()=>{try{conn.close();}catch(e){}},200); return;
+        }
         const seat=this.seats.find(s=>s.kind==='empty');
         if(!seat){ this._send(conn,{type:'reject',reason:T('reject_full')}); setTimeout(()=>{try{conn.close();}catch(e){}},200); return; }
         seat.kind='client'; seat.peerId=conn.peer; seat.connected=true; seat.ready=!!(m.build); seat.name=(m.name||('P'+(seat.idx+1))).slice(0,12);
         seat.build=m.build?RL.normalizeBuild(m.build):RL.emptyBuild(); seat.token=Math.random().toString(36).slice(2,10);
         this.conns.set(conn.peer,conn);
-        this._send(conn,{type:'welcome', yourIdx:seat.idx, token:seat.token, ver:NET_VER});
+        this._send(conn,{type:'welcome', yourIdx:seat.idx, token:seat.token, ver:NET_VER, session:this.hostSession});
         this.broadcastLobby();
         return;
       }
@@ -3006,9 +3019,10 @@ const AUDIO = (function(){
       if(!m||typeof m.type!=='string') return;
       if(m.type==='ping'){ this._send(conn,{type:'pong',t:m.t}); return; }   // ホストの生存pingに応答(ホスト側ゾンビ検知が機能する)
       if(m.type==='pong') return;
-      if(m.type==='reject'){ this.ovl(T('net_cant_join'), m.reason||T('net_rejected'), [[T('net_to_title'), ()=>{ this.leave(); buildTitle(); show('s-title'); }]]); this.active=false; return; }
+      if(m.type==='reject'){ clearReco(); this.ovl(T('net_cant_join'), m.reason||T('net_rejected'), [[T('net_to_title'), ()=>{ this.leave(); buildTitle(); show('s-title'); }]]); this.active=false; return; }
       if(m.type==='welcome'){
-        this.myIdx=m.yourIdx; this.token=m.token||this.token;
+        this.myIdx=m.yourIdx; this.token=m.token||this.token; this.session=m.session||this.session;
+        saveReco(this.roomId, this.token, this.myIdx, this.session);   // ★タイトルへ戻っても同じ合言葉で同じ席へ復帰できるよう永続化
         this._recoOn=false; this._recoTries=0; this.closeOvl(); this.msg('');
         if(!m.reconnected){ MODE.kind='online'; if(currentScreen!=='s-match'){ show('s-lobby'); } }
         this.startWatch();
@@ -3027,6 +3041,22 @@ const AUDIO = (function(){
     },
 
     /* ---------- 切断・復帰 ---------- */
+    // 切断していた席へ conn を再着席させて復帰させる(token復帰・名前フォールバック共通)。
+    //   m を渡すと名前で上書き(フォールバック用)。token復帰は m=null で名前据え置き。
+    _reseat(seat, conn, m){
+      const old=seat.peerId; if(old&&old!==conn.peer){ const oc=this.conns.get(old); if(oc){try{oc.close();}catch(e){}} this.conns.delete(old); }
+      seat.peerId=conn.peer; seat.connected=true; seat.cpu=false; seat.kind='client'; conn.__rx=Date.now();
+      if(m && m.name){ const nm=String(m.name).slice(0,12); if(nm) seat.name=nm; }
+      seat._lastSeq=0;   // ★再接続でクライアントの _actSeq は 0 に戻る。古い seq を覚えたままだと復帰後の手が seq<=last で握り潰されるため baseline をリセット
+      this.conns.set(conn.peer,conn);
+      this._send(conn,{type:'welcome', yourIdx:seat.idx, token:seat.token, reconnected:true, ver:NET_VER, session:this.hostSession});
+      // 切断していた人が全員戻ったら盤面を再開(複数同時切断にも対応)。
+      const stillOff = this.seats.some(s=> s.kind==='client' && !s.connected && !s.cpu);
+      if(this.paused && !stillOff){ this.paused=false; this._pausedFor=null; this.conns.forEach(c=>this._send(c,{type:'resume'})); }
+      this.closeOvl();
+      if(G && !G.gameOver){ this.sendStateTo(seat.idx); afterStep(); } else this.broadcastLobby();
+      this.renderLobby();
+    },
     onClientDrop(conn){
       if(this.conns.get(conn.peer)!==conn) return;
       const seat=this.seats.find(s=>s.peerId===conn.peer);
