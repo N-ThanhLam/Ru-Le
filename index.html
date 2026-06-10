@@ -2023,7 +2023,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', unlocked:BASE_UNLOCKED.slice(), savedBuild:null, savedRun:null,
-    keymap:null, padmap:null,
+    keymap:null, padmap:null, netKw:'', netName:'',
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -2033,10 +2033,12 @@ const AUDIO = (function(){
       this.savedRun = this.savedRun || null;
       this.keymap = normInputMap(this.keymap, DEFAULT_KEYMAP);
       this.padmap = normInputMap(this.padmap, DEFAULT_PADMAP);
+      this.netKw = (typeof this.netKw==='string') ? this.netKw : '';
+      this.netName = (typeof this.netName==='string') ? this.netName : '';
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, unlocked:this.unlocked, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, unlocked:this.unlocked, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -2536,9 +2538,14 @@ const AUDIO = (function(){
     const k=e.key;
     // キーコンフィグのリバインド入力待ち: 次の1キーを取り込む(Escでキャンセル)。
     if(keyCapture){ e.preventDefault(); keyCapture(normKeyName(k)); return; }
-    // テキスト入力(合言葉/名前)中はナビ操作を奪わない＝普通にタイプできる。Enterだけ「確定」相当に拾う。
+    // テキスト入力(合言葉/名前)中はナビ操作を奪わない＝普通にタイプできる。Enter=確定、Escape=戻るだけ拾う。
+    //   (Backspaceは文字削除に必要なので戻るに使わない。Escだけで入力欄からも画面を抜けられる)
     const tgt=e.target, typing = tgt && (tgt.tagName==='INPUT'||tgt.tagName==='TEXTAREA');
-    if(typing){ if(k==='Enter'){ e.preventDefault(); tgt.blur(); activate(); } return; }
+    if(typing){
+      if(k==='Enter'){ e.preventDefault(); tgt.blur(); activate(); }
+      else if(k==='Escape'){ e.preventDefault(); tgt.blur(); onBack(); }
+      return;
+    }
     const action = keyActionFor(k);
     // ナビ/決定/戻る等・Space・Tab はブラウザ既定(スクロール/フォーカス移動)を抑止。
     if(action || k===' ' || k==='Tab') e.preventDefault();
@@ -2774,16 +2781,20 @@ const AUDIO = (function(){
     peer:null, hostConn:null, conns:new Map(),
     keyword:'', roomId:'', myName:'', myBuild:null,
     seats:[], matchId:'', stateVer:0, lastVer:0, token:'', _actSeq:0,
-    _hbTimer:null, _watchTimer:null, _lastRx:0, _recoOn:false, _recoTries:0,
+    _hbTimer:null, _watchTimer:null, _lastRx:0, _recoOn:false, _recoTries:0, _intentional:false,
 
     _send(conn,obj){ try{ if(conn&&conn.open!==false) conn.send(obj); return true; }catch(e){ return false; } },
     msg(t){ const e=$('#net-msg'); if(e) e.textContent=t||''; },
     reset(){
+      // ★退室=意図的な切断。destroy()はPeerJS内部で'disconnected'を同期発火するため、先にこのフラグを立て
+      //   下の disconnected ハンドラの自動 reconnect を封じる。これが無いと破棄中に同じ合言葉(roomId)を
+      //   ブローカーへ再登録してしまい、ソケットが開いたままIDが「使用中」として居残る(=再ホスト不可の原因)。
+      this._intentional=true;
       this.active=false; this.isHost=false; this.myIdx=0; this.paused=false;
       this.seats=[]; this.matchId=''; this.stateVer=0; this.lastVer=0; this.token=''; this._actSeq=0; this._recoOn=false; this._recoTries=0;
       try{ this.conns.forEach(c=>{ try{c.close();}catch(e){} }); }catch(e){}
       this.conns.clear(); this.hostConn=null;
-      try{ if(this.peer && !this.peer.destroyed) this.peer.destroy(); }catch(e){}
+      try{ if(this.peer){ if(!this.peer.destroyed && !this.peer.disconnected){ try{ this.peer.disconnect(); }catch(e){} } if(!this.peer.destroyed) this.peer.destroy(); } }catch(e){}
       this.peer=null;
       if(this._hbTimer){ clearInterval(this._hbTimer); this._hbTimer=null; }
       if(this._watchTimer){ clearInterval(this._watchTimer); this._watchTimer=null; }
@@ -2793,8 +2804,10 @@ const AUDIO = (function(){
     /* ---------- ホスト作成 ---------- */
     host(kw, name){
       this.reset();
+      this._intentional=false;   // 新規ホスト開始＝以後の回線瞬断は再接続して復旧させる
       this.isHost=true; this.active=true; this.keyword=kw; this.roomId=roomIdFor(kw);
       this.myName=(name||T('host_default_name')).slice(0,12);
+      rememberNet(kw, this.myName);   // 合言葉とプレイヤー名を記録(次回プリフィル用)
       this.myBuild = store.savedBuild ? RL.normalizeBuild(JSON.parse(JSON.stringify(store.savedBuild))) : RL.emptyBuild();
       this.seats=[ {idx:0, kind:'host', name:this.myName, isHost:true, connected:true, ready:true, build:this.myBuild},
                    {idx:1, kind:'empty', connected:false}, {idx:2, kind:'empty', connected:false}, {idx:3, kind:'empty', connected:false} ];
@@ -2820,7 +2833,7 @@ const AUDIO = (function(){
         }
         if(currentScreen==='s-online') this.msg(T('net_err_signal', tp||'?'));
       });
-      this.peer.on('disconnected', ()=>{ try{ if(this.peer&&!this.peer.destroyed) this.peer.reconnect(); }catch(e){} });
+      this.peer.on('disconnected', ()=>{ if(this._intentional) return; try{ if(this.peer&&!this.peer.destroyed) this.peer.reconnect(); }catch(e){} });
       this.peer.on('connection', conn=>{
         conn.on('open', ()=>{
           conn.__rx=Date.now();
@@ -2834,8 +2847,10 @@ const AUDIO = (function(){
     /* ---------- ゲスト参加 ---------- */
     join(kw, name){
       this.reset();
+      this._intentional=false;   // 参加開始＝以後の回線瞬断は再接続して復旧させる
       this.isHost=false; this.active=true; this.keyword=kw; this.roomId=roomIdFor(kw);
       this.myName=(name||T('guest_default_name')).slice(0,12);
+      rememberNet(kw, this.myName);   // 合言葉とプレイヤー名を記録(次回プリフィル用)
       this.myBuild = store.savedBuild ? RL.normalizeBuild(JSON.parse(JSON.stringify(store.savedBuild))) : RL.emptyBuild();
       this.msg(T('net_connecting_room'));
       ensurePeerJS().then(()=>{ if(this.active) this._clientConnect(false); })
@@ -2861,7 +2876,7 @@ const AUDIO = (function(){
           else if(currentScreen==='s-online'){ this.msg(T('net_err', tp||'?')); }
           else { this._scheduleReco(); }
         });
-        this.peer.on('disconnected', ()=>{ try{ if(this.peer&&!this.peer.destroyed) this.peer.reconnect(); }catch(e){} });
+        this.peer.on('disconnected', ()=>{ if(this._intentional) return; try{ if(this.peer&&!this.peer.destroyed) this.peer.reconnect(); }catch(e){} });
       } else { go(); }
     },
     _wireClientConn(conn){
@@ -3105,13 +3120,20 @@ const AUDIO = (function(){
   // オンライン画面に入った瞬間の無言リセット。古い Peer/接続/タイマーといった通信のキャッシュ的残骸を
   //   破棄し、毎回まっさらな状態から始める＝接続安定化("unavailable-id"やゴースト接続を防ぐ)。
   function netSilentReset(){ try{ NET.reset(); }catch(e){} }
+  // 合言葉とプレイヤー名を記録(次回オンライン画面でプリフィル)。
+  function rememberNet(kw, name){
+    store.netKw = String(kw||'').slice(0,24);
+    store.netName = String(name||'').slice(0,12);
+    store.save();
+  }
   function openOnline(){
     netSilentReset();   // ★押した瞬間に通信の残骸を無言でリセット
     MODE.kind='online';
     show('s-online'); NET.msg('');
     const kw=$('#net-keyword'), nm=$('#net-name');
-    if(kw && !kw.value) kw.value='';
-    setTimeout(()=>{ if(kw) kw.focus(); }, 60);
+    if(kw) kw.value = store.netKw || '';    // 前回の合言葉をプリフィル
+    if(nm) nm.value = store.netName || '';  // 前回のプレイヤー名をプリフィル
+    setTimeout(()=>{ if(kw){ kw.focus(); kw.select && kw.select(); } }, 60);
   }
   // 隠しコマンド: 合言葉「バランス」＋名前「タンラム」で進むと Balance Simulator を開く。
   function trySecretSim(){
