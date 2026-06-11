@@ -144,7 +144,30 @@
     .opp .cnt.low{ animation:none; }
   }
   #s-title .logo .big span{ color:var(--gold); }
-  #s-title .logo .sub{ font-size:34px; color:#dfe6ff; margin-top:6px; letter-spacing:4px; }
+  #s-title .logo .sub{
+    font-size:44px; font-weight:900; margin-top:14px; letter-spacing:10px;
+    background:linear-gradient(90deg, #ffe27a 0%, #fff8c0 30%, #ffcf4d 50%, #fff8c0 70%, #ffe27a 100%);
+    background-size:200% auto;
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:subShine 3s linear infinite;
+    filter:drop-shadow(0 0 10px rgba(255,207,77,.7)) drop-shadow(0 3px 0 rgba(100,60,0,.6));
+    position:relative; display:inline-block;
+  }
+  #s-title .logo .sub::before,
+  #s-title .logo .sub::after{
+    content:'✦'; font-size:28px; position:absolute; top:50%; transform:translateY(-50%);
+    background:linear-gradient(90deg,#ffe27a,#ffcf4d); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 6px rgba(255,207,77,.9));
+    animation:starPulse 2s ease-in-out infinite;
+  }
+  #s-title .logo .sub::before{ right:calc(100% + 16px); }
+  #s-title .logo .sub::after{ left:calc(100% + 16px); animation-delay:.5s; }
+  @keyframes subShine{ 0%{ background-position:200% center; } 100%{ background-position:-200% center; } }
+  @keyframes starPulse{ 0%,100%{ opacity:.6; transform:translateY(-50%) scale(1); } 50%{ opacity:1; transform:translateY(-50%) scale(1.3); } }
+  @media (prefers-reduced-motion:reduce){
+    #s-title .logo .sub{ animation:none; background-position:0 center; }
+    #s-title .logo .sub::before, #s-title .logo .sub::after{ animation:none; }
+  }
   #s-title .menu{ position:absolute; top:520px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:26px; }
   #s-title .menu .btn{ min-width:560px; }
   #s-title .ver{ position:absolute; bottom:26px; right:34px; color:#b9c4ef; font-size:24px; }
@@ -168,20 +191,22 @@
      説明文はフォーカス中の“ひとつ”だけ右の詳細ペインで開示する。 ===== */
   #s-build .wrap{ position:absolute; top:108px; left:28px; right:28px; bottom:74px; display:flex; flex-direction:column; gap:12px; }
 
-  /* 状態ストリップ：お題(左)＋コスト(右)を1行に集約。常時表示の“情報”はこれだけに絞る。 */
-  .buildstatus{ display:flex; align-items:center; gap:16px; }
-  .mutbar{ display:flex; align-items:center; gap:12px; background:rgba(8,11,28,.5); border:4px solid var(--gold); border-radius:13px; padding:6px 16px; }
+  /* 状態ストリップ：お題(左)＋コスト(右)を1行に集約。常時表示の“情報”はこれだけに絞る。
+     一覧が別画面へ移って横幅・縦が余っているので、ここは大きく＝遠目（TV）でも一目で読める寸法にする。 */
+  .buildstatus{ display:flex; align-items:center; gap:22px; }
+  .mutbar{ display:flex; align-items:center; gap:16px; background:rgba(8,11,28,.5); border:5px solid var(--gold); border-radius:17px; padding:11px 24px; }
   .mutbar.plain{ border-color:rgba(255,255,255,.22); border-style:dashed; background:rgba(8,11,28,.3); }
-  .mutbar .mtag{ display:inline-flex; align-items:center; gap:8px; font-size:27px; font-weight:900; color:#fff; padding:3px 14px; border-radius:11px; white-space:nowrap; }
-  .mutbar .mds{ font-size:24px; font-weight:700; color:#eef2ff; white-space:nowrap; }
-  .costbox{ margin-left:auto; display:flex; align-items:center; gap:14px; }
-  .costbox .lbl{ font-size:26px; font-weight:800; color:#dfe6ff; }
-  .meter{ width:300px; height:28px; background:#0c1330; border:4px solid #fff; border-radius:16px; overflow:hidden; }
+  .mutbar .mtag{ display:inline-flex; align-items:center; gap:10px; font-size:37px; font-weight:900; color:#fff; padding:5px 20px; border-radius:13px; white-space:nowrap; }
+  .mutbar .mds{ font-size:31px; font-weight:700; color:#eef2ff; white-space:nowrap; }
+  .costbox{ margin-left:auto; display:flex; align-items:center; gap:20px; background:rgba(8,11,28,.5); border:5px solid #fff; border-radius:17px; padding:10px 26px; }
+  .costbox .lbl{ font-size:34px; font-weight:800; color:#dfe6ff; }
+  .meter{ width:440px; height:42px; background:#0c1330; border:5px solid #fff; border-radius:22px; overflow:hidden; }
   .meter > i{ display:block; height:100%; background:linear-gradient(90deg,#66bb6a,#ffca28,#ef5350); }
-  .costbox .num{ font-size:32px; font-weight:900; color:var(--gold); min-width:150px; text-align:right; }
+  .costbox .num{ font-size:50px; font-weight:900; color:var(--gold); min-width:210px; text-align:right; }
 
-  /* 1行案内（常時表示はこれだけ）。スロットを主役にするため細く。 */
-  .buildguide{ flex:none; text-align:center; }
+  /* 1行案内（常時表示はこれだけ）。スロットを主役にするため細く。
+     ステータス帯にくっつかないよう、少し下げて“余白の中央”に置く（min-height の帯の中で上下センタリング）。 */
+  .buildguide{ flex:none; min-height:120px; display:flex; align-items:center; justify-content:center; text-align:center; }
   .buildguide .bg-main{ font-size:28px; font-weight:800; color:#cdd6ff; }
 
   /* 解除モード（トグル）: ON の間はスロットをタップすると、そのスロットのエンブレムを全部はずす。 */
@@ -652,6 +677,7 @@
   <section id="s-title" class="screen active">
     <div class="logo">
       <div class="big">Ru<span>-</span>Le</div>
+      <div class="sub" id="title-sub"></div>
     </div>
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
@@ -1113,9 +1139,10 @@ const RL = (function(){
     { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:32, suitCost:62, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
     { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:45, suitCost:68, ico:'🧹', effect:['SHED_WEAK','SHED_LEAD'], place:'card', desc:'いちばん弱い札を1枚捨てる。場が空（リード中）なら、もう1枚多く捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá nữa.' },
     { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:33, suitCost:33, ico:'🍃', effect:'SHED_LEAD',     place:'card', desc:'場が空（リード中）に出すと、いちばん弱い札を1枚捨てる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'Khi đánh lúc đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
-    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:1, suitCost:1, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'Chặn 3', abbrVi:'Ch.3', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn chặt được lá 2 trên bãi; chặt xong thì dọn bãi và đánh tiếp.' },
     { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:22, suitCost:27, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi.' },
-    // ── マーク階段(マークスロットに装備・place:'suitRun'=そのマークだけ階段に使える per-suit)。4マーク全部に積めば全色の階段＝コストも4倍。
+    // ── マーク専用エンブレム（マークスロットだけに装備する“スート用”カテゴリ）。
+    //    3返し(aka07)=そのマークの「3」で場の2を切り返す card(suitOnly)／自由・同種階段(mi05/mi06,place:'suitRun')=そのマークだけ階段に使える per-suit。4マーク全部に積めばコストも4倍。
+    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:3, suitCost:3, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'Chặn 3', abbrVi:'Ch.3', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn chặt được lá 2 trên bãi; chặt xong thì dọn bãi và đánh tiếp.' },
     { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:7, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
     { id:'mi06', code:'緑06', color:'midori', name:'同種階段', cost:1,  ico:'🎴', effect:'RUN_SUIT', place:'suitRun', desc:'このマークだけで連続する数字3枚以上の「階段」を出せる（マークは混ぜない）。自分だけに適用。', nameVi:'Sảnh Đồng Chất', abbrVi:'S.Đồng', codeVi:'L06', descVi:'Chỉ riêng chất này tạo "sảnh" từ 3 lá số liên tiếp trở lên (không trộn chất). Chỉ áp dụng cho mình.' },
     // ── 全体ルール(ruleSlots に装備・place:'whole'＝自分(本人)だけに効くルール)。
@@ -2386,6 +2413,7 @@ const AUDIO = (function(){
       menu_run:'🎴 エンブレム巡業（ソロ）', menu_quick:'⚡ クイック対戦', menu_online:'🌐 オンライン対戦',
       menu_help:'📖 あそびかた', menu_settings:'⚙️ せってい', menu_balance:'🧪 Balance Simulator（開発）',
       menu_resume_run:'▶ 巡業を再開 — 深度{0}・残機{1}',
+      title_sub:'カスタム大富豪',
       selftest_word:'selftest', unlocked_emblems:'解放エンブレム',
       /* 編成 */
       bt_run:'巡業ビルド編成 — 深度{0}', bt_quick:'クイック対戦 ビルド編成', bt_online:'オンライン ビルド編成',
@@ -2521,6 +2549,7 @@ const AUDIO = (function(){
       menu_run:'🎴 Lữ hành Biểu Tượng (Đơn)', menu_quick:'⚡ Đấu Nhanh', menu_online:'🌐 Đấu Trực Tuyến',
       menu_help:'📖 Cách Chơi', menu_settings:'⚙️ Cài Đặt', menu_balance:'🧪 Balance Simulator (Phát triển)',
       menu_resume_run:'▶ Tiếp tục Lữ hành — Tầng {0} · Mạng {1}',
+      title_sub:'Tiến Lên Tùy Biến',
       selftest_word:'selftest', unlocked_emblems:'Biểu tượng mở khóa',
       bt_run:'Cấu hình Lữ hành — Tầng {0}', bt_quick:'Cấu hình Đấu Nhanh', bt_online:'Cấu hình Trực Tuyến',
       back_interrupt:'◀ Tạm dừng · Về Menu', back_lobby:'◀ Về Sảnh', back_title:'◀ Về Menu',
@@ -3047,6 +3076,7 @@ const AUDIO = (function(){
       const c=el('div','pc'); c.innerHTML='<span class="'+(red?'red':'blk')+'">'+r+'</span>'; fan.appendChild(c);
     });
     const st=RL.selftest();
+    $('#title-sub').textContent = T('title_sub');
     $('#title-st').textContent = (st.passed===st.total? '✓ ':'⚠ ') + T('selftest_word')+' '+st.passed+'/'+st.total
       + sepDot() + T('unlocked_emblems')+' '+store.unlocked.length+'/'+RL.EMBLEMS.length;
     $('#title-st').style.color = st.passed===st.total ? '#9fd9a8' : '#ffb4a0';
