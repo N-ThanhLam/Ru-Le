@@ -2,6 +2,14 @@
 <!--
 ==================================================================
  UI DESIGN CONTRACT  (UI・UX実装規約 / 削除禁止 / DO NOT DELETE)
+
+ ★スコープ: この契約は【PC / 横持ち(landscape) プロファイル】を統べる。
+   横持ち＝従来どおり 1920x1080 固定ステージ＋全体scale で、下記規約を厳守する。
+   一方【スマホ / 縦持ち(portrait) プロファイル】は別系統で、@media (max-aspect-ratio:1/1)
+   による“レスポンシブ・モバイル規約”(下部 MOBILE PORTRAIT PROFILE) に従う。
+   ＝向き(aspect-ratio)で profile を分岐。PC/横持ちのコードと挙動は無傷のまま温存する。
+
+ [PC / 横持ちプロファイル 規約]
  - Controller First
  - No Mouse Required
  - No Hover Required
@@ -15,6 +23,14 @@
  - Nintendo Switch Style UX
  - One Screen Readability
  - All Future Features Must Follow This Contract
+
+ [スマホ / 縦持ちプロファイル 規約]  (MOBILE PORTRAIT PROFILE)
+ - Portrait First (縦を第一候補・横は従来のPCレイアウトを流用)
+ - Responsive Layout (固定ステージscaleを使わず viewport=実pxで自然拡縮)
+ - Touch First (タップ領域 >= 44px / 誤タップ防止)
+ - Board First (場札を最大面積の主役に)
+ - Progressive Disclosure (常時表示は最小・詳細は選択時のみ/モーダルへ退避)
+ - Scroll Allowed Where Intended (手札/候補は横/縦スクロール許容)
  END CONTRACT
 ==================================================================
  Ru-Le  (ルール) v0.1  -- 単一HTML / 完全オフライン
@@ -48,6 +64,7 @@
     --aka:#ef5350; --ao:#42a5f5; --midori:#66bb6a; --ki:#ffca28;
     --ink:#1f2440; --paper:#fbf7ef; --gold:#ffcf4d;
     --panel:#ffffff; --line:#2a2f55;
+    --gap:clamp(4px,1.4vmin,14px);   /* 縦持ちprofileの流体間隔の基準 */
   }
   *{ box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; }
   html,body{ width:100%; height:100%; background:#05060f; overflow:hidden; font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif; color:var(--ink); }
@@ -61,19 +78,9 @@
   .screen{ position:absolute; inset:0; display:none; }
   .screen.active{ display:block; }
 
-  /* ---- 横画面固定: タッチ端末が縦のときは回転をうながすオーバーレイで全面を覆う ---- */
-  #rotate-lock{ display:none; }
-  @media (orientation: portrait) and (pointer: coarse){
-    #rotate-lock{
-      display:flex; position:fixed; inset:0; z-index:100000;
-      flex-direction:column; align-items:center; justify-content:center; gap:26px; text-align:center; padding:40px;
-      background:radial-gradient(circle at 50% 35%, #182a55 0%, #0a0f24 60%, #05060f 100%); color:#e6ecfb;
-    }
-    #rotate-lock .ic{ font-size:96px; line-height:1; animation:rothint 2.2s ease-in-out infinite; }
-    #rotate-lock .t1{ font-size:38px; font-weight:900; }
-    #rotate-lock .t2{ font-size:26px; opacity:.8; }
-  }
-  @keyframes rothint{ 0%,30%{ transform:rotate(0); } 60%,100%{ transform:rotate(-90deg); } }
+  /* ---- 縦持ちを正式サポート: 旧「回転をうながす全面オーバーレイ」は無効化。
+         縦持ちは下部 MOBILE PORTRAIT PROFILE で専用描画する。 ---- */
+  #rotate-lock{ display:none !important; }
 
   /* ---- 共通パーツ ---- */
   .foc{ cursor:pointer; }
@@ -493,6 +500,260 @@
   .lang-vi .draftcard .nm{ font-size:32px; }
   .lang-vi .recocard .rnm{ font-size:34px; }
   .lang-vi .opp .nm{ font-size:27px; }
+
+  /* ================================================================
+     MOBILE PORTRAIT PROFILE  (スマホ/縦持ち専用・@media max-aspect-ratio:1/1)
+     - PC/横持ち(aspect>1)は一切影響を受けない＝従来の固定ステージ+scaleを温存。
+     - 縦持ちでは固定1920に依存せず viewport=実px で自然拡縮(vmin/clamp)。
+     - 場札を主役に / 常時表示は最小 / 詳細は選択時のみ(ボトムシート)。
+     - サイズは vmin(向き非依存)基準。
+     ================================================================ */
+  @media (max-aspect-ratio: 1/1){
+    /* --- 共通: ステージは画面いっぱい(scaleはJS側で無効化) --- */
+    #fit{ display:block; }
+    #stage{ width:100%; height:100dvh; transform:none !important; }
+
+    /* タッチ最適化(指で押せる下限/ダブルタップ拡大の遅延排除) */
+    .btn.small{ min-height:60px; }
+    .slot, .palette .emb{ min-height:64px; }
+    .pcard, .btn, .slot, .palette .emb, .opp{ touch-action:manipulation; }
+
+    /* ===== MATCH: 絶対配置→縦グリッド(場札を1frで主役に) ===== */
+    #s-match.screen.active{ display:grid; }
+    #s-match{
+      grid-template-columns:minmax(0,1fr);   /* 列を容器幅に固定(横スクロール子が列を広げて見切れるのを防ぐ) */
+      grid-template-rows:auto auto minmax(0,1fr) auto auto;
+      grid-template-areas:"top" "opps" "field" "hand" "act";
+      row-gap:var(--gap);
+    }
+    #s-match > *{ min-width:0; }              /* グリッド項目がmin-content分はみ出すのを抑止 */
+    #s-match > .topbar{ position:static; grid-area:top; height:auto; padding:6px 10px; gap:6px; }
+    #s-match .topbar .spacer{ display:none; }
+    #s-match .topbar .title{ flex:1; min-width:0; white-space:nowrap; overflow:hidden;
+      text-overflow:ellipsis; font-size:clamp(18px,4.4vmin,44px); }
+    #s-match .topbar .btn.small{ flex:0 0 auto; font-size:18px; padding:0 12px; min-height:54px;
+      margin-left:0 !important; }
+    #s-match > .opps{ position:static; grid-area:opps; inset:auto; height:auto;
+      overflow-x:auto; flex-wrap:nowrap; gap:8px; padding:6px 10px; }
+    #s-match .opp{ flex:0 0 auto; min-width:30vw; padding:8px 12px; }
+    #s-match .opp .builds{ display:none; }            /* エンブレムchip→🔍しらべるへ退避 */
+    #s-match .opp .nm{ font-size:clamp(15px,3.6vmin,30px); }
+    #s-match .opp .cnt{ font-size:clamp(26px,8vmin,54px); padding:2px 10px; }
+    #s-match > .center{ position:static; grid-area:field; inset:auto; height:auto; min-height:0;
+      flex-direction:column; gap:10px; padding:0 10px; }
+    #s-match .statecol{ position:static; min-width:0;
+      flex-direction:row; flex-wrap:wrap; justify-content:center; gap:6px; }
+    #s-match .stbadge{ font-size:clamp(14px,3.4vmin,27px); padding:5px 12px; }
+    #s-match > .selfbar{ display:none; }              /* 自分のbuild chipは常時非表示 */
+    #s-match #toast{ top:30dvh; }
+    #s-match > .handzone{ position:static; grid-area:hand; inset:auto; height:auto; padding:0 6px; }
+    #s-match .hand{ overflow-x:auto; justify-content:flex-start; gap:6px; padding:18px 4px 8px; }
+    #s-match > .actbar{ position:static; grid-area:act; inset:auto; height:auto;
+      gap:10px; padding:8px 12px calc(12px + env(safe-area-inset-bottom)); }
+    #s-match .actbar .btn{ flex:1; min-height:clamp(58px,9vmin,84px); }   /* 出す/パスを全幅 */
+    /* 流体カードサイズ */
+    .fieldcard{ width:auto; height:clamp(150px,34dvh,360px); aspect-ratio:5/7; }
+    .fieldcard .r{ font-size:clamp(48px,16vmin,104px); }
+    .fieldcard .s{ font-size:clamp(30px,10vmin,64px); }
+    .fieldcard.multi{ width:auto; height:auto; min-height:clamp(140px,30dvh,300px);
+      max-width:96vw; aspect-ratio:auto; }
+    .fcard{ width:auto; height:clamp(120px,26dvh,230px); aspect-ratio:108/230; }
+    .fcard .r{ font-size:clamp(30px,8vmin,58px); } .fcard .s{ font-size:clamp(20px,5vmin,38px); }
+    .fieldcard .clabel{ font-size:clamp(18px,4.4vmin,27px); }
+    .pcard{ width:clamp(58px,16vmin,120px); height:auto; aspect-ratio:120/172; padding:6px 4px; }
+    .pcard .r,.pcard .r2{ font-size:clamp(22px,6vmin,46px); }
+    .pcard .s{ font-size:clamp(26px,7vmin,54px); }
+
+    /* ===== BUILD: 縦フロー＋詳細ボトムシート ===== */
+    #s-build.screen.active{ display:flex; flex-direction:column; }
+    /* topbar: 1行で横スクロール / 余白spacer・タイトルは隠し、決定を先頭固定で常に見える */
+    #s-build > .topbar{ position:static; flex-wrap:nowrap; overflow-x:auto; height:auto;
+      padding:6px 8px; gap:6px; }
+    #s-build .topbar .title, #s-build .topbar .spacer{ display:none; }
+    #s-build .topbar .btn.small{ flex:0 0 auto; font-size:19px; padding:0 14px; min-height:56px; }
+    #s-build #build-ok{ order:-1; }                   /* けってい▶ を左端(常に見える)へ */
+    #s-build > .wrap{ position:static; inset:auto; height:auto; flex:1; min-height:0;
+      gap:8px; padding:8px 10px; }
+    #s-build > .hint{ display:none; }                 /* ヒント帯は縦では非表示(圧迫感を減らす) */
+    /* コスト/お題ストリップ: 折り返し＋メーター可変幅 */
+    .buildstatus{ flex-wrap:wrap; gap:8px; }
+    .buildstatus .costbox{ margin-left:0; flex:1; }
+    .buildstatus .meter{ flex:1; width:auto; min-width:80px; }
+    .buildstatus .num{ min-width:auto; font-size:26px; }
+    /* スロットは1行に詰めず横スクロール */
+    .slotsrow{ overflow-x:auto; flex:none; }
+    .slotsrow .grp-lbl{ position:sticky; left:0; z-index:1; width:auto; padding-right:8px;
+      background:rgba(8,11,28,.6); border-radius:8px; }
+    .slots{ flex-wrap:nowrap; }
+    .slot{ flex:0 0 auto; min-width:62px; height:clamp(60px,11vmin,92px); }
+    .slotsrow.combo{ flex-direction:column; align-items:stretch; gap:8px; }
+    .slotsrow.combo .slots.suits{ width:auto; }
+    .slot.rule{ min-height:60px; }
+    /* パレット5列→2列 / 詳細は横並びから外す。flexチェーンで縮めて embgrid を内部スクロールに */
+    .buildmain{ flex-direction:column; min-height:0; }
+    .palette{ min-height:0; }
+    .embgrid{ grid-template-columns:repeat(2,1fr); }
+    .palette .emb{ height:auto; min-height:84px; }
+    .palette .emb .nm{ font-size:clamp(20px,4.6vmin,30px); }
+    /* 詳細ペイン＝選択時だけせり上がるボトムシート */
+    .detailpane{ position:fixed; left:0; right:0; bottom:0; width:auto;
+      border-radius:18px 18px 0 0; max-height:48dvh; overflow:auto;
+      transform:translateY(100%); transition:transform .2s ease; z-index:50;
+      box-shadow:0 -12px 30px rgba(0,0,0,.5);
+      padding-bottom:calc(20px + env(safe-area-inset-bottom)); }
+    .detailpane.open{ transform:translateY(0); }
+
+    /* ============================================================
+       P3/P4: その他の画面の縦持ち対応
+       (title / 結果 / ドラフト / 巡業しゅうりょう / ヘルプ /
+        オンライン / ロビー / 設定 / キーコンフィグ)。
+       共通方針＝固定px(min-width/絶対配置)をやめ、topbar を上に静的配置し、
+       中身は1カラムで縦に流して必要なら内部スクロール。実pxなのでフォントは
+       既に十分大きい(縦持ちの病巣は“幅あふれ”と“横並び”)。それだけ潰す。
+       PC/横持ち(aspect>1)はこのブロックの外なので一切影響を受けない。
+       ============================================================ */
+
+    /* --- TITLE --- */
+    #s-title.screen.active{ display:flex; flex-direction:column; align-items:center;
+      justify-content:flex-start; gap:2.6dvh; padding:4dvh 16px calc(4dvh + env(safe-area-inset-bottom));
+      overflow-y:auto; }
+    #s-title .logo{ position:static; }
+    #s-title .logo .big{ font-size:clamp(72px,24vmin,170px); }
+    #s-title .logo .sub{ font-size:clamp(20px,4.4vmin,34px); }
+    #s-title .menu{ position:static; top:auto; width:100%; max-width:440px; gap:14px !important; }
+    /* 直下のメニューボタン＝全幅。.btnの大きな左右padding(88px)は狭幅で文字を潰すので圧縮。 */
+    #s-title .menu > .btn{ min-width:0 !important; width:100%; white-space:normal;
+      font-size:clamp(24px,5.8vmin,32px); min-height:68px; padding:0 18px; line-height:1.15; }
+    /* せってい＋言語の2ボタンは横並び。nowrap＋小さめpaddingで1行に収める。 */
+    #s-title .title-setrow{ width:100%; gap:10px; flex-wrap:wrap; }
+    #s-title .title-setrow .btn{ min-width:0 !important; flex:1 1 0; width:auto;
+      white-space:nowrap; font-size:clamp(20px,4.6vmin,28px); padding:0 12px; min-height:62px; }
+    #s-title .cardfan{ display:none; }   /* 飾りカードはメニューと重なるので縦では隠す */
+    #s-title .ver{ bottom:8px; right:12px; font-size:16px; }
+    #s-title .stbox{ bottom:8px; left:12px; right:auto; font-size:16px;
+      max-width:62vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* --- ページ型画面(topbar + ovl-page) 共通: 縦フレックス＋スクロール --- */
+    #s-result.screen.active, #s-draft.screen.active, #s-runover.screen.active,
+    #s-help.screen.active, #s-online.screen.active, #s-set.screen.active{
+      display:flex; flex-direction:column; }
+    #s-result > .topbar, #s-draft > .topbar, #s-runover > .topbar,
+    #s-help > .topbar, #s-online > .topbar, #s-set > .topbar{
+      position:static; height:auto; min-height:58px; padding:8px 12px; gap:10px; flex-wrap:wrap; }
+    #s-result .topbar .title, #s-draft .topbar .title, #s-runover .topbar .title,
+    #s-help .topbar .title, #s-online .topbar .title, #s-set .topbar .title{
+      font-size:clamp(22px,5.2vmin,44px); margin-left:0 !important; }
+    #s-result .topbar .spacer, #s-draft .topbar .spacer{ display:none; }
+    #s-help .topbar .btn.small, #s-online .topbar .btn.small, #s-set .topbar .btn.small{
+      flex:0 0 auto; font-size:18px; min-height:50px; padding:0 14px; }
+    #s-result > .ovl-page, #s-draft > .ovl-page, #s-runover > .ovl-page,
+    #s-help > .ovl-page, #s-online > .ovl-page, #s-set > .ovl-page{
+      position:static; flex:1; min-height:0; display:block; overflow-y:auto;
+      padding:12px 10px calc(16px + env(safe-area-inset-bottom)); }
+    #s-result .card-modal, #s-draft .card-modal, #s-runover .card-modal,
+    #s-help .card-modal, #s-online .card-modal, #s-set .card-modal{
+      width:100%; max-width:560px; margin:0 auto; padding:20px 18px; border-radius:18px; }
+    #s-result .card-modal h2, #s-draft .card-modal h2, #s-runover .card-modal h2,
+    #s-help .card-modal h2, #s-online .card-modal h2{
+      font-size:clamp(26px,6vmin,46px); margin-bottom:16px; }
+    /* ボタン行＝縦積み・全幅(誤タップ防止＋長文ボタンの溢れ防止) */
+    #s-result .rowbtns, #s-draft .rowbtns, #s-runover .rowbtns, #s-online .rowbtns{
+      flex-direction:column; align-items:stretch; gap:12px; }
+    #s-result .rowbtns .btn, #s-draft .rowbtns .btn, #s-runover .rowbtns .btn,
+    #s-online .rowbtns .btn{
+      width:100%; min-width:0; white-space:normal; font-size:clamp(20px,4.6vmin,34px);
+      padding:0 16px; min-height:64px; }
+
+    /* --- 結果 --- */
+    #s-result .ranklist{ min-width:0; width:100%; gap:10px; }
+    #s-result .rankrow{ gap:12px; padding:12px 14px; }
+    #s-result .rankrow .pl{ width:auto; min-width:58px; font-size:clamp(30px,8vmin,54px); }
+    #s-result .rankrow .nm{ font-size:clamp(24px,5.6vmin,38px); }
+    #s-result .rankrow .ti{ font-size:clamp(18px,4.4vmin,30px); }
+
+    /* --- ドラフト(3枚→縦積み) --- */
+    #s-draft .draft{ flex-direction:column; align-items:stretch; gap:14px; }
+    #s-draft .draftcard{ width:auto; padding:16px; }
+    #s-draft .draftcard .ds{ min-height:0; font-size:clamp(20px,4.6vmin,26px); }
+    #s-draft .draftcard .nm{ font-size:clamp(26px,6vmin,36px); }
+    #s-draft .draftcard .code{ font-size:clamp(26px,6vmin,40px); }
+    #s-draft .topbar #draft-depth{ font-size:clamp(20px,4.6vmin,44px); }
+
+    /* --- 巡業しゅうりょう --- */
+    #s-runover #runover-body{ font-size:clamp(28px,7vmin,40px) !important; }
+
+    /* --- ヘルプ --- */
+    #s-help .page{ min-width:0; width:100%; min-height:0; }
+    #s-help .page .body{ font-size:clamp(20px,4.4vmin,30px); }
+    #s-help .page .body h3{ font-size:clamp(26px,5.6vmin,38px); }
+    #s-help .page .body ul{ margin-left:24px; }
+    #s-help .pager{ gap:12px; margin-top:18px; }
+    #s-help .pager .btn.small{ font-size:18px; min-height:54px; padding:0 14px; }
+    #s-help .pager .pgn{ font-size:clamp(20px,4.6vmin,30px); }
+
+    /* --- オンライン設定 --- */
+    #s-online .netform{ margin:14px 0 4px; }
+    #s-online .netrow{ flex-direction:column; align-items:stretch; gap:6px; margin:12px 0; }
+    #s-online .netrow span{ min-width:0; font-size:clamp(22px,5vmin,30px); }
+    #s-online .netrow input{ width:100%; font-size:clamp(22px,5vmin,32px); padding:12px 14px; }
+
+    /* --- 設定 --- */
+    #s-set .page{ min-width:0; width:100%; min-height:0; }
+    #s-set .setrow{ flex-wrap:wrap; gap:10px 14px; padding:14px 16px; margin:10px 0; }
+    #s-set .setrow .nm{ flex:1 1 auto; font-size:clamp(24px,5.6vmin,34px); }
+    #s-set .setrow .val{ min-width:0; font-size:clamp(22px,5.2vmin,32px); text-align:right; }
+    #s-set .setrow .btn.small{ flex:1 1 100%; font-size:20px; min-height:56px; }
+
+    /* --- ロビー(topbar + .wrap) --- */
+    #s-lobby.screen.active{ display:flex; flex-direction:column; }
+    #s-lobby > .topbar{ position:static; height:auto; min-height:58px; padding:8px 10px;
+      gap:8px; flex-wrap:wrap; }
+    #s-lobby .topbar .title{ font-size:clamp(20px,4.8vmin,44px); margin-left:0 !important;
+      flex:1 1 100%; order:-1; }
+    #s-lobby .topbar .spacer{ display:none; }
+    #s-lobby .topbar .btn.small{ flex:1 1 auto; font-size:18px; min-height:52px;
+      padding:0 12px; margin-left:0 !important; }
+    #s-lobby > .wrap{ flex:1; min-height:0; overflow-y:auto; display:flex;
+      flex-direction:column; align-items:center; gap:8px;
+      padding:12px 10px calc(16px + env(safe-area-inset-bottom)); }
+    #s-lobby .lobbyseats{ flex-direction:column; align-items:stretch; width:100%; max-width:460px; gap:12px; }
+    #s-lobby .seatcard{ width:auto; min-height:0; padding:16px; }
+    #s-lobby #lobby-code{ font-size:clamp(22px,5.2vmin,30px) !important; }
+    #s-lobby #lobby-hint{ font-size:clamp(20px,4.6vmin,26px) !important; text-align:center; }
+
+    /* --- キーコンフィグ(絶対配置→静的・1行に積む) --- */
+    #s-keys.screen.active{ display:flex; flex-direction:column; }
+    #s-keys > .topbar{ position:static; height:auto; min-height:58px; padding:8px 12px; gap:10px; }
+    #s-keys .topbar .title{ font-size:clamp(22px,5.2vmin,44px); margin-left:0 !important; }
+    #s-keys .keyswrap{ position:static; left:auto; right:auto; top:auto; bottom:auto;
+      flex:1; min-height:0; overflow-y:auto; gap:12px;
+      padding:12px 10px calc(16px + env(safe-area-inset-bottom)); }
+    #s-keys .keyshead{ font-size:clamp(20px,4.4vmin,27px); }
+    #s-keys .keyscolhd{ display:none; }   /* 3カラム見出しは積むと意味がない */
+    #s-keys .keyrow{ flex-wrap:wrap; gap:10px; padding:10px 12px; }
+    #s-keys .keyrow .kact{ width:auto; flex:1 1 100%; font-size:clamp(22px,5vmin,30px); }
+    #s-keys .kcell{ flex:1 1 0; min-width:0; min-height:54px; padding:6px 12px; }
+    #s-keys .kcell .klbl{ font-size:clamp(22px,5vmin,30px); }
+    #s-keys .kcell .kval{ font-size:clamp(20px,4.6vmin,28px); }
+    #s-keys .keysfoot{ flex-direction:column; align-items:stretch; gap:12px; }
+    #s-keys .keysnote{ font-size:clamp(18px,4.2vmin,24px); }
+    #s-keys .capbox{ padding:28px 26px; max-width:90vw; gap:12px; }
+    #s-keys .capbox .capic{ font-size:clamp(54px,16vmin,88px); }
+    #s-keys .capbox #capture-txt{ font-size:clamp(26px,6vmin,42px); }
+    #s-keys .capbox .capesc{ font-size:clamp(18px,4.2vmin,27px); }
+
+    /* --- 共有オーバーレイ(ポーズ/指名/おすすめ/しらべる)も縦では画面内に収める --- */
+    .ovl:not(.ovl-page) .card-modal{ max-width:94vw; max-height:88dvh; overflow:auto;
+      padding:20px 18px; }
+    .ovl:not(.ovl-page) .rowbtns{ flex-direction:column; align-items:stretch; gap:12px; }
+    .ovl:not(.ovl-page) .rowbtns .btn{ width:100%; min-width:0; white-space:normal; }
+    .recolist{ flex-direction:column; align-items:stretch; gap:14px; }
+    .recocard{ width:auto; }
+    .recocard .rds{ min-height:0; }
+    .inspwrap{ min-width:0; max-height:80dvh; }
+    .inspgrid{ flex-direction:column; }
+    .inspe{ width:auto; }
+  }
 </style>
 </head>
 <body>
@@ -2364,11 +2625,20 @@ const AUDIO = (function(){
   function toggleLang(){ LANG = (LANG==='vi') ? 'ja' : 'vi'; store.lang=LANG; store.save(); AUDIO.confirm(); applyLang(); }
 
   /* ---------- ステージのスケーリング ---------- */
+  function isPortrait(){ return window.matchMedia('(max-aspect-ratio:1/1)').matches; }
   function fitStage(){
-    const s=$('#stage'); const sc=Math.min(window.innerWidth/1920, window.innerHeight/1080);
-    s.style.transform='scale('+sc+')';
+    const s=$('#stage'); if(!s) return;
+    if(isPortrait()){
+      // 縦持ち: 固定ステージ/scaleを使わず CSS(MOBILE PORTRAIT PROFILE) に委ねる
+      s.style.width=''; s.style.height=''; s.style.transform='';
+    } else {
+      // 横持ち/PC: 従来どおり 1920x1080 を画面にレターボックスscale(挙動温存)
+      const sc=Math.min(window.innerWidth/1920, window.innerHeight/1080);
+      s.style.width='1920px'; s.style.height='1080px'; s.style.transform='scale('+sc+')';
+    }
   }
   window.addEventListener('resize', fitStage);
+  window.addEventListener('orientationchange', fitStage);
 
   /* ---------- 画面管理 ---------- */
   let currentScreen='s-title';
@@ -2441,7 +2711,7 @@ const AUDIO = (function(){
       sc=sc.parentElement;
     }
     if(sc && sc!==document.body){
-      const stage=$('#stage'); const scale=(stage.getBoundingClientRect().width/1920)||1;
+      const stage=$('#stage'); const scale=isPortrait()?1:((stage.getBoundingClientRect().width/1920)||1);
       const er=e.getBoundingClientRect(), cr=sc.getBoundingClientRect(); const pad=18*scale;
       if(er.top < cr.top+pad) sc.scrollTop -= (cr.top+pad - er.top)/scale;
       else if(er.bottom > cr.bottom-pad) sc.scrollTop += (er.bottom - (cr.bottom-pad))/scale;
@@ -3353,6 +3623,8 @@ const AUDIO = (function(){
            r.hint=T('hint_detail_default'); }
     host.innerHTML=r.html;
     const he=$('#build-hint'); if(he) he.innerHTML=r.hint;
+    // 縦持ち: エンブレムにフォーカス中だけ詳細シートをせり上げる(=選択時のみ開示)
+    host.classList.toggle('open', isPortrait() && !!(f && f.classList.contains('emb')));
   }
   function slotDisplayLabel(type,key){
     return type==='rule' ? T('slot_disp_rule') : type==='suit' ? T('slot_disp_suit', RL.SUIT_SYM[key]) : T('slot_disp_rank', key);
@@ -4915,11 +5187,8 @@ const AUDIO = (function(){
       });
     });
   }
-  // 横画面ロック: インストール済みPWA/全画面では landscape に固定を試みる(失敗は無視)。
-  //   ブラウザのタブでは縦持ち時に #rotate-lock オーバーレイが覆う(CSS側)。
-  function tryLock(){ try{ if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(function(){}); }catch(e){} }
-  window.addEventListener('load', tryLock);
-  window.addEventListener('pointerdown', tryLock, { passive:true });
+  // 縦持ちを正式サポートするため、向き固定ロックは廃止(縦=モバイルprofile / 横=PCレイアウト)。
+  function tryLock(){ /* no-op: orientation lock removed to allow portrait play */ }
 })();
 </script>
 </body>
