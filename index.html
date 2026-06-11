@@ -23,6 +23,14 @@
  - One Screen Readability
  - Landscape Only (縦持ちは回転をうながし、縦専用UIは作らない)
  - All Future Features Must Follow This Contract
+
+ [VISUAL / 質感ガイド（低スペック端末優先・削除禁止）]
+ - 高級トレカ風の「艶」は静的グラデのみで作る：①上部の薄い白 linear-gradient ②角の控えめ radial ハイライト
+   ③1pxの内側光(box-shadow inset 0 0 0 1px)。これらは要素自身の background/box-shadow に畳み込み、追加レイヤを作らない。
+ - 影は「やわらかな単一ドロップ＋1px内側光」を基本とし、box-shadow の多重利用を避ける(場札のみ金の光輪を1層許可)。
+ - 禁止：backdrop-filter / filter:blur / ガラスモーフィズム / 高コスト多重シャドウ / 常時パーティクル / 動画背景 / 重いシェーダ。
+ - アニメは transform/opacity のみ・150〜250ms・ease-out 中心。常時アニメ禁止(発動時のみ。例：場札 dealin / エンブレム embPop)。
+   全ての装飾アニメは @media (prefers-reduced-motion:reduce) で停止できること。
  END CONTRACT
 ==================================================================
  Ru-Le  (ルール) v0.1  -- 単一HTML / 完全オフライン
@@ -102,15 +110,25 @@
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:14px;
     min-height:84px; padding:0 44px; border-radius:22px;
-    background:linear-gradient(180deg,#ffffff,#e9ecff); color:var(--ink);
+    /* 上部の薄い白＝艶（静的グラデのみ。地色は2層目）。全UIで共通の質感言語。 */
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 42%),
+      linear-gradient(180deg,#ffffff,#e9ecff);
+    color:var(--ink);
     font-size:34px; font-weight:800; border:5px solid var(--line);
-    box-shadow:0 8px 0 #1a1f3d, 0 14px 22px rgba(0,0,0,.35); text-align:center;
-    white-space:nowrap;
+    box-shadow:0 6px 0 #1a1f3d, 0 10px 18px rgba(0,0,0,.32); text-align:center;
+    white-space:nowrap; transition:transform .12s ease, box-shadow .12s ease;
   }
-  .btn.primary{ background:linear-gradient(180deg,#ffe27a,#ffcf4d); }
-  .btn.ghost{ background:linear-gradient(180deg,#2b3666,#222c55); color:#fff; }
-  .btn.small{ min-height:64px; font-size:28px; padding:0 28px; border-width:4px; box-shadow:0 6px 0 #1a1f3d; }
-  .btn[disabled]{ opacity:.4; filter:grayscale(.5); }
+  /* 押した瞬間だけ沈む（transformのみ＝再レイアウト無し）。タッチでも気持ちよく反応する。 */
+  .btn:active{ transform:translateY(3px); box-shadow:0 3px 0 #1a1f3d, 0 6px 12px rgba(0,0,0,.3); }
+  .btn.primary{ background:
+    linear-gradient(180deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(180deg,#ffe27a,#ffcf4d); }
+  .btn.ghost{ background:
+    linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 46%),
+    linear-gradient(180deg,#2b3666,#222c55); color:#fff; }
+  .btn.small{ min-height:64px; font-size:28px; padding:0 28px; border-width:4px; box-shadow:0 5px 0 #1a1f3d, 0 8px 14px rgba(0,0,0,.3); }
+  .btn[disabled]{ opacity:.4; }
 
   .chip-aka{ background:var(--aka);} .chip-ao{ background:var(--ao);} .chip-midori{ background:var(--midori);} .chip-ki{ background:var(--ki); color:#5a4500;}
 
@@ -181,10 +199,14 @@
   .slotsrow{ display:flex; gap:14px; flex:1 1 0; min-height:0; max-height:300px; align-items:stretch; }
   .slotsrow .grp-lbl{ width:150px; flex:none; display:flex; align-items:center; font-size:34px; font-weight:800; color:#dfe6ff; }
   .slots{ flex:1; display:flex; gap:12px; align-items:stretch; }
-  .slot{ flex:1; min-width:0; background:linear-gradient(180deg,#ffffff,#eaeefb); border:5px solid var(--line); border-radius:20px;
+  .slot{ flex:1; min-width:0; border:5px solid var(--line); border-radius:20px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,0) 24%),   /* 上部の艶 */
+      linear-gradient(180deg,#ffffff,#eaeefb);
     min-height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:10px 6px; position:relative; cursor:pointer;
     overflow:hidden;   /* ★何を積んでも箱の外へはみ出さない（数字に詰め込んでも崩れない保険） */
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.9), inset 0 -12px 20px rgba(70,90,150,.10); }
+    transition:transform .15s ease;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.55); }   /* 1pxの内側光（多重影をやめて軽量化） */
   .slot .k{ font-size:66px; font-weight:900; color:var(--ink); line-height:1; transition:font-size .12s ease; }
   .slot.has-emb .k{ font-size:44px; }   /* ★エンブレムが付いたら数字を小さくして「数字＋エンブレム」を両方ちゃんと収める */
   .slot .k.red{ color:#d3382f; }
@@ -303,9 +325,19 @@
 
   #s-match .center{ position:absolute; top:316px; left:0; right:0; height:300px; display:flex; align-items:center; justify-content:center; gap:40px; }
   .fieldzone{ display:flex; flex-direction:column; align-items:center; gap:12px; }
-  .fieldcard{ width:200px; height:280px; border-radius:20px; background:linear-gradient(152deg,#ffffff 0%, #f3f6ff 58%, #e6ebfb 100%); border:6px solid var(--line);
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.95), inset 0 -14px 24px rgba(80,100,160,.12), 0 16px 30px rgba(0,0,0,.45); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
-  .fieldcard.empty{ background:rgba(255,255,255,.12); border-style:dashed; border-color:rgba(255,255,255,.5); }
+  .fieldcard{ width:200px; height:280px; border-radius:20px; border:6px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.72) 0%, rgba(255,255,255,0) 22%),                /* 上部の艶 */
+      radial-gradient(130% 90% at 18% -4%, rgba(255,255,255,.6), rgba(255,255,255,0) 44%),       /* 角のハイライト */
+      linear-gradient(152deg,#ffffff 0%, #f3f6ff 58%, #e6ebfb 100%);                             /* 地のグラデ */
+    /* ★場の主役化：金のうっすら光輪＋1pxの内側光＋深い影で、現在の場札を最前面に見せる（全て静的＝描画負荷ゼロ）。 */
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.6), 0 0 0 6px rgba(255,207,77,.16), 0 18px 34px rgba(0,0,0,.5);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+  .fieldcard.empty{ background:rgba(255,255,255,.12); border-style:dashed; border-color:rgba(255,255,255,.5); box-shadow:none; }
+  /* 場札が新しく出た瞬間だけ再生（transform/opacityのみ・150〜250ms・ease-out）。同じ場では再生しない。 */
+  @keyframes fieldIn{ from{ transform:translateY(-16px) scale(.9); opacity:0; } to{ transform:none; opacity:1; } }
+  .fieldcard.dealin{ animation:fieldIn .2s cubic-bezier(.2,.7,.3,1); }
+  @media (prefers-reduced-motion:reduce){ .fieldcard.dealin{ animation:none; } }
   .fieldcard .r{ font-size:104px; font-weight:900; line-height:1; }
   .fieldcard .s{ font-size:64px; line-height:1; }
   .fieldcard .emptytxt{ font-size:30px; color:#e7ecff; font-weight:800; text-align:center; padding:0 12px; }
@@ -321,6 +353,16 @@
     border:5px solid #fff; box-shadow:0 10px 30px rgba(0,0,0,.5); animation:pop .3s ease; }
   @keyframes pop{ from{ transform:scale(.7); opacity:0;} to{ transform:scale(1); opacity:1;} }
 
+  /* ===== エンブレム発動の一瞬きらめき =====
+     発動した時だけ JS が要素を生成し、約320msで消す。アイコンが拡大→等倍に戻りながらフェード。
+     transform/opacity のみ＝再レイアウト無し・常時アニメ無し（規約：常時アニメ禁止）。 */
+  #embflash{ position:absolute; top:360px; left:50%; transform:translateX(-50%); z-index:36; pointer-events:none;
+    display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .embpop{ font-size:128px; line-height:1; text-shadow:0 6px 18px rgba(0,0,0,.55);
+    animation:embPop .34s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes embPop{ 0%{ transform:scale(.45); opacity:0; } 30%{ transform:scale(1.15); opacity:1; } 100%{ transform:scale(1); opacity:0; } }
+  @media (prefers-reduced-motion:reduce){ .embpop{ animation:none; opacity:0; } }
+
   #s-match .selfbar{ position:absolute; left:24px; right:24px; top:626px; height:62px; display:flex; align-items:center; gap:14px; }
   #s-match .selfbar .me{ font-size:30px; font-weight:900; color:#fff; display:flex; align-items:baseline; gap:10px; white-space:nowrap; }
   #s-match .selfbar .me .selfcnt{ font-size:44px; font-weight:900; color:var(--gold); line-height:1; }
@@ -329,14 +371,21 @@
 
   #s-match .handzone{ position:absolute; left:24px; right:24px; bottom:128px; top:700px; display:flex; align-items:flex-end; justify-content:center; }
   .hand{ display:flex; align-items:flex-end; justify-content:center; gap:8px; }
-  .pcard{ width:120px; height:172px; border-radius:16px; background:linear-gradient(152deg,#ffffff 0%, #f4f6ff 58%, #e7ecfb 100%); border:5px solid var(--line);
+  .pcard{ width:120px; height:172px; border-radius:16px; border:5px solid var(--line);
+    /* 高級トレカ風の質感：①上部の薄い白グラデ ②角の控えめハイライト ③地のグラデ。全て静的＝再描画なし。 */
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,0) 20%),
+      radial-gradient(130% 90% at 16% -4%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%),
+      linear-gradient(152deg,#ffffff 0%, #f4f6ff 58%, #e7ecfb 100%);
     display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:10px 6px; position:relative;
-    transition:transform .12s ease; box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 18px rgba(80,100,160,.10), 0 8px 16px rgba(0,0,0,.35); }
+    transition:transform .18s cubic-bezier(.2,.7,.3,1);
+    /* 1pxの内側光（縁の艶）＋やわらかな単一ドロップシャドウ＝多重影をやめて軽量化＋階層感を維持。 */
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.55), 0 6px 14px rgba(0,0,0,.34); }
   .pcard .r{ font-size:46px; font-weight:900; line-height:1; align-self:flex-start; margin-left:6px;}
   .pcard .s{ font-size:54px; line-height:1; }
   .pcard .r2{ font-size:46px; font-weight:900; line-height:1; align-self:flex-end; transform:rotate(180deg); margin-right:6px; }
   .pcard.playable{ box-shadow:0 0 0 4px rgba(102,187,106,.9), 0 8px 16px rgba(0,0,0,.35); }
-  .pcard.dead{ filter:grayscale(.65) brightness(.82); }
+  .pcard.dead{ opacity:.42; }   /* 出せない札はうすく沈める（filter不使用＝低負荷） */
   .pcard .emb{ position:absolute; top:6px; right:6px; font-size:26px; font-weight:900; color:#fff; width:38px; height:38px; border-radius:50%; background:#1a1f3d; border:3px solid #fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.5); }
   .pcard .emb.red{ background:#d3382f; }
   .pcard.sel{ border-color:var(--gold); box-shadow:0 0 0 5px rgba(255,207,77,.95), 0 12px 22px rgba(0,0,0,.45); transform:translateY(-20px); }
@@ -345,7 +394,12 @@
   .pcard .pick{ position:absolute; top:-14px; right:-10px; width:30px; height:30px; border-radius:50%; background:var(--gold); color:#1f2440; font-size:20px; font-weight:900; display:flex; align-items:center; justify-content:center; border:3px solid #fff; }
   /* 複数枚役の場札 */
   .fieldcard.multi{ width:auto; min-width:200px; max-width:760px; height:280px; flex-direction:row; gap:10px; padding:0 20px; flex-wrap:wrap; }
-  .fcard{ width:108px; height:230px; background:#fff; border-radius:14px; border:4px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .fcard{ width:108px; height:230px; border-radius:14px; border:4px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,0) 22%),
+      linear-gradient(152deg,#ffffff 0%, #f4f6ff 60%, #e7ecfb 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .fcard .r{ font-size:58px; font-weight:900; line-height:1; }
   .fcard .s{ font-size:38px; line-height:1; }
   .fieldcard .clabel{ position:absolute; bottom:-42px; left:50%; transform:translateX(-50%); font-size:27px; font-weight:900; color:var(--gold); white-space:nowrap; text-shadow:0 2px 6px rgba(0,0,0,.6); }
@@ -419,13 +473,13 @@
   .keyswrap{ position:absolute; top:112px; left:80px; right:80px; bottom:36px; display:flex; flex-direction:column; gap:14px; }
   .keyshead{ font-size:27px; font-weight:700; color:#dfe6ff; }
   .keyshead b{ color:var(--gold); }
-  .keyscols{ flex:1; display:flex; flex-direction:column; gap:8px; }
+  .keyscols{ flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; }
   .keyscolhd{ display:flex; align-items:center; gap:18px; padding:0 16px; color:#b9c4ef; font-size:24px; font-weight:800; }
   .keyscolhd .kh-act{ width:240px; } .keyscolhd .kh-key,.keyscolhd .kh-pad{ flex:1; }
-  .keysrows{ display:flex; flex-direction:column; gap:10px; }
-  .keyrow{ display:flex; align-items:center; gap:18px; background:rgba(255,255,255,.08); border:3px solid rgba(255,255,255,.18); border-radius:14px; padding:9px 16px; flex-wrap:wrap; }
-  .keyrow .kact{ width:280px; flex:none; font-size:26px; font-weight:900; color:#fff; line-height:1.2; }
-  .kcell{ flex:1; display:flex; align-items:center; gap:12px; min-height:56px; padding:6px 18px; background:#fff; border:4px solid var(--line); border-radius:12px; }
+  .keysrows{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:5px; padding-right:6px; }
+  .keyrow{ display:flex; align-items:center; gap:18px; background:rgba(255,255,255,.08); border:3px solid rgba(255,255,255,.18); border-radius:14px; padding:4px 16px; flex-wrap:wrap; }
+  .keyrow .kact{ width:280px; flex:none; font-size:28px; font-weight:900; color:#fff; line-height:1.15; }
+  .kcell{ flex:1; display:flex; align-items:center; gap:12px; min-height:46px; padding:4px 18px; background:#fff; border:4px solid var(--line); border-radius:12px; }
   .kcell .klbl{ font-size:30px; flex:none; }
   .kcell .kval{ font-size:28px; font-weight:900; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .kcell.capturing{ background:#fff7df; border-color:var(--gold); box-shadow:0 0 0 4px rgba(255,207,77,.4); }
@@ -589,7 +643,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.11</div>
+    <div class="ver">v0.12</div>
   </section>
 
   <!-- ===================== BUILD ===================== -->
@@ -661,6 +715,7 @@
       <div class="statecol" id="match-state"></div>
     </div>
     <div id="toast"></div>
+    <div id="embflash"></div>
     <div class="selfbar">
       <div class="me" id="self-name">あなた</div>
       <div class="builds" id="self-builds"></div>
@@ -927,11 +982,11 @@
   <section id="s-emblem" class="screen">
     <div class="embpick">
       <div class="embpick-bar">
+        <div class="btn small ghost foc" id="emblem-close" data-i18n="emblem_close">◀ もどる</div>
         <div class="ep-slot" id="emblem-slot">3</div>
         <div class="ep-cur-lbl" data-i18n="emblem_current">いま：</div>
         <div class="ep-cur-val" id="emblem-cur">なし</div>
         <div class="ep-spacer"></div>
-        <div class="btn small ghost foc" id="emblem-close" data-i18n="emblem_close">とじる ✕</div>
       </div>
       <div class="embpick-body">
         <div class="palette">
@@ -947,9 +1002,8 @@
   <!-- ===================== INSPECT (フルスクリーン独立画面) ===================== -->
   <section id="s-inspect" class="screen">
     <div class="topbar">
-      <div class="title" data-i18n="inspect_h2">エンブレム能力 — カーソルを当てると能力が読めます</div>
-      <div class="spacer"></div>
-      <div class="btn small primary foc" id="inspect-close" data-i18n="inspect_close">とじる ✕</div>
+      <div class="btn small ghost foc" id="inspect-close" data-i18n="inspect_close">◀ もどる</div>
+      <div class="title" style="margin-left:18px;" data-i18n="inspect_h2">エンブレム能力 — カーソルを当てると能力が読めます</div>
     </div>
     <div class="inspect-body-wrap">
       <div class="inspwrap" id="inspect-body"></div>
@@ -1025,36 +1079,40 @@ const RL = (function(){
   //   ④ floor でも弱い card は effect 強化(SHED_LEAD 付与)。enabler(階段/役/革命/ボム/スート順=原型ルール)は固定・据え置き。
   const EMBLEMS = [
     // 赤 — 場操作   (cost=数字スロット / suitCost=マークスロット)
-    { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:27, suitCost:44, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
-    { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:14, suitCost:48, ico:'🪽', effect:'WILD',         place:'card', desc:'どんな場の札の上にも出せる（縛りも無視する）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Đánh đè lên bất kỳ lá nào trên bãi (bỏ qua cả khóa chất).' },
-    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:17, suitCost:29, ico:'🔃', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
-    { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:3, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
+    { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:28, suitCost:43, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
+    { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:15, suitCost:47, ico:'🪽', effect:'WILD',         place:'card', desc:'どんな場の札の上にも出せる（縛りも無視する）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Đánh đè lên bất kỳ lá nào trên bãi (bỏ qua cả khóa chất).' },
+    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:30, ico:'🔃', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
+    { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:2, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     // 青 — ターン操作
-    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:11, suitCost:26, ico:'⏩', effect:['SKIP','SHED_LEAD'], place:'card', desc:'次のプレイヤーを1人飛ばす。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 người kế tiếp. Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
-    { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:20, suitCost:30, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
-    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:13, suitCost:18, ico:'🔄', effect:['REVERSE_DIR','SHED_LEAD'], place:'card', desc:'手番の向きを反転する。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
-    { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:16, suitCost:43, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
+    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:32, suitCost:40, ico:'⏩', effect:['SKIP','SHED_LEAD'], place:'card', desc:'次のプレイヤーを1人飛ばす。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 người kế tiếp. Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
+    { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:28, suitCost:39, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
+    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:32, suitCost:33, ico:'🔄', effect:['REVERSE_DIR','SHED_LEAD'], place:'card', desc:'手番の向きを反転する。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
+    { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:27, suitCost:43, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
     // 緑 — 役追加(関連する札も一緒に捨てる)
-    { id:'mi01',  code:'緑01', color:'midori', name:'双刃', cost:14, suitCost:26, ico:'⚔️', effect:['CARRY_SAME','SHED_LEAD'],     place:'card', desc:'同じ数字の札も1枚、一緒に捨てる。場が空（リード中）なら、いちばん弱い札も1枚捨てる。', nameVi:'Song Đao', abbrVi:'S.Đao', codeVi:'L01', descVi:'Bỏ kèm 1 lá cùng số. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá yếu nhất.' },
-    { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:5, suitCost:14, ico:'🪜', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
-    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:17, suitCost:27, ico:'🔱', effect:['CARRY_TWO_SAME','SHED_LEAD'], place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。場が空（リード中）なら、いちばん弱い札も1枚捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá yếu nhất.' },
-    { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:46, suitCost:44, ico:'☄️', effect:['CARRY_RUN','SHED_LEAD'],      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。場が空（リード中）なら、いちばん弱い札も1枚捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2). Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá yếu nhất.' },
+    { id:'mi01',  code:'緑01', color:'midori', name:'双刃', cost:32, suitCost:35, ico:'⚔️', effect:['CARRY_SAME','SHED_LEAD'],     place:'card', desc:'同じ数字の札も1枚、一緒に捨てる。場が空（リード中）なら、いちばん弱い札も1枚捨てる。', nameVi:'Song Đao', abbrVi:'S.Đao', codeVi:'L01', descVi:'Bỏ kèm 1 lá cùng số. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá yếu nhất.' },
+    { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:27, suitCost:32, ico:'🪜', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
+    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:32, suitCost:35, ico:'🔱', effect:['CARRY_TWO_SAME','SHED_LEAD'], place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。場が空（リード中）なら、いちばん弱い札も1枚捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá yếu nhất.' },
+    { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:45, suitCost:45, ico:'☄️', effect:['CARRY_RUN','SHED_LEAD'],      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。場が空（リード中）なら、いちばん弱い札も1枚捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2). Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá yếu nhất.' },
     // 黄 — 手札操作(無関係な札を捨てる)
-    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:18, suitCost:62, ico:'🗑️', effect:'SHED_WEAK',     place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'Bỏ 1 lá yếu nhất trên tay.' },
-    { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:27, suitCost:68, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
-    { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:50, suitCost:68, ico:'🧹', effect:['SHED_WEAK','SHED_LEAD'], place:'card', desc:'いちばん弱い札を1枚捨てる。場が空（リード中）なら、もう1枚多く捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá nữa.' },
-    { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:11, suitCost:18, ico:'🍃', effect:'SHED_LEAD',     place:'card', desc:'場が空（リード中）に出すと、いちばん弱い札を1枚捨てる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'Khi đánh lúc đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
-    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:1, suitCost:1, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'マークに装備する。そのマークの「3」だけが、場の最強単騎（2）を1枚で切り返せる。装備していないマークの3では返せない。', nameVi:'Chặn 3', abbrVi:'Ch.3', codeVi:'Đ07', descVi:'Gắn vào chất. Chỉ lá "3" thuộc chất đã gắn mới chặn được lá lẻ mạnh nhất trên bãi (lá 2). Chất chưa gắn thì lá 3 không chặn được.' },
+    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:33, suitCost:60, ico:'🗑️', effect:'SHED_WEAK',     place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'Bỏ 1 lá yếu nhất trên tay.' },
+    { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:32, suitCost:62, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
+    { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:45, suitCost:68, ico:'🧹', effect:['SHED_WEAK','SHED_LEAD'], place:'card', desc:'いちばん弱い札を1枚捨てる。場が空（リード中）なら、もう1枚多く捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá nữa.' },
+    { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:33, suitCost:33, ico:'🍃', effect:'SHED_LEAD',     place:'card', desc:'場が空（リード中）に出すと、いちばん弱い札を1枚捨てる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'Khi đánh lúc đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
+    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:1, suitCost:1, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'Chặn 3', abbrVi:'Ch.3', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn chặt được lá 2 trên bãi; chặt xong thì dọn bãi và đánh tiếp.' },
+    { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:22, suitCost:27, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi.' },
     // ── マーク階段(マークスロットに装備・place:'suitRun'=そのマークだけ階段に使える per-suit)。4マーク全部に積めば全色の階段＝コストも4倍。
-    { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:8, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
+    { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:7, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
     { id:'mi06', code:'緑06', color:'midori', name:'同種階段', cost:1,  ico:'🎴', effect:'RUN_SUIT', place:'suitRun', desc:'このマークだけで連続する数字3枚以上の「階段」を出せる（マークは混ぜない）。自分だけに適用。', nameVi:'Sảnh Đồng Chất', abbrVi:'S.Đồng', codeVi:'L06', descVi:'Chỉ riêng chất này tạo "sảnh" từ 3 lá số liên tiếp trở lên (không trộn chất). Chỉ áp dụng cho mình.' },
     // ── 全体ルール(ruleSlots に装備・place:'whole'＝自分(本人)だけに効くルール)。
-    { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:44, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
+    { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:40, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
     { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:8, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
     { id:'set4', code:'役4', color:'midori', name:'4カード可', cost:1, ico:'4️⃣', effect:'SET4', place:'whole', desc:'同じ数字を4枚でまとめて出せる（革命・ボムを持っていれば自動で可）。', nameVi:'Cho Tứ Quý', abbrVi:'Tứ', codeVi:'B4', descVi:'Được đánh 4 lá cùng số (tứ quý) cùng lúc (có Cách mạng/Bom thì tự động được).' },
     { id:'aka05',code:'赤05', color:'aka',    name:'革命',     cost:4, ico:'🚩', effect:'REVOLUTION', place:'whole', desc:'同じ数字を4枚出すと強弱が逆転し、次の革命まで続く（革命があれば4枚出しも可）。自分だけが起こせる。', nameVi:'Cách Mạng', abbrVi:'Cm', codeVi:'Đ05', descVi:'Đánh 4 lá cùng số sẽ đảo ngược mạnh/yếu, kéo dài đến lần Cách mạng kế tiếp (có Cách mạng thì được đánh tứ quý). Chỉ mình mới phát động được.' },
     { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:3, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。', nameVi:'Bom', abbrVi:'Bom', codeVi:'Đ06', descVi:'Có Bom thì đánh được tứ quý và "3 đôi thông trở lên (sảnh đôi)", dùng để chặt lá lẻ mạnh nhất trên bãi (lá 2). Chỉ áp dụng cho mình.' },
-    { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:13, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
+    { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:10, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
+    // 全体ルール — 配り時に判定する特殊エンブレム(コスト1)。
+    { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に2が4枚そろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có đủ bốn lá 2 thì vô điều kiện về Nhất (thoát ngay).' },
+    { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:10, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
   ];
   const EMB_BY_ID = {}; EMBLEMS.forEach(e=>EMB_BY_ID[e.id]=e);
   function emblem(id){ return EMB_BY_ID[id]; }
@@ -1168,7 +1226,8 @@ const RL = (function(){
     opts = opts || {};
     return { twoStrong: opts.twoStrong!==false, set2:false, set3:false, set4:false,
       runFree:{S:false,H:false,D:false,C:false}, runSuit:{S:false,H:false,D:false,C:false},
-      pairRuns:false, revolution:false, bomb:false, suitTiebreak:false };
+      pairRuns:false, revolution:false, bomb:false, suitTiebreak:false,
+      hero:false, weakStart:false };
   }
   const DEFAULT_RULES = emptyRules({twoStrong:true});
   function xorB(){ let r=0; for(let i=0;i<arguments.length;i++) r ^= (arguments[i]?1:0); return !!r; }
@@ -1245,6 +1304,21 @@ const RL = (function(){
     return 0;
   }
   function singleCombo(card){ return { type:'single', len:1, key:card, cards:[card] }; }
+  /* 分裂(SPLIT): 単騎で出すと同じ札がもう1枚増えて疑似ペアになる(疑似札=同スートの完全コピー)。
+     ・適用は「単騎出し」限定。ペア/トリプル/階段に使うときは、そっちの役が優先で分裂しない。
+     ・疑似ペアは単騎を超えられない＝場の単騎カードはこれでは返せなくなる(set≠single)。
+     ・疑似札は実体札ではないので手札からは実体1枚だけ減る(applyPlay 側)。  */
+  function isSplitSingle(build, combo){
+    return !!(build && combo && combo.type==='single' && hasEffect(build, combo.cards[0], 'SPLIT'));
+  }
+  function effectiveCombo(build, combo){
+    if(isSplitSingle(build, combo)){
+      const c = combo.cards[0];
+      const phantom = { rank:c.rank, suit:c.suit, phantom:true };   // 同スートの疑似コピー(プレーンデータ)
+      return { type:'set', len:2, key:c, cards:[c, phantom], split:true };
+    }
+    return combo;
+  }
   // 場の役。field.combo 優先、無ければ field.card から単騎を合成(旧セーブ/旧テスト互換)。
   function fieldCombo(state){
     if(state.field.combo) return state.field.combo;
@@ -1255,6 +1329,7 @@ const RL = (function(){
   // rules 省略時は state.rules(union/後方互換)。プレイ時は呼び出し側が「出し手 build の per-seat ルール」を渡す。
   function comboBeats(state, build, move, rules){
     if(!move) return false;
+    move = effectiveCombo(build, move);   // 分裂: 単騎出しは疑似ペア化してから判定(単騎は超えられない)
     rules = rules || state.rules || DEFAULT_RULES;
     const fieldC = fieldCombo(state);
     if(!fieldC) return true;                                              // リード(場が空)= 妥当な役なら何でも
@@ -1301,6 +1376,8 @@ const RL = (function(){
       else if(eff==='REVOLUTION'){ r.revolution=true; r.set4=true; }            // 革命を積めば4枚出しも可
       else if(eff==='BOMB'){ r.bomb=true; r.pairRuns=true; r.set4=true; }        // ボムは4枚役＋ペア階段を解禁
       else if(eff==='SUIT_ORDER') r.suitTiebreak=true;
+      else if(eff==='HERO') r.hero=true;               // 英雄: 配り直後に2を4枚持っていれば即1位
+      else if(eff==='WEAK_START') r.weakStart=true;    // 弱者: ♠3保持で先手(最初は♠3を含めて出す)
     }); });
     // マーク階段(suitRun): 付けたマークだけ階段に使える(per-suit)
     SUITS.forEach(s=>{ ((build.suitSlots && build.suitSlots[s])||[]).forEach(id=>{ const e=emblem(id); if(!e) return; effList(e).forEach(eff=>{
@@ -1369,7 +1446,10 @@ const RL = (function(){
   function legalMoves(state, playerIndex){
     const p=state.players[playerIndex];
     const pr=playerRules(state, playerIndex);            // 自分が組める役は自分の build のルールで決まる
-    return handCombos(p.hand, pr).filter(m=> comboBeats(state, p.build, m, pr));
+    let moves = handCombos(p.hand, pr).filter(m=> comboBeats(state, p.build, m, pr));
+    // 弱者: 最初の1手は必ず♠3を含めて出す。
+    if(state.openSpade3===playerIndex) moves = moves.filter(m=> m.cards.some(c=> c.rank==='3'&&c.suit==='S'));
+    return moves;
   }
 
   /* ---- プリセット(emblem build。出発点・編成画面で改造可) ---- */
@@ -1443,7 +1523,7 @@ const RL = (function(){
     players.forEach(p=> p.rules = computeTableRules([p.build], { twoStrong }));
     // state.rules は表示/後方互換用の union(全員の重ね合わせ)。プレイ合法判定には使わない(各自 p.rules を使う)。
     const rules = computeTableRules(players.map(p=>p.build), { twoStrong });
-    return {
+    const state = {
       seed: seed>>>0,
       players,
       mutator: mut,
@@ -1453,10 +1533,40 @@ const RL = (function(){
       turn: 0,
       direction: 1,
       passCount: 0,
+      passed: [],                           // このトリックでパスして降りた席(場流し/上がりでリセット)
+      openSpade3: null,                     // 弱者: この席は最初の1手で必ず♠3を含めて出す(出したらnull)
       finishedOrder: [],
       gameOver:false,
       log:[]
     };
+    // 英雄: 配り直後に2を4枚そろえていたら無条件で即1位(その手札は場に出ないまま終了)。
+    players.forEach((p,i)=>{
+      if(p.rules && p.rules.hero && !p.finished){
+        const twos = p.hand.filter(c=> c.rank==='2').length;
+        if(twos>=4){ p.finished=true; state.finishedOrder.push(i); p.place=state.finishedOrder.length; }
+      }
+    });
+    // 残り1人以下になったら終局(英雄で抜けすぎた極端な卓の保険)。
+    const act0 = activeIndices(state);
+    if(act0.length<=1){
+      if(act0.length===1){ const last=act0[0], lp=state.players[last]; lp.finished=true; state.finishedOrder.push(last); lp.place=state.finishedOrder.length; }
+      state.gameOver=true; return state;
+    }
+    // 先手: 弱者(♠3保持)が最優先。いなければ seed 由来でランダム。上がり済み(英雄)は飛ばす。
+    let weakSeat=null;
+    for(let i=0;i<players.length;i++){
+      const p=players[i];
+      if(!p.finished && p.rules && p.rules.weakStart && p.hand.some(c=> c.rank==='3'&&c.suit==='S')){ weakSeat=i; break; }
+    }
+    if(weakSeat!=null){
+      state.turn = weakSeat;
+      state.openSpade3 = weakSeat;          // 最初の1手は♠3を含めて出す制約
+    } else {
+      let s = Math.floor(rnd()*players.length), guard=0;
+      while(players[s].finished && guard<players.length){ s=(s+1)%players.length; guard++; }
+      state.turn = s;
+    }
+    return state;
   }
 
   /* ---- 手番ユーティリティ ---- */
@@ -1471,6 +1581,24 @@ const RL = (function(){
     }
     return i;
   }
+  // パス管理: state.passed = この場(トリック)で一度パスして“降りた”席。場が流れる/上がるまで再参加不可
+  //   (大富豪・ティエンレン本来のルール)。これにより「飛ばし/上がり/向き反転で場が流れず手番が
+  //   場の持ち主に戻ってしまう」場流しバグも根治する(passCount 方式の脆さを置換)。
+  function passedSet(state){ if(!Array.isArray(state.passed)) state.passed=[]; return state.passed; }
+  // まだこのトリックで打てる席(未上がり かつ 未パス)。
+  function trickAlive(state){ const ps=passedSet(state); return state.players.filter((p,i)=> !p.finished && !ps.includes(i)).map(p=>p.id); }
+  // 次の手番(上がり席・パス済み席を飛ばす)。
+  function nextTurnFrom(state, idx, steps){
+    const n = state.players.length, ps=passedSet(state);
+    let i = idx, count=0, guard=0;
+    while(count<steps && guard<256){
+      i = ((i + state.direction) % n + n) % n;
+      if(!state.players[i].finished && !ps.includes(i)) count++;
+      guard++;
+    }
+    return i;
+  }
+  function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; }
 
   /* ---- 合法手判定 ---- */
   // 単騎が出せるか(後方互換 API)。実体は comboBeats に委譲(単騎を役として包む)。
@@ -1526,6 +1654,9 @@ const RL = (function(){
     const wasFieldEmpty = !fieldCombo(state);
     const prevFieldCombo = fieldCombo(state);  // 場更新前のコンボ(縛り発動条件の比較用)
     const combo = classifyCombo(cards, rules) || singleCombo(cards[0]); // UI/CPU は検証済。保険で単騎扱い。
+    const fieldCombo2 = effectiveCombo(p.build, combo);  // 分裂: 場に出る役(単騎出しは疑似ペア化)。手札除去は実体札のみ。
+    // 3返し(CUT_TOP)が場の最強単騎(2)を実際に切り返したか(後で場流し＋続行に使う)。
+    const wasTopSingleField = !!(prevFieldCombo && prevFieldCombo.type==='single' && isTopSingle(state, prevFieldCombo.key));
     const events = [];
 
     // 出した全札のエンブレムと効果(複数枚は union)
@@ -1541,9 +1672,9 @@ const RL = (function(){
       p.hand.splice(hi,1);
     });
 
-    // 2) 場の更新(field.card は代表札=combo.key として後方互換に保持)
-    state.field.combo = combo;
-    state.field.card  = combo.key;
+    // 2) 場の更新(field.card は代表札=combo.key として後方互換に保持)。分裂は疑似ペアが場に乗る。
+    state.field.combo = fieldCombo2;
+    state.field.card  = fieldCombo2.key;
     state.field.ownerIndex = playerIndex;
     // 縛り(LOCK_SUIT_PLAYED, 指名): 出した札のマークで“無条件に”縛りを発生(場が空でも・場と違うマークでも必ず)。
     // 縛り(LOCK_SUIT, 縛り): 場と同じマークで重ねたときだけ発生(日本式大富豪ルール)。
@@ -1607,20 +1738,25 @@ const RL = (function(){
     }
 
     // 5) フラグ
-    const fClear = effs.includes('CLEAR_FIELD') && !finishedNow;
+    // 3返し(CUT_TOP): 自分の単騎で場の最強単騎(2)を切り返したら、場を流して続けて出せる。
+    const cutWin = effs.includes('CUT_TOP') && combo.type==='single' && wasTopSingleField;
+    const fClear = (effs.includes('CLEAR_FIELD') || cutWin) && !finishedNow;
     const fExtra = effs.includes('EXTRA_TURN')  && !finishedNow;
     const fSkip  = effs.includes('SKIP');
     const fRev   = effs.includes('REVERSE_DIR');
     const fChoose= effs.includes('CHOOSE_NEXT') && !finishedNow;
-    if(effs.includes('CLEAR_FIELD')) events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
-    if(effs.includes('EXTRA_TURN'))  events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
+    if(fieldCombo2 !== combo)            events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
+    if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
+    else if(cutWin)                      events.push({kind:'emb', emb:firstWith('CUT_TOP')});      // 3返しの場流し
+    if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
     if(fRev)  events.push({kind:'emb', emb:firstWith('REVERSE_DIR')});
 
-    state.passCount = 0;
+    // 弱者: 最初の1手(♠3込み)を出したら開始制約を解除。
+    if(state.openSpade3===playerIndex) state.openSpade3 = null;
 
-    if(fClear){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; events.push({kind:'clear'}); }
     if(fRev) state.direction *= -1;
+    if(fClear){ clearField(state); state.passed=[]; events.push({kind:'clear'}); }   // 場流し＝新しいトリック(全員復帰)
 
     // 6) 残り1人なら終局
     const act = activeIndices(state);
@@ -1630,34 +1766,45 @@ const RL = (function(){
       return { events, finishedNow };
     }
 
-    // 7) 次手番
+    // 7) 次手番(パスして降りた席は飛ばす＝このトリックは再参加不可)。
     let next;
-    if(fClear || fExtra){ next = playerIndex; } // 流し or 連撃 → 同じ人が続行
-    else if(fChoose && opts.nextPlayer!=null && !state.players[opts.nextPlayer].finished && opts.nextPlayer!==playerIndex){
-      next = opts.nextPlayer; events.push({kind:'emb', emb:firstWith('CHOOSE_NEXT')});
-    } else {
-      next = nextActiveFrom(state, playerIndex, fSkip?2:1);
+    if(fClear || fExtra){ next = playerIndex; }   // 流し(続行) or 連撃 → 同じ人が続行
+    else {
+      // 加速(SKIP): 次に打てる席を1つ“降ろす”(このトリックは飛ばし＝以後復帰しない)。
+      if(fSkip){ const sk=nextTurnFrom(state, playerIndex, 1); if(sk!==playerIndex && !state.players[sk].finished && !passedSet(state).includes(sk)) passedSet(state).push(sk); }
+      if(fChoose && opts.nextPlayer!=null && !state.players[opts.nextPlayer].finished && !passedSet(state).includes(opts.nextPlayer) && opts.nextPlayer!==playerIndex){
+        next = opts.nextPlayer; events.push({kind:'emb', emb:firstWith('CHOOSE_NEXT')});
+      } else {
+        next = nextTurnFrom(state, playerIndex, 1);
+      }
+      // 自分以外に打てる席が居なくなった(全員パス/上がり/飛ばし)→ 場を流して自分がリードし直す。
+      const others = trickAlive(state).filter(i=> i!==playerIndex);
+      if(others.length===0 && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
     }
     state.turn = next;
+    state.passCount = passedSet(state).length;   // 後方互換(表示用)。判定は passed/trickAlive に一本化。
     return { events, finishedNow };
   }
 
-  /* ---- パス適用 ---- */
+  /* ---- パス適用 ----
+     パスした席はこのトリックで“降りる”(passed に登録＝再参加不可)。
+     場の持ち主以外に打てる席が居なくなったら場を流し、持ち主からリードし直す。
+     場が空(リード中)のパスは降りる対象にしない＝単に次へ回す(ロックアウトしない)。 */
   function applyPass(state, playerIndex){
     const events=[{kind:'pass', index:playerIndex}];
-    state.passCount++;
-    const act = activeIndices(state);
-    const ownerActive = state.field.ownerIndex!=null && !state.players[state.field.ownerIndex].finished;
-    const need = act.length - (ownerActive?1:0);
-    if(fieldCombo(state) && state.passCount >= need){
-      // 場流し
-      let lead = state.field.ownerIndex;
-      if(lead==null || state.players[lead].finished) lead = nextActiveFrom(state, (lead==null?playerIndex:lead), 1);
-      state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false;
-      state.passCount=0; state.turn=lead;
+    const contested = !!fieldCombo(state);
+    if(contested && !passedSet(state).includes(playerIndex)) passedSet(state).push(playerIndex);
+    const owner = state.field.ownerIndex;
+    const ownerActive = owner!=null && !state.players[owner].finished;
+    const others = trickAlive(state).filter(i=> i!==owner);   // 持ち主以外で、まだ打てる席
+    if(contested && others.length===0){
+      // 場流し: 持ち主(健在なら)からリードし直す。持ち主が上がり済みなら次の健在席。
+      let lead = ownerActive ? owner : nextActiveFrom(state, (owner==null?playerIndex:owner), 1);
+      clearField(state); state.passed=[]; state.passCount=0; state.turn=lead;
       events.push({kind:'flush', lead});
     } else {
-      state.turn = nextActiveFrom(state, playerIndex, 1);
+      state.turn = nextTurnFrom(state, playerIndex, 1);
+      state.passCount = passedSet(state).length;
     }
     return { events };
   }
@@ -2053,6 +2200,57 @@ const RL = (function(){
     ok('per-seat:非持ち主は自由階段OFF', gb2.players[0].rules.runFree.S===false);
     ok('per-seat:非持ち主は階段を組めない(他人の自由階段は効かない)', classifyCombo([{rank:'3',suit:'S'},{rank:'4',suit:'H'},{rank:'5',suit:'D'},{rank:'6',suit:'C'}], gb2.players[0].rules)===null);
 
+    // 41 パス・ロックアウト: 一度パスした席は passed に入り、次手番は未パス席へ
+    const lo=newGame(defs.map(x=>({...x})),77);
+    lo.field.combo=singleCombo({rank:'7',suit:'S'}); lo.field.card=lo.field.combo.key; lo.field.ownerIndex=0; lo.turn=1; lo.passed=[];
+    applyPass(lo,1);
+    ok('パスした席は passed に登録', lo.passed.includes(1) && lo.turn===2);
+    // 42 場流しバグ根治: 飛ばし(加速)を挟んでも全員パスで場が流れ、持ち主にリードが戻る(自分パス強制の再発防止)
+    (function(){
+      const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 55);                // P0=加速(SKIP)
+      sb.players.forEach((p,i)=> p.hand=[{rank:'3',suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
+      sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
+      applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1飛ばし
+      const skipped = sb.passed.includes(1);
+      applyPass(sb,2); applyPass(sb,3);                                              // 残り全員パス
+      ok('飛ばし席はトリックから降りる', skipped);
+      ok('飛ばし+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+    })();
+    // 43 3返し: 単騎2を切り返したら場を流して自分が続行
+    const c3=newGame(seat0(buildFrom({suit:{S:['aka07']}})), 210);
+    c3.players[0].hand=[{rank:'3',suit:'S'},{rank:'K',suit:'S'}];
+    c3.field.combo=singleCombo({rank:'2',suit:'H'}); c3.field.card=c3.field.combo.key; c3.field.ownerIndex=1; c3.turn=0; c3.passed=[];
+    applyPlay(c3,0,{rank:'3',suit:'S'},{});
+    ok('3返しで場が流れる', c3.field.card===null);
+    ok('3返し後は自分が続けてリード', c3.turn===0);
+    // 44 分裂: 単騎出しが疑似ペア化。実体は1枚減・単騎は返せない
+    const sp=newGame(seat0(buildFrom({rank:{'5':['mi08']}})), 220);
+    ok('分裂:単騎5♠は疑似ペア役になる', (function(){ const e=effectiveCombo(sp.players[0].build, singleCombo({rank:'5',suit:'S'})); return e.type==='set'&&e.len===2; })());
+    (function(){ const g=JSON.parse(JSON.stringify(sp)); g.field.combo=singleCombo({rank:'4',suit:'H'}); g.field.card=g.field.combo.key;
+      ok('分裂:高い5♠でも単騎4♥は返せない(ペア化)', comboBeats(g, sp.players[0].build, singleCombo({rank:'5',suit:'S'}))===false); })();
+    (function(){ const g=JSON.parse(JSON.stringify(sp)); g.players[0].hand=[{rank:'5',suit:'S'},{rank:'K',suit:'C'}]; g.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g.turn=0; g.passed=[];
+      applyPlay(g,0,{rank:'5',suit:'S'},{});
+      ok('分裂:実体は1枚だけ減る', g.players[0].hand.length===1);
+      ok('分裂:場は疑似ペア(2枚)', g.field.combo && g.field.combo.type==='set' && g.field.combo.len===2 && g.field.combo.cards.length===2); })();
+    // 45 英雄: 2を4枚配られたら配り時に即1位(2222が同一席に行くseedを探索)
+    (function(){
+      let seed=-1; for(let s=1;s<4000;s++){ const g=newGame(defs.map(x=>({...x})), s); if(g.players[0].hand.filter(c=>c.rank==='2').length===4){ seed=s; break; } }
+      if(seed<0){ ok('英雄テスト(2222配布seed未発見=スキップ)', true); return; }
+      const noHero=newGame(defs.map(x=>({...x})), seed);
+      ok('英雄なし: 2四枚でも通常進行', !noHero.players[0].finished);
+      const hg=newGame([{name:'H',isHuman:true,build:buildFrom({rule:['aka08']})},{name:'B',build:emptyBuild()},{name:'C',build:emptyBuild()},{name:'D',build:emptyBuild()}], seed);
+      ok('英雄: 2四枚で配り時1位', hg.players[0].finished===true && hg.players[0].place===1);
+      ok('英雄: 先手は健在席(英雄席は飛ばす)', !hg.players[hg.turn].finished);
+    })();
+    // 46 弱者: ♠3保持で先手・開始は♠3込み制約
+    (function(){
+      let seed=1, holder=-1; for(let s=1;s<400;s++){ const g=newGame(defs.map(x=>({...x})), s); const h=g.players.findIndex(p=> p.hand.some(c=>c.rank==='3'&&c.suit==='S')); if(h>=0){ seed=s; holder=h; break; } }
+      const wg=newGame([0,1,2,3].map(i=>({name:'P'+i, isHuman:i===0, build: i===holder?buildFrom({rule:['ao06']}):emptyBuild()})), seed);
+      ok('弱者: ♠3保持者が先手', wg.turn===holder && wg.openSpade3===holder);
+      const lm=legalMoves(wg, holder);
+      ok('弱者: 最初の合法手は全て♠3を含む', lm.length>0 && lm.every(m=> m.cards.some(c=>c.rank==='3'&&c.suit==='S')));
+    })();
+
     const passed=res.filter(r=>r.pass).length;
     return { passed, total:res.length, results:res };
   }
@@ -2063,9 +2261,9 @@ const RL = (function(){
     get RANKS(){ return RANKS; }, setRankOrder, strength,
     emptyBuild, normalizeBuild, placeOf, buildCost, slotCost, canScope, emblemSlotOf, emblemsForCard, effectsForCard, hasEffect,
     PRESETS, presetBuild, buildFrom,
-    classifyCombo, singleCombo, comboBeats, isBomb, bombPower, fieldCombo, handCombos, legalMoves, computeTableRules, playerRules,
+    classifyCombo, singleCombo, comboBeats, effectiveCombo, isBomb, bombPower, fieldCombo, handCombos, legalMoves, computeTableRules, playerRules,
     newGame, sortHand, legalCards, canPlay, applyPlay, applyPass, cpuDecide,
-    activeIndices, selftest
+    activeIndices, trickAlive, selftest
   };
 })();
 
@@ -2115,14 +2313,16 @@ const AUDIO = (function(){
 
   /* ---- 入力アクション定義（キーボード/ゲームパッド 共通の論理アクション）。
          実キー(e.key を小文字化)と実ボタン(標準配列のbutton index)をユーザーが割当可能。 ---- */
-  const KEY_ACTIONS = ['up','down','left','right','decide','back','pass','sub','pause','play'];
+  const KEY_ACTIONS = ['up','down','left','right','decide','back','pass','sub','pause','play','inspect','start'];
   const DEFAULT_KEYMAP = {
     up:['arrowup','w'], down:['arrowdown','s'], left:['arrowleft','a'], right:['arrowright','d'],
-    decide:['enter'], back:['escape','backspace'], pass:['x','delete','p'], sub:['tab'], pause:[], play:[]
+    decide:['enter'], back:['escape','backspace'], pass:['x','delete','p'], sub:['tab'], pause:[], play:[],
+    inspect:['i'], start:[]
   };
   const DEFAULT_PADMAP = {                         // Standard Gamepad のボタン番号
     up:[12], down:[13], left:[14], right:[15],
-    decide:[0], back:[1], pass:[2], sub:[3], pause:[9], play:[4]
+    decide:[0], back:[1], pass:[2], sub:[3], pause:[9], play:[4],
+    inspect:[5], start:[7]
   };
   function normInputMap(m, def){ const o={}; KEY_ACTIONS.forEach(a=> o[a] = (m && Array.isArray(m[a])) ? m[a].slice() : def[a].slice()); return o; }
 
@@ -2183,7 +2383,7 @@ const AUDIO = (function(){
       slot_disp_suit:'マーク {0}', slot_disp_rank:'数字 {0}', slot_disp_rule:'役ルール',
       slot_note:'※ 同じ能力は複数の枠に、ひとつの枠に複数も置けます（強さはコストで管理）。',
       slot_act_open:'A で エンブレム一覧をひらく',
-      emblem_close:'とじる ✕', emblem_current:'いま：', emblem_cur_none:'なし',
+      emblem_close:'◀ もどる', emblem_current:'いま：', emblem_cur_none:'なし',
       build_guide_main:'スロットを選んで、エンブレムを付けよう',
       build_guide_sub:'「＋」や空きマスを押すと、付けられるエンブレムが出ます',
       build_guide_remove:'🗑 解除モード中：スロットをタップでエンブレムを全部はずす（もう一度Xでもどる）',
@@ -2214,11 +2414,12 @@ const AUDIO = (function(){
       combo_n:'{0}枚', combo_run:'階段{0}枚', combo_pairrun:'ペア階段{0}組', combo_generic:'役',
       field_empty:'場は空<br>好きな札を出せる',
       act_choose:'札をえらぶ', act_play:'✅ 出す（{0}）', act_play_no:'⛔ {0}は場に出せない', act_no_combo:'⛔ 役になっていない',
+      act_need_spade3:'⛔ 最初は♠3を含めて出す', split_tag:'（分裂）',
       act_clear_sel:'✕ 選択解除', act_pass:'✋ パス', turn_of:'{0} の番…',
       place_n:'{0}位', title_daifugo:'大富豪', title_fugo:'富豪', title_hinmin:'貧民', title_daihinmin:'大貧民',
       toast_flush:'場流し', toast_bad_play:'その手は出せない',
       choose_h2:'「指名」— 次に出す人を選べ', choose_btn:'{0}（{1}枚）',
-      inspect_h2:'エンブレム能力 — カーソルを当てると能力が読めます', inspect_close:'とじる ✕', inspect_turnnow:'いまの手番',
+      inspect_h2:'エンブレム能力 — カーソルを当てると能力が読めます', inspect_close:'◀ もどる', inspect_turnnow:'いまの手番',
       pause_h2:'メニュー', pause_resume:'つづける', pause_help:'あそびかた', pause_quit:'タイトルへもどる',
       match_inspect:'🔍 しらべる', match_menu:'☰ メニュー',
       /* 結果 */
@@ -2259,9 +2460,10 @@ const AUDIO = (function(){
       keys_topbar:'キーコンフィグ', keys_close:'◀ もどる',
       keys_help:'操作を選んで <b>けってい</b>。次に押した<b>キー</b>／<b>ボタン</b>が割り当てられます。',
       keys_col_act:'操作', keys_col_key:'⌨ キーボード', keys_col_pad:'🎮 パッド',
-      keys_reset:'きほんに戻す', keys_note:'※ スティック移動・Spaceの即出し・Iのしらべるは固定です。',
+      keys_reset:'きほんに戻す', keys_note:'※ スティック移動・Spaceの即出しは固定です。',
       keyact_up:'カーソル上', keyact_down:'カーソル下', keyact_left:'カーソル左', keyact_right:'カーソル右',
       keyact_decide:'けってい', keyact_back:'もどる', keyact_pass:'パス／スロット解除', keyact_sub:'スロット⇄一覧', keyact_pause:'ポーズ', keyact_play:'選択した札を出す',
+      keyact_inspect:'しらべる（対戦中）', keyact_start:'対戦開始（編成画面）',
       cap_key:'割り当てたい<b>キー</b>を押してください', cap_pad:'割り当てたい<b>ボタン</b>を押してください', cap_esc:'Esc でキャンセル',
       /* オンライン */
       online_back:'◀ もどる', online_title:'オンライン対戦', online_h2:'合言葉でつながる',
@@ -2314,7 +2516,7 @@ const AUDIO = (function(){
       slot_disp_suit:'Chất {0}', slot_disp_rank:'Số {0}', slot_disp_rule:'Luật bộ',
       slot_note:'※ Cùng năng lực gắn được nhiều ô, một ô cũng xếp được nhiều (sức mạnh quản lý bằng chi phí).',
       slot_act_open:'A để mở danh sách biểu tượng',
-      emblem_close:'Đóng ✕', emblem_current:'Hiện tại: ', emblem_cur_none:'Trống',
+      emblem_close:'◀ Quay lại', emblem_current:'Hiện tại: ', emblem_cur_none:'Trống',
       build_guide_main:'Chọn một ô, rồi gắn biểu tượng',
       build_guide_sub:'Bấm vào ô "＋" hoặc ô trống để hiện biểu tượng gắn được',
       build_guide_remove:'🗑 Chế độ gỡ: chạm vào ô để gỡ hết biểu tượng (bấm X lần nữa để thoát)',
@@ -2344,11 +2546,12 @@ const AUDIO = (function(){
       combo_n:'{0} lá', combo_run:'Sảnh {0} lá', combo_pairrun:'Sảnh đôi {0} bộ', combo_generic:'Bộ',
       field_empty:'Bãi trống<br>đánh lá tùy ý',
       act_choose:'Chọn lá', act_play:'✅ Đánh ({0})', act_play_no:'⛔ {0} không đánh được', act_no_combo:'⛔ Chưa thành bộ',
+      act_need_spade3:'⛔ Nước đầu phải đánh kèm ♠3', split_tag:' (Phân liệt)',
       act_clear_sel:'✕ Bỏ chọn', act_pass:'✋ Bỏ lượt', turn_of:'Lượt của {0}…',
       place_n:'Hạng {0}', title_daifugo:'Đại Phú', title_fugo:'Phú', title_hinmin:'Bần', title_daihinmin:'Đại Bần',
       toast_flush:'Dọn bãi', toast_bad_play:'Nước này không đánh được',
       choose_h2:'「Chỉ định」— Chọn người đánh kế', choose_btn:'{0} ({1} lá)',
-      inspect_h2:'Năng lực Biểu Tượng — Trỏ con trỏ vào để đọc', inspect_close:'Đóng ✕', inspect_turnnow:'Lượt hiện tại',
+      inspect_h2:'Năng lực Biểu Tượng — Trỏ con trỏ vào để đọc', inspect_close:'◀ Quay lại', inspect_turnnow:'Lượt hiện tại',
       pause_h2:'Menu', pause_resume:'Tiếp tục', pause_help:'Cách chơi', pause_quit:'Về Menu',
       match_inspect:'🔍 Soi', match_menu:'☰ Menu',
       result_run_title:'Tầng {0} kết quả', result_title:'Kết quả', result_win:'🏆 Bạn thắng!', result_head:'Công bố kết quả',
@@ -2384,9 +2587,10 @@ const AUDIO = (function(){
       keys_topbar:'Gán Phím', keys_close:'◀ Quay lại',
       keys_help:'Chọn thao tác rồi <b>Xác nhận</b>. <b>Phím</b>／<b>Nút</b> bấm kế tiếp sẽ được gán.',
       keys_col_act:'Thao tác', keys_col_key:'⌨ Bàn phím', keys_col_pad:'🎮 Tay cầm',
-      keys_reset:'Về mặc định', keys_note:'※ Cần gạt để di chuyển, Space đánh ngay, I để Soi là cố định.',
+      keys_reset:'Về mặc định', keys_note:'※ Cần gạt để di chuyển và Space đánh ngay là cố định.',
       keyact_up:'Lên', keyact_down:'Xuống', keyact_left:'Trái', keyact_right:'Phải',
       keyact_decide:'Xác nhận', keyact_back:'Quay lại', keyact_pass:'Bỏ lượt / Gỡ ô', keyact_sub:'Ô ⇄ Danh sách', keyact_pause:'Tạm dừng', keyact_play:'Đánh lá đã chọn',
+      keyact_inspect:'Soi (trong trận)', keyact_start:'Bắt đầu trận (màn cấu hình)',
       cap_key:'Hãy nhấn <b>phím</b> muốn gán', cap_pad:'Hãy nhấn <b>nút</b> muốn gán', cap_esc:'Esc để hủy',
       online_back:'◀ Quay lại', online_title:'Đấu Trực Tuyến', online_h2:'Kết nối bằng mật khẩu',
       online_desc:'Những người nhập cùng <b>mật khẩu</b> sẽ đấu với nhau. Một người <b>tạo phòng</b>, người khác <b>vào</b> bằng cùng mật khẩu. Ghế trống do CPU đảm nhiệm (tối đa 4 người).',
@@ -2648,6 +2852,8 @@ const AUDIO = (function(){
       case 'sub':   if(currentScreen==='s-build') toggleBuildZone(); break;  // 編成=スロット⇄一覧
       case 'pause': if(currentScreen==='s-match') togglePause();     break;
       case 'play':  spaceAction();      break;
+      case 'inspect': if(currentScreen==='s-match' && !anyMatchOvlActive()) openInspect(); break;  // しらべる(リバインド可・既定I)
+      case 'start':   if(currentScreen==='s-build' && !pickerOpen()) startMatchFromBuild();  break; // 編成→対戦開始
     }
   }
   // e.key を内部表記へ正規化(小文字・スペースは 'space')。割当の照合に使う。
@@ -2678,9 +2884,8 @@ const AUDIO = (function(){
     // ナビ/決定/戻る等・Space・Tab はブラウザ既定(スクロール/フォーカス移動)を抑止。
     if(action || k===' ' || k==='Tab') e.preventDefault();
     if(action){ dispatchAction(action); return; }
-    // 固定ショートカット(リマップ対象外): Space=即出し / I=しらべる。
+    // 固定ショートカット(リマップ対象外): Space=即出し。しらべる/対戦開始はキー設定でリバインド可。
     if(k===' ') spaceAction();
-    else if(k==='i'||k==='I'){ if(currentScreen==='s-match' && !anyMatchOvlActive()) openInspect(); }
   });
 
   /* ---------- ゲームパッド (接続中のみポーリング。未接続時はrAFを回さない) ---------- */
@@ -2756,8 +2961,20 @@ const AUDIO = (function(){
     }
   }
   function tryPassShortcut(){ if(currentScreen==='s-match' && humanTurnReady()) doPass(); }
-  // X ボタン: 文脈で動作。対戦=パス / 編成=解除モードのトグル。
-  function xButton(){ if(currentScreen==='s-build') toggleRemoveMode(); else if(currentScreen==='s-match') tryPassShortcut(); }
+  // X ボタン: 文脈で動作。対戦=パス / 編成=カーソル中スロットを直接解除(空き等なら解除モードをトグル)。
+  //   キー操作では「移動→当たったスロットでX=そのスロットを空に」を直接できる(トグル不要)。
+  //   マウス/タップ用に解除モードのトグルは残す(空きスロット/非スロットへのXで切替)。
+  function xButton(){
+    if(currentScreen==='s-build'){
+      if(buildState && focusedEl && focusedEl.classList.contains('slot')){
+        const t=focusedEl.dataset.type, k=focusedEl.dataset.key, b=buildState.build;
+        const arr = t==='rule' ? b.ruleSlots : (t==='rank' ? b.rankSlots[k] : b.suitSlots[k]);
+        if(arr && arr.length){ clearSlotAt(t, k); return; }   // 装備があれば直接はずす
+      }
+      toggleRemoveMode(); return;                              // 空き/非スロットはモード切替(従来動作)
+    }
+    if(currentScreen==='s-match') tryPassShortcut();
+  }
   // Tab / Y: 編成でエンブレム選択シートを素早く開閉（開いていれば閉じ、閉じていれば現在の枠で開く）。
   function toggleBuildZone(){
     if(!buildState || currentScreen!=='s-build') return;
@@ -3071,8 +3288,7 @@ const AUDIO = (function(){
         return { name:s.name, isHuman:false, build:cpuBuildQuick(i-1) };
       });
       const seed=(Math.floor(Math.random()*1e9))>>>0;
-      G = RL.newGame(defs, seed, null);
-      G.turn = Math.floor(Math.random()*G.players.length);   // 先手をランダムに(全状態broadcastで同期される)
+      G = RL.newGame(defs, seed, null);   // 先手は seed 由来(弱者/英雄も反映)。全状態broadcastで同期される
       this.matchId='m'+Date.now(); this.stateVer=0; this.paused=false; endedShown=false; busy=false; pendingChoose=null;
       this.conns.forEach(c=> this._send(c,{type:'start', matchId:this.matchId}));
       show('s-match'); $('#match-title').textContent=T('mt_online'); renderMatch();
@@ -3671,12 +3887,15 @@ const AUDIO = (function(){
   $('#build-recommend').onclick=()=> openRecommend();
   $('#reco-close').onclick=()=> closeRecommend();
   $('#emblem-close').onclick=()=>{ AUDIO.back(); closeEmblemPicker(); };
-  $('#build-ok').onclick=()=>{
+  // 編成→対戦開始(けってい)。ボタンとキー設定の「対戦開始」両方から呼ぶ。
+  function startMatchFromBuild(){
+    if(!buildState || currentScreen!=='s-build') return;
     if(RL.buildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
     if(MODE.kind==='online'){ store.saveBuild(buildState.build); AUDIO.confirm(); NET.afterBuild(buildState.build); return; }  // オンライン=ロビーへ反映
     if(MODE.kind==='quick') store.saveBuild(buildState.build);   // クイックの自分ビルドを永続化(次回の既定になる)
     AUDIO.confirm(); beginMatch();
-  };
+  }
+  $('#build-ok').onclick=()=> startMatchFromBuild();
 
   /* ============================================================
      MATCH 進行
@@ -3684,6 +3903,7 @@ const AUDIO = (function(){
   let G=null;          // GameState
   let busy=false;      // CPU処理中の入力ロック
   let handSel=[];      // 手札の選択(複数枚役の組み立て) [{rank,suit}]
+  let lastFieldSig=null;   // 場札の内容シグネチャ。変化した時だけ場札の出現アニメを再生する(同じ場では動かさない)。
   // 自分の席。オフライン/ホストは0、オンラインのゲストは割り当てられた席(1〜3)。
   //   対戦UIは元々「自分=席0」前提だったので meIdx() で一般化(オフラインは常に0で不変)。
   function meIdx(){ return (typeof NET!=='undefined' && NET.active) ? NET.myIdx : 0; }
@@ -3691,7 +3911,11 @@ const AUDIO = (function(){
   function selHas(c){ return handSel.some(x=>x.rank===c.rank&&x.suit===c.suit); }
   function humanRules(){ const me=meIdx(); return (G.players[me] && G.players[me].rules) || G.rules; }   // per-seat: 自分の席のルール
   function selCombo(){ return handSel.length ? RL.classifyCombo(handSel, humanRules()) : null; }
-  function selLegal(){ const m=selCombo(); return !!m && RL.comboBeats(G, G.players[meIdx()].build, m, humanRules()); }
+  // 弱者: 最初の1手は♠3を含めて出す。含まない選択は不可。
+  function openConstraintViolated(){ return G && G.openSpade3===meIdx() && !handSel.some(c=> c.rank==='3'&&c.suit==='S'); }
+  function selLegal(){ const m=selCombo(); return !!m && !openConstraintViolated() && RL.comboBeats(G, G.players[meIdx()].build, m, humanRules()); }
+  // 表示用: 分裂は単騎出しでもペアとして場に乗るので、ラベルもペア表記にする。
+  function effComboLabel(combo){ const eff=RL.effectiveCombo(G.players[meIdx()].build, combo); return comboLabel(eff)+(eff&&eff.split?T('split_tag'):''); }
   function comboLabel(combo){
     if(!combo) return '';
     if(combo.type==='single') return T('combo_single');
@@ -3756,8 +3980,7 @@ const AUDIO = (function(){
     for(let i=cpuDefs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=cpuDefs[i]; cpuDefs[i]=cpuDefs[j]; cpuDefs[j]=t; }
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
-    G = RL.newGame(defs, seed, MODE.mutator);
-    G.turn = Math.floor(Math.random()*G.players.length);   // 先手をランダムに(あなた固定をやめる)
+    G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
     busy=false; pendingChoose=null; endedShown=false;
     $('#match-title').textContent = MODE.kind==='run' ? T('mt_run', depth, MODE.run.lives) : T('mt_quick');
     show('s-match');
@@ -3835,13 +4058,18 @@ const AUDIO = (function(){
   function renderField(){
     const fc=$('#field-card');
     const combo=RL.fieldCombo(G);
+    // 場札の中身からシグネチャを作り、前回と違う時だけ出現アニメ(dealin)を1回再生する。
+    // renderMatch は選択操作などでも呼ばれるが、場が変わらなければ動かさない＝無駄な再描画を避ける。
+    const sigCards = combo ? (combo.cards || (combo.key ? [combo.key] : [])) : [];
+    const sig = sigCards.map(c=>(c&&c.rank!=null?c.rank:'')+(c&&c.suit!=null?c.suit:'')).join(',');
+    const fieldChanged = sig!==lastFieldSig; lastFieldSig=sig;
     if(!combo){ fc.className='fieldcard empty'; fc.innerHTML='<div class="emptytxt">'+T('field_empty')+'</div>'; return; }
     const cards=combo.cards||[combo.key];
-    fc.className='fieldcard'+(cards.length>1?' multi':'');
+    fc.className='fieldcard'+(cards.length>1?' multi':'')+(fieldChanged&&sig?' dealin':'');
     if(cards.length>1){
       fc.innerHTML=cards.map(c=>{ const red=RL.SUIT_RED[c.suit];
         return '<div class="fcard"><div class="r '+(red?'red':'blk')+'">'+c.rank+'</div><div class="s '+(red?'red':'blk')+'">'+RL.SUIT_SYM[c.suit]+'</div></div>'; }).join('')
-        + '<div class="clabel">'+comboLabel(combo)+'</div>';
+        + '<div class="clabel">'+comboLabel(combo)+(combo.split?T('split_tag'):'')+'</div>';
     } else {
       const c=cards[0]; const red=RL.SUIT_RED[c.suit];
       fc.innerHTML='<div class="r '+(red?'red':'blk')+'">'+c.rank+'</div><div class="s '+(red?'red':'blk')+'">'+RL.SUIT_SYM[c.suit]+'</div>';
@@ -3889,8 +4117,9 @@ const AUDIO = (function(){
       // 出すボタン: 選択が合法な役のときだけ活性。
       let lbl, cls;
       if(!handSel.length){ lbl=T('act_choose'); cls='btn'; }
-      else if(legal){ lbl=T('act_play', comboLabel(combo)); cls='btn primary foc'; }
-      else if(combo){ lbl=T('act_play_no', comboLabel(combo)); cls='btn'; }
+      else if(legal){ lbl=T('act_play', effComboLabel(combo)); cls='btn primary foc'; }
+      else if(combo && openConstraintViolated()){ lbl=T('act_need_spade3'); cls='btn'; }
+      else if(combo){ lbl=T('act_play_no', effComboLabel(combo)); cls='btn'; }
       else { lbl=T('act_no_combo'); cls='btn'; }
       const play=el('div',cls, lbl);
       if(legal){ play.onclick=()=> playSelection(); }
@@ -3913,9 +4142,15 @@ const AUDIO = (function(){
     t.appendChild(it);
     setTimeout(()=>{ it.style.transition='opacity .4s'; it.style.opacity='0'; setTimeout(()=>it.remove(),420); }, 900);
   }
+  // エンブレム発動の一瞬きらめき。発動時だけ要素を生成し、約380msで除去する(常時アニメ無し)。
+  function embFlash(ico){
+    const layer=$('#embflash'); if(!layer) return;
+    const s=el('div','embpop', ico); layer.appendChild(s);
+    setTimeout(()=>{ if(s.parentNode) s.remove(); }, 380);
+  }
   function eventToast(events){
     events.forEach(ev=>{
-      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; AUDIO.emb(); toast(e.ico+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
+      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; AUDIO.emb(); embFlash(e.ico); toast(e.ico+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
       else if(ev.kind==='flush'){ AUDIO.flush(); toast(T('toast_flush'),'#5c6bc0'); }
       else if(ev.kind==='finish'){ /* 個別演出は afterStep で */ }
     });
@@ -3932,6 +4167,7 @@ const AUDIO = (function(){
     if(!humanTurnReady()) return;
     const mi=meIdx();
     const combo=selCombo();
+    if(openConstraintViolated()){ AUDIO.bad(); toast(T('act_need_spade3'),'#ff7043'); return; }   // 弱者: 最初は♠3込み
     if(!combo || !RL.comboBeats(G, G.players[mi].build, combo, humanRules())){ AUDIO.bad(); toast(T('toast_bad_play'),'#ff7043'); return; }
     const cards=handSel.slice();
     // 指名(単騎のみ)が絡む場合は先に相手を選ぶ
@@ -3953,6 +4189,7 @@ const AUDIO = (function(){
   }
   function doPass(){
     if(!humanTurnReady()) return;
+    if(G.openSpade3===meIdx()){ AUDIO.bad(); toast(T('act_need_spade3'),'#ff7043'); return; }   // 弱者: 最初は♠3を出す(パス不可)
     if(NET.active && !NET.isHost){ AUDIO.pass(); NET.sendAction({k:'pass'}); busy=true; renderMatch(); return; }
     AUDIO.pass();
     const r=RL.applyPass(G, meIdx());
@@ -4030,12 +4267,14 @@ const AUDIO = (function(){
   // ホスト：ゲストから届いた action を検証して適用。
   function hostApplyClientAction(seat, action){
     if(!G || G.gameOver || G.turn!==seat) { NET.sendStateTo(seat); return; }  // 手番でない/古い→再同期
+    const mustSpade3 = (G.openSpade3===seat);   // 弱者: 最初の1手は♠3込み・パス不可
     let r;
-    if(action.k==='pass'){ r=RL.applyPass(G, seat); }
+    if(action.k==='pass'){ if(mustSpade3){ NET.sendStateTo(seat); return; } r=RL.applyPass(G, seat); }
     else {
       const rules=G.players[seat].rules;
       const combo=RL.classifyCombo(action.cards||[], rules);
       if(!combo || !RL.comboBeats(G, G.players[seat].build, combo, rules)){ NET.sendStateTo(seat); return; } // 非合法→再同期
+      if(mustSpade3 && !(action.cards||[]).some(c=> c.rank==='3'&&c.suit==='S')){ NET.sendStateTo(seat); return; } // ♠3欠落→再同期
       r=RL.applyPlay(G, seat, action.cards, {nextPlayer:action.next});
     }
     renderMatch(); eventToast(r.events);
