@@ -208,10 +208,10 @@
   .slot.rule .empty{ font-size:40px; }
 
   /* ===== エンブレム選択（スロットを押した時だけ開く＝「読む画面」ではなく「装備する画面」） =====
-     PC=中央モーダル / スマホ=ボトムシート。一覧はアイコン・名前・コストのみ、説明は選択中の1枚だけ。 */
-  /* ★ほぼ全画面（1920x1080ステージいっぱい）に開き、その分すべてを大きく見せる。 */
-  #ovl-emblem .embpick{ width:1880px; max-width:98%; height:1030px; max-height:98%; pointer-events:auto;
-    background:linear-gradient(180deg,#fdfaf2,#eef0fb); border:7px solid var(--line); border-radius:28px; box-shadow:0 28px 70px rgba(0,0,0,.65);
+     フルスクリーン独立画面。viewport 全体を占有する。モーダル構造・サイズ指定は廃止。 */
+  /* ★フルスクリーン画面: position:absolute inset:0 でステージ端まで使う。ダイアログサイズ指定なし。 */
+  #s-emblem .embpick{ position:absolute; inset:0; pointer-events:auto;
+    background:linear-gradient(180deg,#fdfaf2,#eef0fb);
     display:flex; flex-direction:column; padding:26px 34px; gap:18px; }
   .embpick-bar{ display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
   .embpick-bar .ep-slot{ font-size:52px; font-weight:900; color:var(--ink); background:#fff; border:5px solid var(--line);
@@ -337,7 +337,8 @@
   .pcard .r2{ font-size:46px; font-weight:900; line-height:1; align-self:flex-end; transform:rotate(180deg); margin-right:6px; }
   .pcard.playable{ box-shadow:0 0 0 4px rgba(102,187,106,.9), 0 8px 16px rgba(0,0,0,.35); }
   .pcard.dead{ filter:grayscale(.65) brightness(.82); }
-  .pcard .emb{ position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:18px; font-weight:900; color:#fff; padding:2px 8px; border-radius:8px; border:3px solid #fff; white-space:nowrap; }
+  .pcard .emb{ position:absolute; top:6px; right:6px; font-size:26px; font-weight:900; color:#fff; width:38px; height:38px; border-radius:50%; background:#1a1f3d; border:3px solid #fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.5); }
+  .pcard .emb.red{ background:#d3382f; }
   .pcard.sel{ border-color:var(--gold); box-shadow:0 0 0 5px rgba(255,207,77,.95), 0 12px 22px rgba(0,0,0,.45); transform:translateY(-20px); }
   .pcard.focused{ transform:translateY(-26px); }
   .pcard.sel.focused{ transform:translateY(-38px); }
@@ -350,6 +351,12 @@
   .fieldcard .clabel{ position:absolute; bottom:-42px; left:50%; transform:translateX(-50%); font-size:27px; font-weight:900; color:var(--gold); white-space:nowrap; text-shadow:0 2px 6px rgba(0,0,0,.6); }
 
   #s-match .actbar{ position:absolute; left:24px; right:24px; bottom:18px; height:96px; display:flex; align-items:center; justify-content:center; gap:24px; }
+
+  /* ===== エンブレム閲覧 フルスクリーン画面 (s-inspect) ===== */
+  #s-inspect .inspect-body-wrap{ position:absolute; top:100px; left:24px; right:24px; bottom:18px; overflow-y:auto; }
+  #s-inspect .inspect-body-wrap::-webkit-scrollbar{ width:16px; }
+  #s-inspect .inspect-body-wrap::-webkit-scrollbar-thumb{ background:#9aa3c8; border-radius:8px; }
+  #s-inspect .inspwrap{ min-width:unset; max-height:unset; overflow:visible; padding:0; }
 
   /* ===== エンブレム閲覧オーバーレイ ===== */
   /* ★相手の能力説明＝とにかく読めることを優先。スクロールは伸ばしてよいので文字を大きく。 */
@@ -416,8 +423,8 @@
   .keyscolhd{ display:flex; align-items:center; gap:18px; padding:0 16px; color:#b9c4ef; font-size:24px; font-weight:800; }
   .keyscolhd .kh-act{ width:240px; } .keyscolhd .kh-key,.keyscolhd .kh-pad{ flex:1; }
   .keysrows{ display:flex; flex-direction:column; gap:10px; }
-  .keyrow{ display:flex; align-items:center; gap:18px; background:rgba(255,255,255,.08); border:3px solid rgba(255,255,255,.18); border-radius:14px; padding:9px 16px; }
-  .keyrow .kact{ width:240px; flex:none; font-size:30px; font-weight:900; color:#fff; }
+  .keyrow{ display:flex; align-items:center; gap:18px; background:rgba(255,255,255,.08); border:3px solid rgba(255,255,255,.18); border-radius:14px; padding:9px 16px; flex-wrap:wrap; }
+  .keyrow .kact{ width:280px; flex:none; font-size:26px; font-weight:900; color:#fff; line-height:1.2; }
   .kcell{ flex:1; display:flex; align-items:center; gap:12px; min-height:56px; padding:6px 18px; background:#fff; border:4px solid var(--line); border-radius:12px; }
   .kcell .klbl{ font-size:30px; flex:none; }
   .kcell .kval{ font-size:28px; font-weight:900; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -626,27 +633,6 @@
     </div>
     <div class="hint" id="build-hint"><b>十字</b>で移動 ・ <b>A</b>でスロットをひらく ・ <b>けってい</b>で対戦へ</div>
 
-    <!-- エンブレム選択：スロットを押した時だけ開く（PC=中央モーダル / スマホ=ボトムシート） -->
-    <div class="ovl" id="ovl-emblem">
-      <div class="embpick">
-        <div class="embpick-bar">
-          <div class="ep-slot" id="emblem-slot">3</div>
-          <div class="ep-cur-lbl" data-i18n="emblem_current">いま：</div>
-          <div class="ep-cur-val" id="emblem-cur">なし</div>
-          <div class="ep-spacer"></div>
-          <div class="btn small ghost foc" id="emblem-close" data-i18n="emblem_close">とじる ✕</div>
-        </div>
-        <div class="embpick-body">
-          <div class="palette">
-            <div class="ph" id="palette-head">エンブレムを選ぶ</div>
-            <div class="embgrid" id="build-palette"></div>
-            <div class="scrollcue" id="palette-cue"></div>
-          </div>
-          <div class="detailpane" id="build-detail"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- おすすめ構成オーバーレイ：必要な時だけ開く近道（常時表示しない） -->
     <div class="ovl" id="ovl-recommend">
       <div class="card-modal">
@@ -687,14 +673,6 @@
       <div class="card-modal">
         <h2 data-i18n="choose_h2">「指名」— 次に出す人を選べ</h2>
         <div class="rowbtns" id="choose-rows"></div>
-      </div>
-    </div>
-    <!-- エンブレム閲覧(全員の能力をカーソルで確認) -->
-    <div class="ovl" id="ovl-inspect">
-      <div class="card-modal" style="max-width:1720px; padding:26px 30px;">
-        <h2 data-i18n="inspect_h2">エンブレム能力 — カーソルを当てると能力が読めます</h2>
-        <div class="inspwrap" id="inspect-body"></div>
-        <div class="rowbtns" style="margin-top:16px;"><div class="btn primary foc" id="inspect-close" data-i18n="inspect_close">とじる ✕</div></div>
       </div>
     </div>
     <!-- ネット通知/選択(切断・復帰待ち・CPU交代) -->
@@ -942,6 +920,39 @@
 
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== EMBLEM PICKER (フルスクリーン独立画面) ===================== -->
+  <section id="s-emblem" class="screen">
+    <div class="embpick">
+      <div class="embpick-bar">
+        <div class="ep-slot" id="emblem-slot">3</div>
+        <div class="ep-cur-lbl" data-i18n="emblem_current">いま：</div>
+        <div class="ep-cur-val" id="emblem-cur">なし</div>
+        <div class="ep-spacer"></div>
+        <div class="btn small ghost foc" id="emblem-close" data-i18n="emblem_close">とじる ✕</div>
+      </div>
+      <div class="embpick-body">
+        <div class="palette">
+          <div class="ph" id="palette-head">エンブレムを選ぶ</div>
+          <div class="embgrid" id="build-palette"></div>
+          <div class="scrollcue" id="palette-cue"></div>
+        </div>
+        <div class="detailpane" id="build-detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== INSPECT (フルスクリーン独立画面) ===================== -->
+  <section id="s-inspect" class="screen">
+    <div class="topbar">
+      <div class="title" data-i18n="inspect_h2">エンブレム能力 — カーソルを当てると能力が読めます</div>
+      <div class="spacer"></div>
+      <div class="btn small primary foc" id="inspect-close" data-i18n="inspect_close">とじる ✕</div>
+    </div>
+    <div class="inspect-body-wrap">
+      <div class="inspwrap" id="inspect-body"></div>
     </div>
   </section>
 
@@ -2104,14 +2115,14 @@ const AUDIO = (function(){
 
   /* ---- 入力アクション定義（キーボード/ゲームパッド 共通の論理アクション）。
          実キー(e.key を小文字化)と実ボタン(標準配列のbutton index)をユーザーが割当可能。 ---- */
-  const KEY_ACTIONS = ['up','down','left','right','decide','back','pass','sub','pause'];
+  const KEY_ACTIONS = ['up','down','left','right','decide','back','pass','sub','pause','play'];
   const DEFAULT_KEYMAP = {
     up:['arrowup','w'], down:['arrowdown','s'], left:['arrowleft','a'], right:['arrowright','d'],
-    decide:['enter'], back:['escape','backspace'], pass:['x','delete','p'], sub:['tab'], pause:[]
+    decide:['enter'], back:['escape','backspace'], pass:['x','delete','p'], sub:['tab'], pause:[], play:[]
   };
   const DEFAULT_PADMAP = {                         // Standard Gamepad のボタン番号
     up:[12], down:[13], left:[14], right:[15],
-    decide:[0], back:[1], pass:[2], sub:[3], pause:[9]
+    decide:[0], back:[1], pass:[2], sub:[3], pause:[9], play:[4]
   };
   function normInputMap(m, def){ const o={}; KEY_ACTIONS.forEach(a=> o[a] = (m && Array.isArray(m[a])) ? m[a].slice() : def[a].slice()); return o; }
 
@@ -2250,7 +2261,7 @@ const AUDIO = (function(){
       keys_col_act:'操作', keys_col_key:'⌨ キーボード', keys_col_pad:'🎮 パッド',
       keys_reset:'きほんに戻す', keys_note:'※ スティック移動・Spaceの即出し・Iのしらべるは固定です。',
       keyact_up:'カーソル上', keyact_down:'カーソル下', keyact_left:'カーソル左', keyact_right:'カーソル右',
-      keyact_decide:'けってい', keyact_back:'もどる', keyact_pass:'パス／スロット解除', keyact_sub:'スロット⇄一覧', keyact_pause:'ポーズ',
+      keyact_decide:'けってい', keyact_back:'もどる', keyact_pass:'パス／スロット解除', keyact_sub:'スロット⇄一覧', keyact_pause:'ポーズ', keyact_play:'選択した札を出す',
       cap_key:'割り当てたい<b>キー</b>を押してください', cap_pad:'割り当てたい<b>ボタン</b>を押してください', cap_esc:'Esc でキャンセル',
       /* オンライン */
       online_back:'◀ もどる', online_title:'オンライン対戦', online_h2:'合言葉でつながる',
@@ -2375,7 +2386,7 @@ const AUDIO = (function(){
       keys_col_act:'Thao tác', keys_col_key:'⌨ Bàn phím', keys_col_pad:'🎮 Tay cầm',
       keys_reset:'Về mặc định', keys_note:'※ Cần gạt để di chuyển, Space đánh ngay, I để Soi là cố định.',
       keyact_up:'Lên', keyact_down:'Xuống', keyact_left:'Trái', keyact_right:'Phải',
-      keyact_decide:'Xác nhận', keyact_back:'Quay lại', keyact_pass:'Bỏ lượt / Gỡ ô', keyact_sub:'Ô ⇄ Danh sách', keyact_pause:'Tạm dừng',
+      keyact_decide:'Xác nhận', keyact_back:'Quay lại', keyact_pass:'Bỏ lượt / Gỡ ô', keyact_sub:'Ô ⇄ Danh sách', keyact_pause:'Tạm dừng', keyact_play:'Đánh lá đã chọn',
       cap_key:'Hãy nhấn <b>phím</b> muốn gán', cap_pad:'Hãy nhấn <b>nút</b> muốn gán', cap_esc:'Esc để hủy',
       online_back:'◀ Quay lại', online_title:'Đấu Trực Tuyến', online_h2:'Kết nối bằng mật khẩu',
       online_desc:'Những người nhập cùng <b>mật khẩu</b> sẽ đấu với nhau. Một người <b>tạo phòng</b>, người khác <b>vào</b> bằng cùng mật khẩu. Ghế trống do CPU đảm nhiệm (tối đa 4 người).',
@@ -2451,6 +2462,9 @@ const AUDIO = (function(){
           renderBuild();
         }
         break;
+      case 's-emblem':
+        if(buildState){ renderPalette(); renderPickerHead(); renderDetail(); }
+        break;
       case 's-match':
         if(G){ $('#match-title').textContent = (typeof NET!=='undefined'&&NET.active) ? T('mt_online') : (MODE.kind==='run'? T('mt_run', MODE.run.depth, MODE.run.lives) : T('mt_quick')); renderMatch(); }
         break;
@@ -2511,8 +2525,8 @@ const AUDIO = (function(){
       // 編成画面: スロットへフォーカスが乗ったら、そのスロットを選択状態にしてパレットを追従させる(快適化)
       if(currentScreen==='s-build' && buildState && e.classList.contains('slot')) applySlotSelection(e);
       ensureView(); // エンブレムにフォーカスが乗ったらスクロール追従(見切れ防止)
-      // 編成画面: フォーカス中の対象(スロット/エンブレム/ボタン)に合わせて詳細ペインとヒントを更新
-      if(currentScreen==='s-build' && buildState) renderDetail();
+      // 編成/エンブレム選択画面: フォーカス中の対象(スロット/エンブレム/ボタン)に合わせて詳細ペインとヒントを更新
+      if((currentScreen==='s-build' || currentScreen==='s-emblem') && buildState) renderDetail();
     }
   }
   const shuffleArr = a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
@@ -2602,23 +2616,22 @@ const AUDIO = (function(){
   // クリックでもフォーカス追従
   document.addEventListener('click', e=>{
     const f=e.target.closest('.foc');
-    // エンブレム選択パレットのカードは「1回目タップ=フォーカス移動／2回目タップ=セット」を
+    // エンブレム選択画面のカードは「1回目タップ=フォーカス移動／2回目タップ=セット」を
     // card.onclick 側で制御するため、ここでの自動フォーカスは行わない。
-    if(f && f.classList.contains('emb') && f.closest('#ovl-emblem')){ AUDIO.ensure(); return; }
+    if(f && f.classList.contains('emb') && f.closest('#s-emblem')){ AUDIO.ensure(); return; }
     if(f && focusables().includes(f)) setFocus(f);
     AUDIO.ensure();
   }, true);
 
-  function closeAllOvl(){ /* 画面遷移時、その画面専用ovl(指名/ポーズ/閲覧/おすすめ)を閉じる */
+  function closeAllOvl(){ /* 画面遷移時、その画面専用ovl(指名/ポーズ/おすすめ)を閉じる */
     $('#ovl-choose')?.classList.remove('active');
     $('#ovl-pause')?.classList.remove('active');
-    $('#ovl-inspect')?.classList.remove('active');
     $('#ovl-recommend')?.classList.remove('active');
-    $('#ovl-emblem')?.classList.remove('active');
   }
   // 対戦画面でフォーカスを奪うモーダルが開いているか(開いている間はパス等の盤面操作を止める)
   function anyMatchOvlActive(){
-    return ['#ovl-inspect','#ovl-pause','#ovl-choose','#ovl-net'].some(s=> $(s)?.classList.contains('active'));
+    if(currentScreen==='s-inspect') return true;
+    return ['#ovl-pause','#ovl-choose','#ovl-net'].some(s=> $(s)?.classList.contains('active'));
   }
 
   /* ---------- 入力アクション・ディスパッチ（キーボード/パッド共通） ---------- */
@@ -2634,6 +2647,7 @@ const AUDIO = (function(){
       case 'pass':  xButton();          break;   // 対戦=パス / 編成=スロット解除
       case 'sub':   if(currentScreen==='s-build') toggleBuildZone(); break;  // 編成=スロット⇄一覧
       case 'pause': if(currentScreen==='s-match') togglePause();     break;
+      case 'play':  spaceAction();      break;
     }
   }
   // e.key を内部表記へ正規化(小文字・スペースは 'space')。割当の照合に使う。
@@ -2711,10 +2725,10 @@ const AUDIO = (function(){
     if($('#ovl-net')?.classList.contains('active')) return; // ネット通知は専用ボタンのみ
     if($('#ovl-choose').classList.contains('active')) return; // 指名は戻る不可
     if($('#ovl-pause').classList.contains('active')){ closePause(); return; }
-    if($('#ovl-inspect')?.classList.contains('active')){ closeInspect(); return; } // 対戦中のエンブレム閲覧を閉じる
     if($('#ovl-recommend')?.classList.contains('active')){ $('#ovl-recommend').classList.remove('active'); refocusSlot(); return; } // おすすめ構成を閉じる
-    if($('#ovl-emblem')?.classList.contains('active')){ closeEmblemPicker(); return; } // エンブレム選択シートを閉じてスロットへ戻る
     switch(currentScreen){
+      case 's-inspect': closeInspect(); return; // 対戦中のエンブレム閲覧を閉じる
+      case 's-emblem': closeEmblemPicker(); return; // エンブレム選択画面を閉じてスロットへ戻る
       case 's-match': togglePause(); break;
       case 's-build':
         if(removeMode){ setRemoveMode(false); break; }   // 解除モード中は、まずモードを抜ける（画面は出ない）
@@ -3473,14 +3487,14 @@ const AUDIO = (function(){
     if(any){ AUDIO.back(); toast(T('toast_clear_all'),'#ef5350'); renderBuild(); setTimeout(refocusSlot,0); }
     else AUDIO.bad();
   }
-  /* ===== エンブレム選択シート（スロットを押した時だけ開く） ===== */
-  function pickerOpen(){ return $('#ovl-emblem')?.classList.contains('active'); }
+  /* ===== エンブレム選択（フルスクリーン独立画面として開く） ===== */
+  function pickerOpen(){ return currentScreen === 's-emblem'; }
   function openEmblemPicker(){
     if(!buildState) return;
     if(removeMode) setRemoveMode(false);   // 装備しに行くなら解除モードは解く（混乱防止）
     renderPalette();        // #build-palette + #palette-head を選択中スロット向けに描画
     renderPickerHead();     // バーに「いま：…」と枠ラベルを表示
-    $('#ovl-emblem').classList.add('active');
+    show('s-emblem');
     AUDIO.move();
     // 付けられるエンブレムの先頭へフォーカス(キーボード/パッドでも即操作)
     setTimeout(()=>{
@@ -3489,8 +3503,9 @@ const AUDIO = (function(){
     }, 0);
   }
   function closeEmblemPicker(){
-    $('#ovl-emblem').classList.remove('active');
-    refocusSlot();          // ビルド画面（スロット）へ戻る
+    show('s-build');
+    // show() の focusFirst の後でスロットへ戻す
+    setTimeout(refocusSlot, 0);
   }
   // シートが開いている時だけ中身を再描画（renderBuild から呼ばれる・閉時は無処理）
   function refreshPicker(){
@@ -3656,8 +3671,6 @@ const AUDIO = (function(){
   $('#build-recommend').onclick=()=> openRecommend();
   $('#reco-close').onclick=()=> closeRecommend();
   $('#emblem-close').onclick=()=>{ AUDIO.back(); closeEmblemPicker(); };
-  // 背景(シートの外)をタップしても閉じる
-  $('#ovl-emblem').onclick=(e)=>{ if(e.target.id==='ovl-emblem'){ AUDIO.back(); closeEmblemPicker(); } };
   $('#build-ok').onclick=()=>{
     if(RL.buildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
     if(MODE.kind==='online'){ store.saveBuild(buildState.build); AUDIO.confirm(); NET.afterBuild(buildState.build); return; }  // オンライン=ロビーへ反映
@@ -3850,7 +3863,7 @@ const AUDIO = (function(){
       card.dataset.rank=c.rank; card.dataset.suit=c.suit;
       const embs=RL.emblemsForCard(me.build,c);
       let embHtml='';
-      if(embs.length){ const e=RL.emblem(embs[0]); embHtml='<div class="emb '+RL.COLORS[e.color].cls+'">'+e.ico+embCode(e)+'</div>'; }
+      if(embs.length){ embHtml='<div class="emb'+(red?' red':'')+'">'+embs.length+'</div>'; }
       card.innerHTML=embHtml+(selHas(c)?'<div class="pick">✓</div>':'')+
         '<div class="r '+(red?'red':'blk')+'">'+c.rank+'</div>'+
         '<div class="s '+(red?'red':'blk')+'">'+RL.SUIT_SYM[c.suit]+'</div>'+
@@ -4205,11 +4218,10 @@ const AUDIO = (function(){
         '<div class="inspgrid">'+grid+'</div>';
       host.appendChild(box);
     });
-    $('#ovl-inspect').classList.add('active');
-    setTimeout(focusFirst,0);
+    show('s-inspect');
   }
   function closeInspect(){
-    $('#ovl-inspect').classList.remove('active');
+    show('s-match');
     setTimeout(()=>{ const b=$('#match-inspect'); if(b && focusables().includes(b)) setFocus(b); else focusOnHandOrPass(); },0);
   }
   $('#match-inspect').onclick=()=> openInspect();
@@ -4261,7 +4273,7 @@ const AUDIO = (function(){
   function padLabel(i){ return (PAD_LABELS[i]!=null ? PAD_LABELS[i] : ('B'+i)) + ' (' + i + ')'; }
   function renderKeys(){
     const wrap=$('#keys-rows'); if(!wrap) return; wrap.innerHTML='';
-    KEY_ACTIONS.forEach(a=>{
+    KEY_ACTIONS.filter(a=> a!=='sub' && a!=='pause').forEach(a=>{
       const keys=(store.keymap[a]||[]).map(keyLabel).join(' / ') || '—';
       const pads=(store.padmap[a]||[]).map(padLabel).join(' / ') || '—';
       const row=el('div','keyrow');
