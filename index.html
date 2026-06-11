@@ -133,7 +133,7 @@
   .chip-aka{ background:var(--aka);} .chip-ao{ background:var(--ao);} .chip-midori{ background:var(--midori);} .chip-ki{ background:var(--ki); color:#5a4500;}
 
   /* ===== タイトル ===== */
-  #s-title .logo{ position:absolute; top:60px; left:0; right:0; text-align:center; }
+  #s-title .logo{ position:absolute; top:20px; left:0; right:0; text-align:center; }
   #s-title .logo .big{ font-size:170px; font-weight:900; letter-spacing:8px; color:#fff;
     text-shadow:0 6px 0 #1a1f3d, 0 0 40px rgba(120,180,255,.55); animation:logoGlow 4.5s ease-in-out infinite; }
   /* タイトルだけの控えめな“呼吸する発光”。要素1個・ゆっくりなので負荷は無視できる（対戦中は動かさない）。 */
@@ -168,7 +168,7 @@
     #s-title .logo .sub{ animation:none; background-position:0 center; }
     #s-title .logo .sub::before, #s-title .logo .sub::after{ animation:none; }
   }
-  #s-title .menu{ position:absolute; top:520px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:26px; }
+  #s-title .menu{ position:absolute; top:460px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:26px; }
   #s-title .menu .btn{ min-width:560px; }
   #s-title .ver{ position:absolute; bottom:26px; right:34px; color:#b9c4ef; font-size:24px; }
   #s-title .stbox{ position:absolute; bottom:26px; left:34px; color:#9fd9a8; font-size:24px; }
@@ -3066,10 +3066,10 @@ const AUDIO = (function(){
     //   合言葉「バランス」＋名前「タンラム」を入れて進むと開く(openOnline の配線参照)。
     // ボタン数に応じてメニュー開始位置と間隔を調整（はみ出し防止）
     const btnCount = m.children.length;
-    if(btnCount >= 7){ m.style.top = '300px'; m.style.gap = '16px'; }
-    else if(btnCount >= 6){ m.style.top = '348px'; m.style.gap = '20px'; }
-    else if(btnCount >= 5){ m.style.top = '400px'; m.style.gap = '26px'; }
-    else { m.style.top = '520px'; m.style.gap = '26px'; }
+    if(btnCount >= 7){ m.style.top = '340px'; m.style.gap = '14px'; }
+    else if(btnCount >= 6){ m.style.top = '390px'; m.style.gap = '18px'; }
+    else if(btnCount >= 5){ m.style.top = '430px'; m.style.gap = '22px'; }
+    else { m.style.top = '460px'; m.style.gap = '26px'; }
     // タイトルの飾りカード
     const fan=$('#title-fan'); fan.innerHTML='';
     [['A','♠',false],['K','♥',true],['Q','♦',true],['J','♣',false],['2','♠',false]].forEach(([r,s,red])=>{
