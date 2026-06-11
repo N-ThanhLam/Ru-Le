@@ -3,13 +3,12 @@
 ==================================================================
  UI DESIGN CONTRACT  (UI・UX実装規約 / 削除禁止 / DO NOT DELETE)
 
- ★スコープ: この契約は【PC / 横持ち(landscape) プロファイル】を統べる。
-   横持ち＝従来どおり 1920x1080 固定ステージ＋全体scale で、下記規約を厳守する。
-   一方【スマホ / 縦持ち(portrait) プロファイル】は別系統で、@media (max-aspect-ratio:1/1)
-   による“レスポンシブ・モバイル規約”(下部 MOBILE PORTRAIT PROFILE) に従う。
-   ＝向き(aspect-ratio)で profile を分岐。PC/横持ちのコードと挙動は無傷のまま温存する。
+ ★スコープ: この契約は【横画面固定】の単一プロファイルを統べる。
+   横持ち＝1920x1080 固定ステージ＋全体scale で、下記規約を厳守する。
+   縦持ち端末では #rotate-lock オーバーレイで回転をうながし、ゲーム本体は
+   常に横向きで描画する(縦持ち専用UIは持たない)。
 
- [PC / 横持ちプロファイル 規約]
+ [UI/UX 規約]
  - Controller First
  - No Mouse Required
  - No Hover Required
@@ -22,15 +21,8 @@
  - Board First Layout
  - Nintendo Switch Style UX
  - One Screen Readability
+ - Landscape Only (縦持ちは回転をうながし、縦専用UIは作らない)
  - All Future Features Must Follow This Contract
-
- [スマホ / 縦持ちプロファイル 規約]  (MOBILE PORTRAIT PROFILE)
- - Portrait First (縦を第一候補・横は従来のPCレイアウトを流用)
- - Responsive Layout (固定ステージscaleを使わず viewport=実pxで自然拡縮)
- - Touch First (タップ領域 >= 44px / 誤タップ防止)
- - Board First (場札を最大面積の主役に)
- - Progressive Disclosure (常時表示は最小・詳細は選択時のみ/モーダルへ退避)
- - Scroll Allowed Where Intended (手札/候補は横/縦スクロール許容)
  END CONTRACT
 ==================================================================
  Ru-Le  (ルール) v0.1  -- 単一HTML / 完全オフライン
@@ -64,7 +56,6 @@
     --aka:#ef5350; --ao:#42a5f5; --midori:#66bb6a; --ki:#ffca28;
     --ink:#1f2440; --paper:#fbf7ef; --gold:#ffcf4d;
     --panel:#ffffff; --line:#2a2f55;
-    --gap:clamp(4px,1.4vmin,14px);   /* 縦持ちprofileの流体間隔の基準 */
   }
   *{ box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; }
   html,body{ width:100%; height:100%; background:#05060f; overflow:hidden; font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif; color:var(--ink); }
@@ -72,15 +63,38 @@
   /* 1920x1080 固定ステージを画面にスケール(レターボックス) */
   #stage{
     position:relative; width:1920px; height:1080px; flex:0 0 auto; transform-origin:center center;
-    background:linear-gradient(160deg,#23386e 0%, #2a2150 55%, #401f4a 100%);
+    /* コンソールゲーム調の“盤面”：斜めの光＋上からのスポット＋四隅のビネット（全て静的=描画負荷ゼロ） */
+    background:
+      radial-gradient(120% 80% at 50% -8%, rgba(140,180,255,.22) 0%, rgba(140,180,255,0) 55%),
+      radial-gradient(90% 70% at 88% 110%, rgba(255,140,210,.14) 0%, rgba(255,140,210,0) 60%),
+      linear-gradient(160deg,#23386e 0%, #2a2150 55%, #401f4a 100%);
+    box-shadow:inset 0 0 220px rgba(4,6,20,.7);   /* 四隅をやさしく落として中央へ視線を集める */
     overflow:hidden;
   }
+  /* ステージ上の微細な格子（フェルト感）。pointer-events無し・1枚の静的レイヤなので軽い。 */
+  #stage::before{ content:''; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size:64px 64px, 64px 64px; }
+  .screen{ z-index:1; }   /* 各画面を格子レイヤより前に */
   .screen{ position:absolute; inset:0; display:none; }
   .screen.active{ display:block; }
 
-  /* ---- 縦持ちを正式サポート: 旧「回転をうながす全面オーバーレイ」は無効化。
-         縦持ちは下部 MOBILE PORTRAIT PROFILE で専用描画する。 ---- */
-  #rotate-lock{ display:none !important; }
+  /* ---- 横画面固定: タッチ端末の縦持ち時のみ全面を覆い、回転をうながす。
+         (PC/横持ちでは pointer:coarse か orientation:landscape で出ない) ---- */
+  #rotate-lock{ display:none; }
+  @media (orientation:portrait) and (pointer:coarse){
+    #rotate-lock{
+      display:flex; position:fixed; inset:0; z-index:99999;
+      flex-direction:column; align-items:center; justify-content:center; gap:28px;
+      text-align:center; padding:40px; color:var(--paper);
+      background:radial-gradient(circle at 50% 30%, #182a55 0%, #0a0f24 60%, #05060f 100%);
+    }
+    #rotate-lock .ic{ font-size:108px; line-height:1; animation:rotateHint 2.4s ease-in-out infinite; }
+    #rotate-lock .t1{ font-size:44px; font-weight:800; letter-spacing:.04em; }
+    #rotate-lock .t2{ font-size:26px; opacity:.78; }
+  }
+  @keyframes rotateHint{ 0%,18%{ transform:rotate(0); } 50%,68%{ transform:rotate(-90deg); } 100%{ transform:rotate(0); } }
+  @media (prefers-reduced-motion:reduce){ #rotate-lock .ic{ animation:none; } }
 
   /* ---- 共通パーツ ---- */
   .foc{ cursor:pointer; }
@@ -103,7 +117,14 @@
   /* ===== タイトル ===== */
   #s-title .logo{ position:absolute; top:60px; left:0; right:0; text-align:center; }
   #s-title .logo .big{ font-size:170px; font-weight:900; letter-spacing:8px; color:#fff;
-    text-shadow:0 6px 0 #1a1f3d, 0 0 40px rgba(120,180,255,.55); }
+    text-shadow:0 6px 0 #1a1f3d, 0 0 40px rgba(120,180,255,.55); animation:logoGlow 4.5s ease-in-out infinite; }
+  /* タイトルだけの控えめな“呼吸する発光”。要素1個・ゆっくりなので負荷は無視できる（対戦中は動かさない）。 */
+  @keyframes logoGlow{ 0%,100%{ text-shadow:0 6px 0 #1a1f3d, 0 0 36px rgba(120,180,255,.45); } 50%{ text-shadow:0 6px 0 #1a1f3d, 0 0 64px rgba(150,200,255,.8); } }
+  /* 低負荷/省電力・動きを抑えたい環境では装飾アニメを止める（処理を重くしない保険）。 */
+  @media (prefers-reduced-motion: reduce){
+    #s-title .logo .big{ animation:none; }
+    .opp .cnt.low{ animation:none; }
+  }
   #s-title .logo .big span{ color:var(--gold); }
   #s-title .logo .sub{ font-size:34px; color:#dfe6ff; margin-top:6px; letter-spacing:4px; }
   #s-title .menu{ position:absolute; top:520px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:26px; }
@@ -116,7 +137,8 @@
 
   /* ===== 汎用ヘッダ ===== */
   .topbar{ position:absolute; top:0; left:0; right:0; height:96px; display:flex; align-items:center; padding:0 36px;
-    background:rgba(10,14,34,.55); border-bottom:4px solid rgba(255,255,255,.12); }
+    background:linear-gradient(180deg, rgba(14,20,46,.78), rgba(10,14,34,.5));
+    border-bottom:4px solid rgba(255,207,77,.32); box-shadow:0 6px 18px rgba(0,0,0,.3); }
   .topbar .title{ font-size:44px; font-weight:900; color:#fff; }
   .topbar .spacer{ flex:1; }
   .hint{ position:absolute; bottom:18px; left:0; right:0; text-align:center; color:#cdd6ff; font-size:26px;
@@ -140,73 +162,112 @@
   .meter > i{ display:block; height:100%; background:linear-gradient(90deg,#66bb6a,#ffca28,#ef5350); }
   .costbox .num{ font-size:32px; font-weight:900; color:var(--gold); min-width:150px; text-align:right; }
 
-  /* スロット行（数字 / マーク＋役ルール）。低めにして“選択肢”へ高さを譲る。 */
-  .slotsrow{ display:flex; gap:10px; }
-  .slotsrow .grp-lbl{ width:116px; flex:none; display:flex; align-items:center; font-size:25px; font-weight:800; color:#dfe6ff; }
-  .slots{ flex:1; display:flex; gap:9px; }
-  .slot{ flex:1; min-width:0; background:rgba(255,255,255,.92); border:4px solid var(--line); border-radius:14px;
-    height:92px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; }
-  .slot .k{ font-size:36px; font-weight:900; color:var(--ink); line-height:1; }
+  /* 1行案内（常時表示はこれだけ）。スロットを主役にするため細く。 */
+  .buildguide{ flex:none; text-align:center; }
+  .buildguide .bg-main{ font-size:28px; font-weight:800; color:#cdd6ff; }
+
+  /* 解除モード（トグル）: ON の間はスロットをタップすると、そのスロットのエンブレムを全部はずす。 */
+  #build-clear.on{ background:linear-gradient(180deg,#ff8f86,#ef5350); color:#fff; border-color:#7a1f1a;
+    box-shadow:0 6px 0 #5a1510, 0 0 0 5px rgba(239,83,80,.45); }
+  #s-build.removemode .buildguide .bg-main{ color:#ffb4ad; }
+  #s-build.removemode .slot.has-emb{ border-color:#ef5350 !important;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.9), 0 0 0 5px rgba(239,83,80,.4); }
+  #s-build.removemode .slot.has-emb::after{ content:'🗑'; position:absolute; top:4px; right:7px; font-size:30px; opacity:.92; pointer-events:none; }
+
+  /* スロット領域＝この画面の主役。一覧が別画面へ移った分、空いた縦をいっぱい使って大きく見せる。 */
+  .slotsarea{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:26px; }
+
+  /* スロット行（数字 / マーク＋役ルール）。行は縦を分け合って大きく伸びる（カード比率を保つよう上限あり）。 */
+  .slotsrow{ display:flex; gap:14px; flex:1 1 0; min-height:0; max-height:300px; align-items:stretch; }
+  .slotsrow .grp-lbl{ width:150px; flex:none; display:flex; align-items:center; font-size:34px; font-weight:800; color:#dfe6ff; }
+  .slots{ flex:1; display:flex; gap:12px; align-items:stretch; }
+  .slot{ flex:1; min-width:0; background:linear-gradient(180deg,#ffffff,#eaeefb); border:5px solid var(--line); border-radius:20px;
+    min-height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:10px 6px; position:relative; cursor:pointer;
+    overflow:hidden;   /* ★何を積んでも箱の外へはみ出さない（数字に詰め込んでも崩れない保険） */
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.9), inset 0 -12px 20px rgba(70,90,150,.10); }
+  .slot .k{ font-size:66px; font-weight:900; color:var(--ink); line-height:1; transition:font-size .12s ease; }
+  .slot.has-emb .k{ font-size:44px; }   /* ★エンブレムが付いたら数字を小さくして「数字＋エンブレム」を両方ちゃんと収める */
   .slot .k.red{ color:#d3382f; }
-  .slot .e{ font-size:21px; font-weight:900; color:#fff; padding:3px 8px; border-radius:8px; line-height:1.1; }
-  .slot .empty{ font-size:24px; color:#c2c7e6; font-weight:700; }   /* 空きは控えめ＝「埋めなきゃ」感を出さない */
+  /* 装備中エンブレム＝アイコンだけの大きめチップを折り返し表示（説明文は載せない＝「装備の見える化」）。
+     集中セット（同一枠に複数）でも重ならないよう wrap＋自動伸長。多すぎる時は ＋N に丸める。
+     高さを上限で抑え＋overflow:hidden で、何個積んでも枠から飛び出さない。 */
+  .slot .es{ display:flex; flex-wrap:wrap; align-items:center; align-content:center; justify-content:center; gap:6px; max-width:100%; }
+  .slot .e{ font-size:33px; font-weight:900; color:#fff; padding:3px 9px; border-radius:11px; line-height:1.05; box-shadow:0 2px 5px rgba(0,0,0,.28); }
+  .slot .e.more{ background:#5b6080; color:#fff; font-size:27px; }
+  .slot .empty{ font-size:60px; color:#b9bedf; font-weight:800; line-height:1; }   /* 「＋」＝押せば付く合図。控えめで圧をかけない */
 
   /* マーク(4枠・固定幅) ＋ 役ルール(右の空き1枠) を同一行に。 */
-  .slotsrow.combo{ align-items:flex-start; }
-  .slotsrow.combo .slots.suits{ flex:none; width:520px; }
+  .slotsrow.combo{ align-items:stretch; }
+  .slotsrow.combo .slots.suits{ flex:none; width:600px; }
   .slotsrow.combo .grp-lbl.rules-lbl{ width:auto; padding:0 6px; }
   .slotsrow.combo .slots.rules{ flex:1; }
-  .slot.rule{ flex-direction:row; flex-wrap:wrap; align-items:center; align-content:center; justify-content:flex-start;
-    gap:8px; padding:6px 14px; min-height:92px; height:auto; }
+  .slot.rule{ flex-direction:row; flex-wrap:wrap; align-items:center; align-content:center; justify-content:center;
+    gap:10px; padding:12px 18px; min-height:160px; }
   .slot.rule .k{ display:none; }
-  .slot.rule .e{ font-size:25px; padding:5px 13px; }
-  .slot.rule .empty{ font-size:25px; }
+  .slot.rule .e{ font-size:34px; padding:7px 16px; }
+  .slot.rule .empty{ font-size:40px; }
 
-  /* メイン領域：選択肢(パレット)を主役に左へ大きく、詳細ペインを右へ。＝家庭用ゲームの装備画面レイアウト。 */
-  .buildmain{ flex:1; min-height:0; display:flex; gap:14px; }
-  .palette{ flex:1; min-width:0; display:flex; flex-direction:column; background:rgba(8,11,28,.4); border:4px solid rgba(255,255,255,.18); border-radius:16px; padding:12px; }
-  .palette .ph{ flex:none; font-size:25px; font-weight:800; color:#fff; margin-bottom:8px; }
-  .palette .ph b{ color:var(--gold); }
+  /* ===== エンブレム選択（スロットを押した時だけ開く＝「読む画面」ではなく「装備する画面」） =====
+     PC=中央モーダル / スマホ=ボトムシート。一覧はアイコン・名前・コストのみ、説明は選択中の1枚だけ。 */
+  /* ★ほぼ全画面（1920x1080ステージいっぱい）に開き、その分すべてを大きく見せる。 */
+  #ovl-emblem .embpick{ width:1880px; max-width:98%; height:1030px; max-height:98%; pointer-events:auto;
+    background:linear-gradient(180deg,#fdfaf2,#eef0fb); border:7px solid var(--line); border-radius:28px; box-shadow:0 28px 70px rgba(0,0,0,.65);
+    display:flex; flex-direction:column; padding:26px 34px; gap:18px; }
+  .embpick-bar{ display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+  .embpick-bar .ep-slot{ font-size:52px; font-weight:900; color:var(--ink); background:#fff; border:5px solid var(--line);
+    border-radius:16px; padding:4px 24px; line-height:1.15; min-width:84px; text-align:center; box-shadow:inset 0 3px 0 rgba(255,255,255,.9), 0 4px 10px rgba(0,0,0,.2); }
+  .embpick-bar .ep-slot.red{ color:#d3382f; }
+  .embpick-bar .ep-cur-lbl{ font-size:30px; font-weight:800; color:#6b7099; }
+  .embpick-bar .ep-cur-val{ font-size:38px; font-weight:900; color:var(--ink); }
+  .embpick-bar .ep-spacer{ flex:1; }
+  .embpick-body{ flex:1; min-height:0; display:flex; gap:22px; }
+
+  .palette{ flex:1; min-width:0; display:flex; flex-direction:column; background:rgba(10,14,34,.06); border:4px solid rgba(0,0,0,.1); border-radius:18px; padding:16px; }
+  .palette .ph{ flex:none; font-size:32px; font-weight:800; color:var(--ink); margin-bottom:12px; }
+  .palette .ph b{ color:#b25a00; }
+  .palette .pal-empty{ flex:1; display:flex; align-items:center; justify-content:center; text-align:center;
+    font-size:32px; font-weight:800; color:#7a7fa6; line-height:1.4; padding:30px; }
   .embgrid{ position:relative; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;
-    display:grid; grid-template-columns:repeat(5,1fr); gap:9px; align-content:start; padding:6px; }
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px; align-content:start; padding:8px; }
   .embgrid::-webkit-scrollbar{ width:14px; }
-  .embgrid::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.4); border-radius:8px; }
-  .embgrid::-webkit-scrollbar-track{ background:rgba(255,255,255,.08); border-radius:8px; }
+  .embgrid::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.28); border-radius:8px; }
+  .embgrid::-webkit-scrollbar-track{ background:rgba(0,0,0,.08); border-radius:8px; }
   .palette.more-down .embgrid{ -webkit-mask-image:linear-gradient(180deg,#000 90%,transparent 100%); mask-image:linear-gradient(180deg,#000 90%,transparent 100%); }
-  .scrollcue{ flex:none; text-align:center; color:var(--gold); font-size:21px; font-weight:900; height:0; overflow:visible; }
+  .scrollcue{ flex:none; text-align:center; color:#b25a00; font-size:24px; font-weight:900; height:0; overflow:visible; }
   .scrollcue.show{ height:auto; margin-top:4px; }
 
-  /* エンブレム＝短い「アイテムタイル」。説明文は載せない(詳細ペインへ移譲)＝一覧から勉強感を消す。
+  /* エンブレム＝短い「アイテムタイル」(アイコン・名前・コストのみ)。説明文は載せない＝勉強感を消す。
      色カテゴリ(赤=場/青=ターン/緑=役/黄=手札)は左の色帯で一目表現。意味の言葉は詳細ペインで開示。 */
-  .palette .emb{ background:#fff; border:4px solid var(--line); border-radius:14px; padding:8px 12px;
-    display:flex; flex-direction:column; justify-content:center; gap:6px; height:94px; position:relative; }
-  .palette .emb .thd{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .palette .emb .ico{ font-size:33px; line-height:1; }
-  .palette .emb .cst{ font-size:24px; font-weight:900; color:#b25a00; }
-  .palette .emb .nm{ font-size:30px; font-weight:900; color:var(--ink); line-height:1.05; }
-  .palette .emb .badge{ position:absolute; top:-4px; right:-4px; font-size:20px; font-weight:900; color:#fff; padding:2px 10px; border-radius:9px; box-shadow:0 2px 6px rgba(0,0,0,.4); }
+  .palette .emb{ background:linear-gradient(180deg,#ffffff,#f3f5ff); border:5px solid var(--line); border-radius:18px; padding:14px 18px;
+    display:flex; flex-direction:column; justify-content:center; gap:10px; height:140px; position:relative; cursor:pointer;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.9), 0 5px 12px rgba(0,0,0,.16); }
+  .palette .emb .thd{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .palette .emb .ico{ font-size:50px; line-height:1; }
+  .palette .emb .cst{ font-size:32px; font-weight:900; color:#b25a00; }
+  .palette .emb .nm{ font-size:42px; font-weight:900; color:var(--ink); line-height:1.05; }
+  .palette .emb .badge{ position:absolute; top:-8px; right:-8px; font-size:28px; font-weight:900; color:#fff; padding:3px 14px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.4); }
   .palette .emb .badge.on{ background:#2e7d32; }
   .palette .emb .badge.elsewhere{ background:#8a6d00; }
-  .palette .emb.equipped{ background:#fff6d6; box-shadow:0 0 0 4px #ffcf4d; }
-  .palette .emb.locked{ opacity:.34; filter:grayscale(.7); }
+  .palette .emb.equipped{ background:linear-gradient(180deg,#fff7d8,#ffeea6); box-shadow:0 0 0 5px #ffcf4d, 0 5px 12px rgba(0,0,0,.16); }
 
   /* 詳細ペイン：フォーカス中の“ひとつ”だけを大きく説明する＝選択した時だけ情報を出す。 */
-  .detailpane{ flex:none; width:472px; background:linear-gradient(180deg,#ffffff,#eef1ff);
-    border:5px solid var(--line); border-radius:18px; padding:20px 24px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
-  .detailpane .dt-top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .detailpane .dt-code{ display:inline-flex; align-items:center; gap:8px; font-size:27px; font-weight:900; color:#fff; padding:4px 14px; border-radius:12px; }
-  .detailpane .dt-cat{ font-size:22px; font-weight:900; padding:3px 12px; border-radius:10px; color:#fff; }
-  .detailpane .dt-name{ font-size:44px; font-weight:900; color:var(--ink); line-height:1.04; }
-  .detailpane .dt-desc{ font-size:27px; font-weight:700; color:#2a2f55; line-height:1.4; }
-  .detailpane .dt-rows{ display:flex; flex-direction:column; gap:7px; margin-top:2px; }
-  .detailpane .dt-row{ font-size:24px; font-weight:800; color:#3a3f63; }
+  .detailpane{ flex:none; width:580px; background:linear-gradient(180deg,#ffffff,#e9edff);
+    border:6px solid var(--line); border-radius:22px; padding:26px 30px; display:flex; flex-direction:column; gap:16px; overflow:hidden;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.9); }
+  .detailpane .dt-top{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .detailpane .dt-code{ display:inline-flex; align-items:center; gap:10px; font-size:34px; font-weight:900; color:#fff; padding:5px 18px; border-radius:14px; }
+  .detailpane .dt-cat{ font-size:30px; font-weight:900; padding:4px 16px; border-radius:12px; color:#fff; }
+  .detailpane .dt-name{ font-size:58px; font-weight:900; color:var(--ink); line-height:1.04; }
+  .detailpane .dt-desc{ font-size:34px; font-weight:700; color:#2a2f55; line-height:1.42; }
+  .detailpane .dt-rows{ display:flex; flex-direction:column; gap:9px; margin-top:4px; }
+  .detailpane .dt-row{ font-size:30px; font-weight:800; color:#3a3f63; }
   .detailpane .dt-row b{ color:#b25a00; }
-  .detailpane .dt-equip{ font-size:25px; font-weight:800; color:#2a2f55; line-height:1.3; }
+  .detailpane .dt-equip{ font-size:30px; font-weight:800; color:#2a2f55; line-height:1.3; }
   .detailpane .dt-equip .ev{ color:#1b5e20; font-weight:900; }
-  .detailpane .dt-note{ font-size:21px; font-weight:700; color:#6b7099; line-height:1.32; }
+  .detailpane .dt-note{ font-size:28px; font-weight:700; color:#6b7099; line-height:1.32; }
   .detailpane .dt-spacer{ flex:1; min-height:0; }
-  .detailpane .dt-act{ font-size:27px; font-weight:900; color:#1f2440; background:var(--gold); border-radius:14px; padding:12px 16px; text-align:center; }
-  .detailpane .dt-act.no{ background:#e6e7ee; color:#9094b4; }
+  .detailpane .dt-act{ font-size:34px; font-weight:900; color:#1f2440; background:var(--gold); border-radius:16px; padding:16px 18px; text-align:center; box-shadow:0 5px 0 #b8932f; }
+  .detailpane .dt-act.no{ background:#e6e7ee; color:#9094b4; box-shadow:0 5px 0 #c3c5d2; }
 
   /* おすすめ構成オーバーレイ（初心者がワンタップで完成できる“近道”。常時表示せず必要時だけ開く）。 */
   .recolist{ display:flex; gap:22px; justify-content:center; }
@@ -230,15 +291,20 @@
   .opp .cnt small{ font-size:24px; color:#dfe6ff; font-weight:800; }
   .opp .cnt.low{ color:#fff; background:#d3382f; border-color:#fff; animation:cntpulse 1s ease-in-out infinite; }
   @keyframes cntpulse{ 0%,100%{ box-shadow:0 4px 14px rgba(0,0,0,.4);} 50%{ box-shadow:0 0 0 6px rgba(211,56,47,.45), 0 4px 14px rgba(0,0,0,.4);} }
-  .opp .builds{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-  .bchip{ display:inline-flex; align-items:center; gap:5px; font-size:21px; font-weight:900; color:#fff; padding:2px 8px; border-radius:8px; }
-  .bchip .sk{ background:#fff; color:var(--ink); border-radius:6px; padding:0 5px; }
+  /* ★相手のエンブレム＝「セット元のマーク（白チップ）＋エンブレムのアイコン」だけを大きく見せる（文字は載せない）。
+     最大2行（高さ上限88px）＋overflow:hidden、表示数は6個までに丸め（残りは+N）＝何個付けても相手枠から飛び出さない。 */
+  .opp .builds{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; max-height:88px; overflow:hidden; align-content:flex-start; }
+  .bchip{ display:inline-flex; align-items:center; gap:4px; font-size:34px; font-weight:900; color:#fff; padding:3px 9px; border-radius:12px; line-height:1; box-shadow:0 2px 5px rgba(0,0,0,.3); }
+  .bchip .sk{ background:#fff; color:var(--ink); border-radius:8px; padding:1px 8px; font-size:29px; }
+  .bchip .bi{ font-size:32px; }
+  .bchip.more{ background:#3a4170; padding:3px 12px; }
+  .opp .builds .no-emb, #s-match .selfbar .builds .no-emb{ color:#cdd6ff; font-size:24px; font-weight:800; }
   .opp .place{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:46px; font-weight:900; color:#fff; text-shadow:0 3px 8px #000; }
 
   #s-match .center{ position:absolute; top:316px; left:0; right:0; height:300px; display:flex; align-items:center; justify-content:center; gap:40px; }
   .fieldzone{ display:flex; flex-direction:column; align-items:center; gap:12px; }
-  .fieldcard{ width:200px; height:280px; border-radius:20px; background:#fff; border:6px solid var(--line);
-    box-shadow:0 16px 30px rgba(0,0,0,.45); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+  .fieldcard{ width:200px; height:280px; border-radius:20px; background:linear-gradient(152deg,#ffffff 0%, #f3f6ff 58%, #e6ebfb 100%); border:6px solid var(--line);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.95), inset 0 -14px 24px rgba(80,100,160,.12), 0 16px 30px rgba(0,0,0,.45); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
   .fieldcard.empty{ background:rgba(255,255,255,.12); border-style:dashed; border-color:rgba(255,255,255,.5); }
   .fieldcard .r{ font-size:104px; font-weight:900; line-height:1; }
   .fieldcard .s{ font-size:64px; line-height:1; }
@@ -259,13 +325,13 @@
   #s-match .selfbar .me{ font-size:30px; font-weight:900; color:#fff; display:flex; align-items:baseline; gap:10px; white-space:nowrap; }
   #s-match .selfbar .me .selfcnt{ font-size:44px; font-weight:900; color:var(--gold); line-height:1; }
   #s-match .selfbar .me .selfcnt.low{ color:#ff6b5e; }
-  #s-match .selfbar .builds{ display:flex; gap:8px; flex-wrap:wrap; }
+  #s-match .selfbar .builds{ display:flex; gap:8px; flex-wrap:nowrap; overflow:hidden; align-items:center; min-width:0; }
 
   #s-match .handzone{ position:absolute; left:24px; right:24px; bottom:128px; top:700px; display:flex; align-items:flex-end; justify-content:center; }
   .hand{ display:flex; align-items:flex-end; justify-content:center; gap:8px; }
-  .pcard{ width:120px; height:172px; border-radius:16px; background:#fff; border:5px solid var(--line);
+  .pcard{ width:120px; height:172px; border-radius:16px; background:linear-gradient(152deg,#ffffff 0%, #f4f6ff 58%, #e7ecfb 100%); border:5px solid var(--line);
     display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:10px 6px; position:relative;
-    transition:transform .12s ease; box-shadow:0 8px 16px rgba(0,0,0,.35); }
+    transition:transform .12s ease; box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 18px rgba(80,100,160,.10), 0 8px 16px rgba(0,0,0,.35); }
   .pcard .r{ font-size:46px; font-weight:900; line-height:1; align-self:flex-start; margin-left:6px;}
   .pcard .s{ font-size:54px; line-height:1; }
   .pcard .r2{ font-size:46px; font-weight:900; line-height:1; align-self:flex-end; transform:rotate(180deg); margin-right:6px; }
@@ -286,21 +352,22 @@
   #s-match .actbar{ position:absolute; left:24px; right:24px; bottom:18px; height:96px; display:flex; align-items:center; justify-content:center; gap:24px; }
 
   /* ===== エンブレム閲覧オーバーレイ ===== */
-  .inspwrap{ display:flex; flex-direction:column; gap:14px; min-width:1540px; max-height:740px; overflow-y:auto; padding:6px 8px; }
-  .inspwrap::-webkit-scrollbar{ width:14px; } .inspwrap::-webkit-scrollbar-thumb{ background:#9aa3c8; border-radius:8px; }
-  .inspplayer{ background:#fff; border:5px solid var(--line); border-radius:18px; padding:12px 18px; }
+  /* ★相手の能力説明＝とにかく読めることを優先。スクロールは伸ばしてよいので文字を大きく。 */
+  .inspwrap{ display:flex; flex-direction:column; gap:16px; min-width:1560px; max-height:800px; overflow-y:auto; padding:6px 10px; }
+  .inspwrap::-webkit-scrollbar{ width:16px; } .inspwrap::-webkit-scrollbar-thumb{ background:#9aa3c8; border-radius:8px; }
+  .inspplayer{ background:#fff; border:5px solid var(--line); border-radius:18px; padding:14px 20px; }
   .inspplayer.you{ background:linear-gradient(90deg,#fff7df,#ffeeb0); }
-  .inspplayer .pnm{ font-size:30px; font-weight:900; margin-bottom:8px; display:flex; align-items:center; gap:14px; }
-  .inspplayer .pnm .cnt{ font-size:25px; color:#b25a00; font-weight:900; }
-  .inspplayer .pnm .turnnow{ font-size:22px; font-weight:900; color:#fff; background:#e6a700; border-radius:9px; padding:2px 12px; }
-  .inspgrid{ display:flex; flex-wrap:wrap; gap:10px; }
-  .inspe{ width:356px; background:#f7f9ff; border:4px solid var(--line); border-radius:14px; padding:9px 12px; display:flex; flex-direction:column; gap:3px; }
-  .inspe .ehd{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .inspe .ebadge{ font-size:23px; font-weight:900; color:#fff; padding:2px 11px; border-radius:9px; }
-  .inspe .eslot{ font-size:22px; font-weight:900; background:#1f2440; color:#fff; border-radius:8px; padding:0 10px; }
+  .inspplayer .pnm{ font-size:38px; font-weight:900; margin-bottom:10px; display:flex; align-items:center; gap:16px; }
+  .inspplayer .pnm .cnt{ font-size:30px; color:#b25a00; font-weight:900; }
+  .inspplayer .pnm .turnnow{ font-size:28px; font-weight:900; color:#fff; background:#e6a700; border-radius:10px; padding:3px 14px; }
+  .inspgrid{ display:flex; flex-wrap:wrap; gap:14px; }
+  .inspe{ width:492px; background:#f7f9ff; border:4px solid var(--line); border-radius:16px; padding:14px 18px; display:flex; flex-direction:column; gap:8px; }
+  .inspe .ehd{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .inspe .ebadge{ font-size:34px; font-weight:900; color:#fff; padding:3px 15px; border-radius:12px; }
+  .inspe .eslot{ font-size:34px; font-weight:900; background:#1f2440; color:#fff; border-radius:11px; padding:1px 15px; }
   .inspe .eslot.red{ color:#ff8f86; }
-  .inspe .eds{ font-size:21px; color:#333; line-height:1.22; }
-  .inspe.none{ width:auto; color:#777; font-size:24px; font-weight:800; background:transparent; border-style:dashed; }
+  .inspe .eds{ font-size:30px; color:#222; line-height:1.38; font-weight:600; }
+  .inspe.none{ width:auto; color:#777; font-size:30px; font-weight:800; background:transparent; border-style:dashed; }
 
   /* ===== オーバーレイ(指名/メニュー/結果/ドラフト) ===== */
   .ovl{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(4,6,16,.72); z-index:40; }
@@ -489,271 +556,17 @@
   .title-setrow{ display:flex; gap:18px; justify-content:center; align-items:center; }
   #title-lang{ background:linear-gradient(180deg,#7ec8ff,#3a8de0); color:#06233f; border-color:#1f5e96; }
   /* ベトナム語は語が長い。狭い場所だけフォントを少し詰めて はみ出し/見切れ を防ぐ(規約準拠)。 */
-  .lang-vi .palette .emb .nm{ font-size:23px; line-height:1.12; }
-  .lang-vi .slot .e{ font-size:18px; }
-  .lang-vi .slot.rule .e{ font-size:21px; }
-  .lang-vi .bchip{ font-size:18px; }
-  .lang-vi .detailpane .dt-name{ font-size:38px; }
-  .lang-vi .detailpane .dt-cat{ font-size:20px; }
-  .lang-vi .inspe .ebadge{ font-size:21px; }
+  .lang-vi .palette .emb .nm{ font-size:33px; line-height:1.12; }
+  .lang-vi .slot.rule .e{ font-size:24px; }
+  /* .bchip は文字を載せないので VI 用の縮小は不要（マーク＋アイコンのみ） */
+  .lang-vi .detailpane .dt-name{ font-size:48px; }
+  .lang-vi .detailpane .dt-cat{ font-size:28px; }
+  .lang-vi .inspe .ebadge{ font-size:30px; }
   .lang-vi .pcard .emb{ font-size:16px; }
   .lang-vi .draftcard .nm{ font-size:32px; }
   .lang-vi .recocard .rnm{ font-size:34px; }
   .lang-vi .opp .nm{ font-size:27px; }
 
-  /* ================================================================
-     MOBILE PORTRAIT PROFILE  (スマホ/縦持ち専用・@media max-aspect-ratio:1/1)
-     - PC/横持ち(aspect>1)は一切影響を受けない＝従来の固定ステージ+scaleを温存。
-     - 縦持ちでは固定1920に依存せず viewport=実px で自然拡縮(vmin/clamp)。
-     - 場札を主役に / 常時表示は最小 / 詳細は選択時のみ(ボトムシート)。
-     - サイズは vmin(向き非依存)基準。
-     ================================================================ */
-  @media (max-aspect-ratio: 1/1){
-    /* --- 共通: ステージは画面いっぱい(scaleはJS側で無効化) --- */
-    #fit{ display:block; }
-    #stage{ width:100%; height:100dvh; transform:none !important; }
-
-    /* タッチ最適化(指で押せる下限/ダブルタップ拡大の遅延排除) */
-    .btn.small{ min-height:60px; }
-    .slot, .palette .emb{ min-height:64px; }
-    .pcard, .btn, .slot, .palette .emb, .opp{ touch-action:manipulation; }
-
-    /* ===== MATCH: 絶対配置→縦グリッド(場札を1frで主役に) ===== */
-    #s-match.screen.active{ display:grid; }
-    #s-match{
-      grid-template-columns:minmax(0,1fr);   /* 列を容器幅に固定(横スクロール子が列を広げて見切れるのを防ぐ) */
-      grid-template-rows:auto auto minmax(0,1fr) auto auto;
-      grid-template-areas:"top" "opps" "field" "hand" "act";
-      row-gap:var(--gap);
-    }
-    #s-match > *{ min-width:0; }              /* グリッド項目がmin-content分はみ出すのを抑止 */
-    #s-match > .topbar{ position:static; grid-area:top; height:auto; padding:6px 10px; gap:6px; }
-    #s-match .topbar .spacer{ display:none; }
-    #s-match .topbar .title{ flex:1; min-width:0; white-space:nowrap; overflow:hidden;
-      text-overflow:ellipsis; font-size:clamp(18px,4.4vmin,44px); }
-    #s-match .topbar .btn.small{ flex:0 0 auto; font-size:18px; padding:0 12px; min-height:54px;
-      margin-left:0 !important; }
-    #s-match > .opps{ position:static; grid-area:opps; inset:auto; height:auto;
-      overflow-x:auto; flex-wrap:nowrap; gap:8px; padding:6px 10px; }
-    #s-match .opp{ flex:0 0 auto; min-width:30vw; padding:8px 12px; }
-    #s-match .opp .builds{ display:none; }            /* エンブレムchip→🔍しらべるへ退避 */
-    #s-match .opp .nm{ font-size:clamp(15px,3.6vmin,30px); }
-    #s-match .opp .cnt{ font-size:clamp(26px,8vmin,54px); padding:2px 10px; }
-    #s-match > .center{ position:static; grid-area:field; inset:auto; height:auto; min-height:0;
-      flex-direction:column; gap:10px; padding:0 10px; }
-    #s-match .statecol{ position:static; min-width:0;
-      flex-direction:row; flex-wrap:wrap; justify-content:center; gap:6px; }
-    #s-match .stbadge{ font-size:clamp(14px,3.4vmin,27px); padding:5px 12px; }
-    #s-match > .selfbar{ display:none; }              /* 自分のbuild chipは常時非表示 */
-    #s-match #toast{ top:30dvh; }
-    #s-match > .handzone{ position:static; grid-area:hand; inset:auto; height:auto; padding:0 6px; }
-    #s-match .hand{ overflow-x:auto; justify-content:flex-start; gap:6px; padding:18px 4px 8px; }
-    #s-match > .actbar{ position:static; grid-area:act; inset:auto; height:auto;
-      gap:10px; padding:8px 12px calc(12px + env(safe-area-inset-bottom)); }
-    #s-match .actbar .btn{ flex:1; min-height:clamp(58px,9vmin,84px); }   /* 出す/パスを全幅 */
-    /* 流体カードサイズ */
-    .fieldcard{ width:auto; height:clamp(150px,34dvh,360px); aspect-ratio:5/7; }
-    .fieldcard .r{ font-size:clamp(48px,16vmin,104px); }
-    .fieldcard .s{ font-size:clamp(30px,10vmin,64px); }
-    .fieldcard.multi{ width:auto; height:auto; min-height:clamp(140px,30dvh,300px);
-      max-width:96vw; aspect-ratio:auto; }
-    .fcard{ width:auto; height:clamp(120px,26dvh,230px); aspect-ratio:108/230; }
-    .fcard .r{ font-size:clamp(30px,8vmin,58px); } .fcard .s{ font-size:clamp(20px,5vmin,38px); }
-    .fieldcard .clabel{ font-size:clamp(18px,4.4vmin,27px); }
-    .pcard{ width:clamp(58px,16vmin,120px); height:auto; aspect-ratio:120/172; padding:6px 4px; }
-    .pcard .r,.pcard .r2{ font-size:clamp(22px,6vmin,46px); }
-    .pcard .s{ font-size:clamp(26px,7vmin,54px); }
-
-    /* ===== BUILD: 縦フロー＋詳細ボトムシート ===== */
-    #s-build.screen.active{ display:flex; flex-direction:column; }
-    /* topbar: 1行で横スクロール / 余白spacer・タイトルは隠し、決定を先頭固定で常に見える */
-    #s-build > .topbar{ position:static; flex-wrap:nowrap; overflow-x:auto; height:auto;
-      padding:6px 8px; gap:6px; }
-    #s-build .topbar .title, #s-build .topbar .spacer{ display:none; }
-    #s-build .topbar .btn.small{ flex:0 0 auto; font-size:19px; padding:0 14px; min-height:56px; }
-    #s-build #build-ok{ order:-1; }                   /* けってい▶ を左端(常に見える)へ */
-    #s-build > .wrap{ position:static; inset:auto; height:auto; flex:1; min-height:0;
-      gap:8px; padding:8px 10px; }
-    #s-build > .hint{ display:none; }                 /* ヒント帯は縦では非表示(圧迫感を減らす) */
-    /* コスト/お題ストリップ: 折り返し＋メーター可変幅 */
-    .buildstatus{ flex-wrap:wrap; gap:8px; }
-    .buildstatus .costbox{ margin-left:0; flex:1; }
-    .buildstatus .meter{ flex:1; width:auto; min-width:80px; }
-    .buildstatus .num{ min-width:auto; font-size:26px; }
-    /* スロットは1行に詰めず横スクロール */
-    .slotsrow{ overflow-x:auto; flex:none; }
-    .slotsrow .grp-lbl{ position:sticky; left:0; z-index:1; width:auto; padding-right:8px;
-      background:rgba(8,11,28,.6); border-radius:8px; }
-    .slots{ flex-wrap:nowrap; }
-    .slot{ flex:0 0 auto; min-width:62px; height:clamp(60px,11vmin,92px); }
-    .slotsrow.combo{ flex-direction:column; align-items:stretch; gap:8px; }
-    .slotsrow.combo .slots.suits{ width:auto; }
-    .slot.rule{ min-height:60px; }
-    /* パレット5列→2列 / 詳細は横並びから外す。flexチェーンで縮めて embgrid を内部スクロールに */
-    .buildmain{ flex-direction:column; min-height:0; }
-    .palette{ min-height:0; }
-    .embgrid{ grid-template-columns:repeat(2,1fr); }
-    .palette .emb{ height:auto; min-height:84px; }
-    .palette .emb .nm{ font-size:clamp(20px,4.6vmin,30px); }
-    /* 詳細ペイン＝選択時だけせり上がるボトムシート */
-    .detailpane{ position:fixed; left:0; right:0; bottom:0; width:auto;
-      border-radius:18px 18px 0 0; max-height:48dvh; overflow:auto;
-      transform:translateY(100%); transition:transform .2s ease; z-index:50;
-      box-shadow:0 -12px 30px rgba(0,0,0,.5);
-      padding-bottom:calc(20px + env(safe-area-inset-bottom)); }
-    .detailpane.open{ transform:translateY(0); }
-
-    /* ============================================================
-       P3/P4: その他の画面の縦持ち対応
-       (title / 結果 / ドラフト / 巡業しゅうりょう / ヘルプ /
-        オンライン / ロビー / 設定 / キーコンフィグ)。
-       共通方針＝固定px(min-width/絶対配置)をやめ、topbar を上に静的配置し、
-       中身は1カラムで縦に流して必要なら内部スクロール。実pxなのでフォントは
-       既に十分大きい(縦持ちの病巣は“幅あふれ”と“横並び”)。それだけ潰す。
-       PC/横持ち(aspect>1)はこのブロックの外なので一切影響を受けない。
-       ============================================================ */
-
-    /* --- TITLE --- */
-    #s-title.screen.active{ display:flex; flex-direction:column; align-items:center;
-      justify-content:flex-start; gap:2.6dvh; padding:4dvh 16px calc(4dvh + env(safe-area-inset-bottom));
-      overflow-y:auto; }
-    #s-title .logo{ position:static; }
-    #s-title .logo .big{ font-size:clamp(72px,24vmin,170px); }
-    #s-title .logo .sub{ font-size:clamp(20px,4.4vmin,34px); }
-    #s-title .menu{ position:static; top:auto; width:100%; max-width:440px; gap:14px !important; }
-    /* 直下のメニューボタン＝全幅。.btnの大きな左右padding(88px)は狭幅で文字を潰すので圧縮。 */
-    #s-title .menu > .btn{ min-width:0 !important; width:100%; white-space:normal;
-      font-size:clamp(24px,5.8vmin,32px); min-height:68px; padding:0 18px; line-height:1.15; }
-    /* せってい＋言語の2ボタンは横並び。nowrap＋小さめpaddingで1行に収める。 */
-    #s-title .title-setrow{ width:100%; gap:10px; flex-wrap:wrap; }
-    #s-title .title-setrow .btn{ min-width:0 !important; flex:1 1 0; width:auto;
-      white-space:nowrap; font-size:clamp(20px,4.6vmin,28px); padding:0 12px; min-height:62px; }
-    #s-title .cardfan{ display:none; }   /* 飾りカードはメニューと重なるので縦では隠す */
-    #s-title .ver{ bottom:8px; right:12px; font-size:16px; }
-    #s-title .stbox{ bottom:8px; left:12px; right:auto; font-size:16px;
-      max-width:62vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-    /* --- ページ型画面(topbar + ovl-page) 共通: 縦フレックス＋スクロール --- */
-    #s-result.screen.active, #s-draft.screen.active, #s-runover.screen.active,
-    #s-help.screen.active, #s-online.screen.active, #s-set.screen.active{
-      display:flex; flex-direction:column; }
-    #s-result > .topbar, #s-draft > .topbar, #s-runover > .topbar,
-    #s-help > .topbar, #s-online > .topbar, #s-set > .topbar{
-      position:static; height:auto; min-height:58px; padding:8px 12px; gap:10px; flex-wrap:wrap; }
-    #s-result .topbar .title, #s-draft .topbar .title, #s-runover .topbar .title,
-    #s-help .topbar .title, #s-online .topbar .title, #s-set .topbar .title{
-      font-size:clamp(22px,5.2vmin,44px); margin-left:0 !important; }
-    #s-result .topbar .spacer, #s-draft .topbar .spacer{ display:none; }
-    #s-help .topbar .btn.small, #s-online .topbar .btn.small, #s-set .topbar .btn.small{
-      flex:0 0 auto; font-size:18px; min-height:50px; padding:0 14px; }
-    #s-result > .ovl-page, #s-draft > .ovl-page, #s-runover > .ovl-page,
-    #s-help > .ovl-page, #s-online > .ovl-page, #s-set > .ovl-page{
-      position:static; flex:1; min-height:0; display:block; overflow-y:auto;
-      padding:12px 10px calc(16px + env(safe-area-inset-bottom)); }
-    #s-result .card-modal, #s-draft .card-modal, #s-runover .card-modal,
-    #s-help .card-modal, #s-online .card-modal, #s-set .card-modal{
-      width:100%; max-width:560px; margin:0 auto; padding:20px 18px; border-radius:18px; }
-    #s-result .card-modal h2, #s-draft .card-modal h2, #s-runover .card-modal h2,
-    #s-help .card-modal h2, #s-online .card-modal h2{
-      font-size:clamp(26px,6vmin,46px); margin-bottom:16px; }
-    /* ボタン行＝縦積み・全幅(誤タップ防止＋長文ボタンの溢れ防止) */
-    #s-result .rowbtns, #s-draft .rowbtns, #s-runover .rowbtns, #s-online .rowbtns{
-      flex-direction:column; align-items:stretch; gap:12px; }
-    #s-result .rowbtns .btn, #s-draft .rowbtns .btn, #s-runover .rowbtns .btn,
-    #s-online .rowbtns .btn{
-      width:100%; min-width:0; white-space:normal; font-size:clamp(20px,4.6vmin,34px);
-      padding:0 16px; min-height:64px; }
-
-    /* --- 結果 --- */
-    #s-result .ranklist{ min-width:0; width:100%; gap:10px; }
-    #s-result .rankrow{ gap:12px; padding:12px 14px; }
-    #s-result .rankrow .pl{ width:auto; min-width:58px; font-size:clamp(30px,8vmin,54px); }
-    #s-result .rankrow .nm{ font-size:clamp(24px,5.6vmin,38px); }
-    #s-result .rankrow .ti{ font-size:clamp(18px,4.4vmin,30px); }
-
-    /* --- ドラフト(3枚→縦積み) --- */
-    #s-draft .draft{ flex-direction:column; align-items:stretch; gap:14px; }
-    #s-draft .draftcard{ width:auto; padding:16px; }
-    #s-draft .draftcard .ds{ min-height:0; font-size:clamp(20px,4.6vmin,26px); }
-    #s-draft .draftcard .nm{ font-size:clamp(26px,6vmin,36px); }
-    #s-draft .draftcard .code{ font-size:clamp(26px,6vmin,40px); }
-    #s-draft .topbar #draft-depth{ font-size:clamp(20px,4.6vmin,44px); }
-
-    /* --- 巡業しゅうりょう --- */
-    #s-runover #runover-body{ font-size:clamp(28px,7vmin,40px) !important; }
-
-    /* --- ヘルプ --- */
-    #s-help .page{ min-width:0; width:100%; min-height:0; }
-    #s-help .page .body{ font-size:clamp(20px,4.4vmin,30px); }
-    #s-help .page .body h3{ font-size:clamp(26px,5.6vmin,38px); }
-    #s-help .page .body ul{ margin-left:24px; }
-    #s-help .pager{ gap:12px; margin-top:18px; }
-    #s-help .pager .btn.small{ font-size:18px; min-height:54px; padding:0 14px; }
-    #s-help .pager .pgn{ font-size:clamp(20px,4.6vmin,30px); }
-
-    /* --- オンライン設定 --- */
-    #s-online .netform{ margin:14px 0 4px; }
-    #s-online .netrow{ flex-direction:column; align-items:stretch; gap:6px; margin:12px 0; }
-    #s-online .netrow span{ min-width:0; font-size:clamp(22px,5vmin,30px); }
-    #s-online .netrow input{ width:100%; font-size:clamp(22px,5vmin,32px); padding:12px 14px; }
-
-    /* --- 設定 --- */
-    #s-set .page{ min-width:0; width:100%; min-height:0; }
-    #s-set .setrow{ flex-wrap:wrap; gap:10px 14px; padding:14px 16px; margin:10px 0; }
-    #s-set .setrow .nm{ flex:1 1 auto; font-size:clamp(24px,5.6vmin,34px); }
-    #s-set .setrow .val{ min-width:0; font-size:clamp(22px,5.2vmin,32px); text-align:right; }
-    #s-set .setrow .btn.small{ flex:1 1 100%; font-size:20px; min-height:56px; }
-
-    /* --- ロビー(topbar + .wrap) --- */
-    #s-lobby.screen.active{ display:flex; flex-direction:column; }
-    #s-lobby > .topbar{ position:static; height:auto; min-height:58px; padding:8px 10px;
-      gap:8px; flex-wrap:wrap; }
-    #s-lobby .topbar .title{ font-size:clamp(20px,4.8vmin,44px); margin-left:0 !important;
-      flex:1 1 100%; order:-1; }
-    #s-lobby .topbar .spacer{ display:none; }
-    #s-lobby .topbar .btn.small{ flex:1 1 auto; font-size:18px; min-height:52px;
-      padding:0 12px; margin-left:0 !important; }
-    #s-lobby > .wrap{ flex:1; min-height:0; overflow-y:auto; display:flex;
-      flex-direction:column; align-items:center; gap:8px;
-      padding:12px 10px calc(16px + env(safe-area-inset-bottom)); }
-    #s-lobby .lobbyseats{ flex-direction:column; align-items:stretch; width:100%; max-width:460px; gap:12px; }
-    #s-lobby .seatcard{ width:auto; min-height:0; padding:16px; }
-    #s-lobby #lobby-code{ font-size:clamp(22px,5.2vmin,30px) !important; }
-    #s-lobby #lobby-hint{ font-size:clamp(20px,4.6vmin,26px) !important; text-align:center; }
-
-    /* --- キーコンフィグ(絶対配置→静的・1行に積む) --- */
-    #s-keys.screen.active{ display:flex; flex-direction:column; }
-    #s-keys > .topbar{ position:static; height:auto; min-height:58px; padding:8px 12px; gap:10px; }
-    #s-keys .topbar .title{ font-size:clamp(22px,5.2vmin,44px); margin-left:0 !important; }
-    #s-keys .keyswrap{ position:static; left:auto; right:auto; top:auto; bottom:auto;
-      flex:1; min-height:0; overflow-y:auto; gap:12px;
-      padding:12px 10px calc(16px + env(safe-area-inset-bottom)); }
-    #s-keys .keyshead{ font-size:clamp(20px,4.4vmin,27px); }
-    #s-keys .keyscolhd{ display:none; }   /* 3カラム見出しは積むと意味がない */
-    #s-keys .keyrow{ flex-wrap:wrap; gap:10px; padding:10px 12px; }
-    #s-keys .keyrow .kact{ width:auto; flex:1 1 100%; font-size:clamp(22px,5vmin,30px); }
-    #s-keys .kcell{ flex:1 1 0; min-width:0; min-height:54px; padding:6px 12px; }
-    #s-keys .kcell .klbl{ font-size:clamp(22px,5vmin,30px); }
-    #s-keys .kcell .kval{ font-size:clamp(20px,4.6vmin,28px); }
-    #s-keys .keysfoot{ flex-direction:column; align-items:stretch; gap:12px; }
-    #s-keys .keysnote{ font-size:clamp(18px,4.2vmin,24px); }
-    #s-keys .capbox{ padding:28px 26px; max-width:90vw; gap:12px; }
-    #s-keys .capbox .capic{ font-size:clamp(54px,16vmin,88px); }
-    #s-keys .capbox #capture-txt{ font-size:clamp(26px,6vmin,42px); }
-    #s-keys .capbox .capesc{ font-size:clamp(18px,4.2vmin,27px); }
-
-    /* --- 共有オーバーレイ(ポーズ/指名/おすすめ/しらべる)も縦では画面内に収める --- */
-    .ovl:not(.ovl-page) .card-modal{ max-width:94vw; max-height:88dvh; overflow:auto;
-      padding:20px 18px; }
-    .ovl:not(.ovl-page) .rowbtns{ flex-direction:column; align-items:stretch; gap:12px; }
-    .ovl:not(.ovl-page) .rowbtns .btn{ width:100%; min-width:0; white-space:normal; }
-    .recolist{ flex-direction:column; align-items:stretch; gap:14px; }
-    .recocard{ width:auto; }
-    .recocard .rds{ min-height:0; }
-    .inspwrap{ min-width:0; max-height:80dvh; }
-    .inspgrid{ flex-direction:column; }
-    .inspe{ width:auto; }
-  }
 </style>
 </head>
 <body>
@@ -779,7 +592,8 @@
       <div class="title" id="build-title">エンブレム編成</div>
       <div class="spacer"></div>
       <div class="btn small ghost foc" id="build-recommend" style="flex-shrink:0;" data-i18n="build_recommend">✨ おすすめ構成</div>
-      <div class="btn small ghost foc" id="build-clear" style="flex-shrink:0;" data-i18n="build_clear">🗑 解除（X）</div>
+      <div class="btn small ghost foc" id="build-clear" style="flex-shrink:0;" data-i18n="build_clear">🗑 解除モード（X）</div>
+      <div class="btn small ghost foc" id="build-clearall" style="flex-shrink:0;" data-i18n="build_clearall">🧹 全解除</div>
       <div class="btn small primary foc" id="build-ok" style="flex-shrink:0;" data-i18n="build_ok">けってい ▶</div>
     </div>
     <div class="wrap">
@@ -792,27 +606,46 @@
           <div class="num" id="build-cost">0 / 100</div>
         </div>
       </div>
-      <div class="slotsrow">
-        <div class="grp-lbl" data-i18n="grp_rank">数字</div>
-        <div class="slots" id="build-ranks"></div>
+      <!-- スロットを選ぶとエンブレム選択へ。常時出すのはこの1行案内だけ。 -->
+      <div class="buildguide" id="build-guide">
+        <span class="bg-main" data-i18n="build_guide_main">スロットを選んで、エンブレムを付けよう</span>
       </div>
-      <div class="slotsrow combo">
-        <div class="grp-lbl" data-i18n="grp_suit">マーク</div>
-        <div class="slots suits" id="build-suits"></div>
-        <div class="grp-lbl rules-lbl" data-i18n="grp_rules">役ルール</div>
-        <div class="slots rules" id="build-rules"></div>
-      </div>
-      <!-- 主役＝選択肢(タイル)を左へ大きく、説明は右の詳細ペインだけに集約 -->
-      <div class="buildmain">
-        <div class="palette">
-          <div class="ph" id="palette-head">エンブレムを選ぶ</div>
-          <div class="embgrid" id="build-palette"></div>
-          <div class="scrollcue" id="palette-cue"></div>
+      <!-- 主役＝スロット。一覧が別画面へ移った分、ここを大きく見やすく（余白いっぱいに広げる）。 -->
+      <div class="slotsarea">
+        <div class="slotsrow">
+          <div class="grp-lbl" data-i18n="grp_rank">数字</div>
+          <div class="slots" id="build-ranks"></div>
         </div>
-        <div class="detailpane" id="build-detail"></div>
+        <div class="slotsrow combo">
+          <div class="grp-lbl" data-i18n="grp_suit">マーク</div>
+          <div class="slots suits" id="build-suits"></div>
+          <div class="grp-lbl rules-lbl" data-i18n="grp_rules">役ルール</div>
+          <div class="slots rules" id="build-rules"></div>
+        </div>
       </div>
     </div>
-    <div class="hint" id="build-hint"><b>十字</b>で移動 ・ <b>A</b>でひらく／きめる ・ <b>B</b>でもどる</div>
+    <div class="hint" id="build-hint"><b>十字</b>で移動 ・ <b>A</b>でスロットをひらく ・ <b>けってい</b>で対戦へ</div>
+
+    <!-- エンブレム選択：スロットを押した時だけ開く（PC=中央モーダル / スマホ=ボトムシート） -->
+    <div class="ovl" id="ovl-emblem">
+      <div class="embpick">
+        <div class="embpick-bar">
+          <div class="ep-slot" id="emblem-slot">3</div>
+          <div class="ep-cur-lbl" data-i18n="emblem_current">いま：</div>
+          <div class="ep-cur-val" id="emblem-cur">なし</div>
+          <div class="ep-spacer"></div>
+          <div class="btn small ghost foc" id="emblem-close" data-i18n="emblem_close">とじる ✕</div>
+        </div>
+        <div class="embpick-body">
+          <div class="palette">
+            <div class="ph" id="palette-head">エンブレムを選ぶ</div>
+            <div class="embgrid" id="build-palette"></div>
+            <div class="scrollcue" id="palette-cue"></div>
+          </div>
+          <div class="detailpane" id="build-detail"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- おすすめ構成オーバーレイ：必要な時だけ開く近道（常時表示しない） -->
     <div class="ovl" id="ovl-recommend">
@@ -858,7 +691,7 @@
     </div>
     <!-- エンブレム閲覧(全員の能力をカーソルで確認) -->
     <div class="ovl" id="ovl-inspect">
-      <div class="card-modal" style="max-width:1660px; padding:26px 30px;">
+      <div class="card-modal" style="max-width:1720px; padding:26px 30px;">
         <h2 data-i18n="inspect_h2">エンブレム能力 — カーソルを当てると能力が読めます</h2>
         <div class="inspwrap" id="inspect-body"></div>
         <div class="rowbtns" style="margin-top:16px;"><div class="btn primary foc" id="inspect-close" data-i18n="inspect_close">とじる ✕</div></div>
@@ -2326,7 +2159,7 @@ const AUDIO = (function(){
       /* 編成 */
       bt_run:'巡業ビルド編成 — 深度{0}', bt_quick:'クイック対戦 ビルド編成', bt_online:'オンライン ビルド編成',
       back_interrupt:'◀ 中断・タイトルへ', back_lobby:'◀ ロビーへ', back_title:'◀ タイトルへ',
-      build_recommend:'✨ おすすめ構成', build_clear:'🗑 解除（X）', build_ok:'けってい ▶',
+      build_recommend:'✨ おすすめ構成', build_clear:'🗑 解除モード（X）', build_clear_on:'🗑 解除モード中（X）', build_clearall:'🧹 全解除', build_ok:'けってい ▶',
       cost_label:'コスト', grp_rank:'数字', grp_suit:'マーク', grp_rules:'役ルール',
       slot_empty:'空き', slot_all_short:'全', scroll_more:'▼ まだ下にエンブレムがあります（十字で送る）',
       reco_h2:'おすすめ構成 — ワンタップで完成', reco_cost:'コスト {0} / {1}', reco_close:'とじる ✕',
@@ -2339,6 +2172,12 @@ const AUDIO = (function(){
       slot_disp_suit:'マーク {0}', slot_disp_rank:'数字 {0}', slot_disp_rule:'役ルール',
       slot_note:'※ 同じ能力は複数の枠に、ひとつの枠に複数も置けます（強さはコストで管理）。',
       slot_act_open:'A で エンブレム一覧をひらく',
+      emblem_close:'とじる ✕', emblem_current:'いま：', emblem_cur_none:'なし',
+      build_guide_main:'スロットを選んで、エンブレムを付けよう',
+      build_guide_sub:'「＋」や空きマスを押すと、付けられるエンブレムが出ます',
+      build_guide_remove:'🗑 解除モード中：スロットをタップでエンブレムを全部はずす（もう一度Xでもどる）',
+      palette_empty:'この枠に付けられるエンブレムはありません',
+      toast_clear_all:'全部はずしました',
       hint_slot:'<b>A</b>：一覧をひらく ・ <b>X</b>：この枠を空に ・ <b>十字</b>：枠を移動',
       hint_emb_ok:'<b>A</b>：{0} ・ <b>B</b>：スロットへもどる',
       hint_emb_no:'<b>B</b>：スロットへもどる（この枠には置けません）',
@@ -2451,7 +2290,7 @@ const AUDIO = (function(){
       selftest_word:'selftest', unlocked_emblems:'Biểu tượng mở khóa',
       bt_run:'Cấu hình Lữ hành — Tầng {0}', bt_quick:'Cấu hình Đấu Nhanh', bt_online:'Cấu hình Trực Tuyến',
       back_interrupt:'◀ Tạm dừng · Về Menu', back_lobby:'◀ Về Sảnh', back_title:'◀ Về Menu',
-      build_recommend:'✨ Gợi Ý Cấu Hình', build_clear:'🗑 Gỡ (X)', build_ok:'Xong ▶',
+      build_recommend:'✨ Gợi Ý Cấu Hình', build_clear:'🗑 Chế độ gỡ (X)', build_clear_on:'🗑 Đang gỡ (X)', build_clearall:'🧹 Gỡ tất cả', build_ok:'Xong ▶',
       cost_label:'Chi phí', grp_rank:'Số', grp_suit:'Chất', grp_rules:'Luật bộ',
       slot_empty:'Trống', slot_all_short:'Bộ', scroll_more:'▼ Còn biểu tượng phía dưới (dùng mũi tên)',
       reco_h2:'Gợi Ý Cấu Hình — Hoàn thiện một chạm', reco_cost:'Chi phí {0} / {1}', reco_close:'Đóng ✕',
@@ -2464,6 +2303,12 @@ const AUDIO = (function(){
       slot_disp_suit:'Chất {0}', slot_disp_rank:'Số {0}', slot_disp_rule:'Luật bộ',
       slot_note:'※ Cùng năng lực gắn được nhiều ô, một ô cũng xếp được nhiều (sức mạnh quản lý bằng chi phí).',
       slot_act_open:'A để mở danh sách biểu tượng',
+      emblem_close:'Đóng ✕', emblem_current:'Hiện tại: ', emblem_cur_none:'Trống',
+      build_guide_main:'Chọn một ô, rồi gắn biểu tượng',
+      build_guide_sub:'Bấm vào ô "＋" hoặc ô trống để hiện biểu tượng gắn được',
+      build_guide_remove:'🗑 Chế độ gỡ: chạm vào ô để gỡ hết biểu tượng (bấm X lần nữa để thoát)',
+      palette_empty:'Không có biểu tượng nào gắn được vào ô này',
+      toast_clear_all:'Đã gỡ tất cả',
       hint_slot:'<b>A</b>: mở danh sách ・ <b>X</b>: xóa ô này ・ <b>Mũi tên</b>: chuyển ô',
       hint_emb_ok:'<b>A</b>: {0} ・ <b>B</b>: về ô',
       hint_emb_no:'<b>B</b>: về ô (không gắn được vào ô này)',
@@ -2625,17 +2470,11 @@ const AUDIO = (function(){
   function toggleLang(){ LANG = (LANG==='vi') ? 'ja' : 'vi'; store.lang=LANG; store.save(); AUDIO.confirm(); applyLang(); }
 
   /* ---------- ステージのスケーリング ---------- */
-  function isPortrait(){ return window.matchMedia('(max-aspect-ratio:1/1)').matches; }
   function fitStage(){
     const s=$('#stage'); if(!s) return;
-    if(isPortrait()){
-      // 縦持ち: 固定ステージ/scaleを使わず CSS(MOBILE PORTRAIT PROFILE) に委ねる
-      s.style.width=''; s.style.height=''; s.style.transform='';
-    } else {
-      // 横持ち/PC: 従来どおり 1920x1080 を画面にレターボックスscale(挙動温存)
-      const sc=Math.min(window.innerWidth/1920, window.innerHeight/1080);
-      s.style.width='1920px'; s.style.height='1080px'; s.style.transform='scale('+sc+')';
-    }
+    // 横画面固定: 常に 1920x1080 を画面にレターボックスscale
+    const sc=Math.min(window.innerWidth/1920, window.innerHeight/1080);
+    s.style.width='1920px'; s.style.height='1080px'; s.style.transform='scale('+sc+')';
   }
   window.addEventListener('resize', fitStage);
   window.addEventListener('orientationchange', fitStage);
@@ -2711,7 +2550,7 @@ const AUDIO = (function(){
       sc=sc.parentElement;
     }
     if(sc && sc!==document.body){
-      const stage=$('#stage'); const scale=isPortrait()?1:((stage.getBoundingClientRect().width/1920)||1);
+      const stage=$('#stage'); const scale=(stage.getBoundingClientRect().width/1920)||1;
       const er=e.getBoundingClientRect(), cr=sc.getBoundingClientRect(); const pad=18*scale;
       if(er.top < cr.top+pad) sc.scrollTop -= (cr.top+pad - er.top)/scale;
       else if(er.bottom > cr.bottom-pad) sc.scrollTop += (er.bottom - (cr.bottom-pad))/scale;
@@ -2730,10 +2569,11 @@ const AUDIO = (function(){
   function activate(){
     if(!focusedEl) return;
     AUDIO.ensure();
-    // 編成: スロットにフォーカス中にA/Enter → そのスロットに付けられるエンブレム一覧へ入る(キーボードだけで装備に到達)
-    if(currentScreen==='s-build' && focusedEl.classList.contains('slot')){
-      const firstEmb=focusables().find(x=> x.classList.contains('emb'));
-      if(firstEmb){ setFocus(firstEmb); AUDIO.move(); ensureView(); return; }
+    // 編成: スロットにフォーカス中にA/Enter → そのスロットのエンブレム選択シートを開く(キーボードだけで装備に到達)
+    if(currentScreen==='s-build' && buildState && !pickerOpen() && focusedEl.classList.contains('slot')){
+      applySlotSelection(focusedEl);
+      if(removeMode){ clearSlotAt(focusedEl.dataset.type, focusedEl.dataset.key); return; }
+      openEmblemPicker(); return;
     }
     focusedEl.click();
   }
@@ -2771,6 +2611,7 @@ const AUDIO = (function(){
     $('#ovl-pause')?.classList.remove('active');
     $('#ovl-inspect')?.classList.remove('active');
     $('#ovl-recommend')?.classList.remove('active');
+    $('#ovl-emblem')?.classList.remove('active');
   }
   // 対戦画面でフォーカスを奪うモーダルが開いているか(開いている間はパス等の盤面操作を止める)
   function anyMatchOvlActive(){
@@ -2869,11 +2710,12 @@ const AUDIO = (function(){
     if($('#ovl-pause').classList.contains('active')){ closePause(); return; }
     if($('#ovl-inspect')?.classList.contains('active')){ closeInspect(); return; } // 対戦中のエンブレム閲覧を閉じる
     if($('#ovl-recommend')?.classList.contains('active')){ $('#ovl-recommend').classList.remove('active'); refocusSlot(); return; } // おすすめ構成を閉じる
+    if($('#ovl-emblem')?.classList.contains('active')){ closeEmblemPicker(); return; } // エンブレム選択シートを閉じてスロットへ戻る
     switch(currentScreen){
       case 's-match': togglePause(); break;
       case 's-build':
-        // パレット(エンブレム一覧)にいるならスロットへ戻る。スロット/上部にいる時だけ画面を出る。
-        if(focusedEl && focusedEl.classList.contains('emb')){ refocusSlot(); break; }
+        if(removeMode){ setRemoveMode(false); break; }   // 解除モード中は、まずモードを抜ける（画面は出ない）
+        // スロット/上部にいる時に画面を出る（エンブレム選択シートは上の分岐で閉じ済み）。
         if(MODE.kind==='online'){ NET.afterBuild(buildState.build); break; }   // オンライン編成はロビーへ
         if(MODE.kind==='run'){ store.saveRun(MODE.run, MODE.mutator); MODE.run=null; MODE.kind='quick'; }
         buildTitle(); show('s-title');
@@ -2897,16 +2739,13 @@ const AUDIO = (function(){
     }
   }
   function tryPassShortcut(){ if(currentScreen==='s-match' && humanTurnReady()) doPass(); }
-  // X ボタン: 文脈で動作。対戦=パス / 編成=選択スロット解除。
-  function xButton(){ if(currentScreen==='s-build') clearSelectedSlot(); else if(currentScreen==='s-match') tryPassShortcut(); }
-  // Tab / Y: 編成でフォーカスをスロット群⇄エンブレム一覧の間で素早く往復。
+  // X ボタン: 文脈で動作。対戦=パス / 編成=解除モードのトグル。
+  function xButton(){ if(currentScreen==='s-build') toggleRemoveMode(); else if(currentScreen==='s-match') tryPassShortcut(); }
+  // Tab / Y: 編成でエンブレム選択シートを素早く開閉（開いていれば閉じ、閉じていれば現在の枠で開く）。
   function toggleBuildZone(){
-    if(!buildState) return;
-    const onSlot = focusedEl && focusedEl.classList.contains('slot');
-    let target;
-    if(onSlot){ target = focusables().find(x=> x.classList.contains('emb')); }
-    else { target = $$('#s-build .slot').find(s=> s.dataset.type===buildState.selSlot.type && s.dataset.key===buildState.selSlot.key); }
-    if(target){ setFocus(target); AUDIO.move(); }
+    if(!buildState || currentScreen!=='s-build') return;
+    if(pickerOpen()) closeEmblemPicker();
+    else openEmblemPicker();
   }
 
   /* ============================================================
@@ -3477,6 +3316,7 @@ const AUDIO = (function(){
     const recBtn=$('#build-recommend');
     if(recBtn) recBtn.style.display = MODE.kind==='run' ? 'none' : '';
     renderBuild();
+    setRemoveMode(false);   // 画面に入るたび解除モードはOFFから
     show('s-build');
     setTimeout(refocusSlot, 0);   // 選択中スロット('3')から開始＝すぐ編集に入れる
   }
@@ -3540,33 +3380,49 @@ const AUDIO = (function(){
     const sr=$('#build-suits'); sr.innerHTML='';
     RL.SUITS.forEach(s=> sr.appendChild(slotEl('suit', s, b.suitSlots[s])));
 
-    renderPalette();
-    renderDetail();
+    refreshPicker();   // エンブレム選択シートが開いていれば中身も同期（閉じている時は何もしない）
   }
+  // スロット表示＝「装備の見える化」。数字/マークはアイコンだけ並べ(簡潔)、役ルール枠は幅があるので役名つき。
+  // 集中セット(同一枠に複数)でも重ならないよう .es で折り返し、多い時は ＋N に丸める。
+  const SLOT_ICON_MAX = 3;
   function slotEl(type, key, ids){
-    const wrap=el('div','slot foc'+(type==='rule'?' rule':'')); wrap.dataset.type=type; wrap.dataset.key=key;
+    const wrap=el('div','slot foc'+(type==='rule'?' rule':'')+(ids&&ids.length?' has-emb':'')); wrap.dataset.type=type; wrap.dataset.key=key;
     const isRed = type==='suit' && RL.SUIT_RED[key];
     const label = type==='suit' ? RL.SUIT_SYM[key] : (type==='rule' ? T('slot_all_short') : key);
     wrap.appendChild(el('div','k'+(isRed?' red':''), label));
     if(ids && ids.length){
-      // 卓ルールは横幅があるので役名を表示(数字/マークはコード表示のまま=スロットが狭いため)
-      ids.forEach(id=>{ const e=RL.emblem(id); const txt = type==='rule' ? (e.ico+' '+embName(e)) : (e.ico+embCode(e));
-        wrap.appendChild(el('div','e '+RL.COLORS[e.color].cls, txt)); });
+      if(type==='rule'){
+        // 役ルール枠は横幅があるのでアイコン＋役名(行内で折り返し)
+        ids.forEach(id=>{ const e=RL.emblem(id);
+          wrap.appendChild(el('div','e '+RL.COLORS[e.color].cls, e.ico+' '+embName(e))); });
+      } else {
+        // 数字/マーク枠はアイコンのみの小チップを折り返し。多すぎる時は ＋N に丸めて崩れ防止。
+        const es=el('div','es');
+        ids.slice(0, SLOT_ICON_MAX).forEach(id=>{ const e=RL.emblem(id);
+          es.appendChild(el('div','e '+RL.COLORS[e.color].cls, e.ico)); });
+        if(ids.length > SLOT_ICON_MAX) es.appendChild(el('div','e more', '+'+(ids.length-SLOT_ICON_MAX)));
+        wrap.appendChild(es);
+      }
     } else {
-      wrap.appendChild(el('div','empty',T('slot_empty')));
+      wrap.appendChild(el('div','empty', type==='rule' ? T('slot_empty') : '＋'));
     }
     if(buildState.selSlot.type===type && buildState.selSlot.key===key) wrap.style.borderColor='#ffcf4d';
-    wrap.onclick=()=>{ AUDIO.move(); }; // 選択はフォーカス追従(applySlotSelection)が担当
+    // クリック＝そのスロットを選ぶ。解除モード中はエンブレムを全部はずし、通常は選択シートを開く（タップ1回）。
+    wrap.onclick=()=>{
+      applySlotSelection(wrap);
+      if(removeMode){ clearSlotAt(type, key); return; }
+      openEmblemPicker();
+    };
     return wrap;
   }
-  // スロットへフォーカス/クリックが乗ったとき、選択状態にしてパレットを追従(スロットDOMは作り直さない=フォーカス維持)
+  // スロットへフォーカス/クリックが乗ったとき、選択状態にする(スロットDOMは作り直さない=フォーカス維持)
   function applySlotSelection(slotEl){
     const t=slotEl.dataset.type, k=slotEl.dataset.key;
     if(!buildState) return;
     if(buildState.selSlot.type===t && buildState.selSlot.key===k){ return; }
     buildState.selSlot={type:t, key:k};
     $$('#s-build .slot').forEach(s=> s.style.borderColor = (s===slotEl)?'#ffcf4d':'');
-    renderPalette();
+    refreshPicker();   // シートが開いていればそのスロット内容へ追従(通常は閉じているので無処理)
   }
   function refocusSlot(){
     const sel=buildState.selSlot;
@@ -3576,8 +3432,80 @@ const AUDIO = (function(){
   function clearSelectedSlot(){
     const sel=buildState.selSlot, b=buildState.build;
     const arr = sel.type==='rule' ? b.ruleSlots : (sel.type==='rank' ? b.rankSlots[sel.key] : b.suitSlots[sel.key]);
-    if(arr.length){ arr.length=0; AUDIO.back(); renderBuild(); refocusSlot(); }
+    if(arr.length){
+      arr.length=0; AUDIO.back(); renderBuild();
+      // シートが開いていればそのまま継続(一覧へフォーカスを残す)、閉じていればスロットへ戻る
+      if(pickerOpen()){ const f=focusables().find(x=>x.classList.contains('emb'))||focusables()[0]; if(f) setFocus(f); }
+      else refocusSlot();
+    }
     else AUDIO.bad();
+  }
+  /* ===== 解除モード（トグル） =====
+     ON の間は、スロットをタップ／決定すると そのスロットのエンブレムを全部はずす（ピッカーは開かない）。
+     ＝何度もタップしてまとめて外せる。もう一度ボタンで OFF。 */
+  let removeMode=false;
+  function setRemoveMode(on){
+    removeMode=!!on;
+    const root=$('#s-build'); if(root) root.classList.toggle('removemode', removeMode);
+    const btn=$('#build-clear'); if(btn){ btn.classList.toggle('on', removeMode); btn.textContent = removeMode ? T('build_clear_on') : T('build_clear'); }
+    const g=$('#build-guide')?.querySelector('.bg-main'); if(g) g.textContent = removeMode ? T('build_guide_remove') : T('build_guide_main');
+  }
+  function toggleRemoveMode(){ if(!buildState || currentScreen!=='s-build') return; setRemoveMode(!removeMode); AUDIO.confirm(); }
+  // 指定スロットのエンブレムを全部はずす（解除モードのタップ用）。
+  function clearSlotAt(type,key){
+    if(!buildState) return;
+    const b=buildState.build;
+    const arr = type==='rule' ? b.ruleSlots : (type==='rank' ? b.rankSlots[key] : b.suitSlots[key]);
+    if(arr && arr.length){ arr.length=0; AUDIO.back(); renderBuild(); setTimeout(refocusSlot,0); }
+    else AUDIO.bad();
+  }
+  // 全スロットのエンブレムをまとめて外す（全解除ボタン）。
+  function clearAllSlots(){
+    if(!buildState) return;
+    const b=buildState.build;
+    let any=false;
+    RL.DISPLAY_RANKS.forEach(r=>{ if((b.rankSlots[r]||[]).length){ b.rankSlots[r].length=0; any=true; } });
+    RL.SUITS.forEach(s=>{ if((b.suitSlots[s]||[]).length){ b.suitSlots[s].length=0; any=true; } });
+    if((b.ruleSlots||[]).length){ b.ruleSlots.length=0; any=true; }
+    if(any){ AUDIO.back(); toast(T('toast_clear_all'),'#ef5350'); renderBuild(); setTimeout(refocusSlot,0); }
+    else AUDIO.bad();
+  }
+  /* ===== エンブレム選択シート（スロットを押した時だけ開く） ===== */
+  function pickerOpen(){ return $('#ovl-emblem')?.classList.contains('active'); }
+  function openEmblemPicker(){
+    if(!buildState) return;
+    if(removeMode) setRemoveMode(false);   // 装備しに行くなら解除モードは解く（混乱防止）
+    renderPalette();        // #build-palette + #palette-head を選択中スロット向けに描画
+    renderPickerHead();     // バーに「いま：…」と枠ラベルを表示
+    $('#ovl-emblem').classList.add('active');
+    AUDIO.move();
+    // 付けられるエンブレムの先頭へフォーカス(キーボード/パッドでも即操作)
+    setTimeout(()=>{
+      const first = focusables().find(x=> x.classList.contains('emb') && !x.classList.contains('locked')) || focusables()[0];
+      setFocus(first||null);
+    }, 0);
+  }
+  function closeEmblemPicker(){
+    $('#ovl-emblem').classList.remove('active');
+    refocusSlot();          // ビルド画面（スロット）へ戻る
+  }
+  // シートが開いている時だけ中身を再描画（renderBuild から呼ばれる・閉時は無処理）
+  function refreshPicker(){
+    if(!pickerOpen()) return;
+    renderPalette();
+    renderPickerHead();
+    renderDetail();
+  }
+  // シート上部バー：枠ラベル＋現在その枠に入っているエンブレム名
+  function renderPickerHead(){
+    const sel=buildState.selSlot, b=buildState.build;
+    const arr = sel.type==='rule' ? b.ruleSlots : (sel.type==='rank' ? b.rankSlots[sel.key] : b.suitSlots[sel.key]);
+    const slotLbl = sel.type==='rule' ? T('slot_all_short') : (sel.type==='suit' ? RL.SUIT_SYM[sel.key] : sel.key);
+    const slotBadge=$('#emblem-slot');
+    slotBadge.textContent = slotLbl;
+    slotBadge.classList.toggle('red', sel.type==='suit' && RL.SUIT_RED[sel.key]);
+    const cur = arr.length ? arr.map(id=>{ const e=RL.emblem(id); return e.ico+embName(e); }).join('・') : T('emblem_cur_none');
+    $('#emblem-cur').textContent = cur;
   }
   function renderPalette(){
     const p=$('#build-palette'); p.innerHTML='';
@@ -3587,14 +3515,19 @@ const AUDIO = (function(){
     const slotLabel = sel.type==='rule' ? T('grp_rules') : (sel.type==='suit'?RL.SUIT_SYM[sel.key]:sel.key);
     // ヘッダは最小限。説明文(各エンブレムの効果)はタイルに載せず、右の詳細ペインで開示する＝勉強感を消す。
     $('#palette-head').innerHTML = T('palette_head', '<b>'+slotLabel+'</b>');
-    // このスロットに装備できるものを先頭へ(置けないものは末尾にまとめる)
-    const owned = buildState.owned.slice().sort((a,b)=> (RL.canScope(b,sel.type)?1:0)-(RL.canScope(a,sel.type)?1:0));
+    // ★この枠に「付けられるエンブレムだけ」を表示する（付けられないものはグレーアウトせず表示から消す）。
+    const owned = buildState.owned.filter(id=> RL.canScope(id, sel.type, sel.key));
+    if(!owned.length){
+      const empty=el('div','pal-empty', T('palette_empty'));
+      p.appendChild(empty);
+      requestAnimationFrame(updateScrollCue);
+      return;
+    }
     owned.forEach(id=>{
       const e=RL.emblem(id); const col=RL.COLORS[e.color];
       const here = slotArr.includes(id);
       const elsewhere = !here ? RL.emblemSlotOf(b, id) : null;   // 別スロットにも付いている(情報表示のみ・制限ではない)
-      const allowed = RL.canScope(id, sel.type);
-      const card=el('div','emb'+(allowed?' foc':' locked')+(here?' equipped':''));
+      const card=el('div','emb foc'+(here?' equipped':''));
       card.dataset.eid=id;
       card.style.borderLeft='10px solid '+col.hex;   // 左の色帯＝カテゴリ(色で一目／言葉は詳細ペイン)
       const cst = RL.slotCost(id, sel.type);
@@ -3623,8 +3556,6 @@ const AUDIO = (function(){
            r.hint=T('hint_detail_default'); }
     host.innerHTML=r.html;
     const he=$('#build-hint'); if(he) he.innerHTML=r.hint;
-    // 縦持ち: エンブレムにフォーカス中だけ詳細シートをせり上げる(=選択時のみ開示)
-    host.classList.toggle('open', isPortrait() && !!(f && f.classList.contains('emb')));
   }
   function slotDisplayLabel(type,key){
     return type==='rule' ? T('slot_disp_rule') : type==='suit' ? T('slot_disp_suit', RL.SUIT_SYM[key]) : T('slot_disp_rank', key);
@@ -3685,7 +3616,7 @@ const AUDIO = (function(){
       if(arr.includes(id)){ arr.splice(arr.indexOf(id),1); AUDIO.back(); renderBuild(); refocusPaletteOn(id); return; }
       if(!RL.canScope(id,'rule')){ AUDIO.bad(); toast(T('toast_cannot_whole', embName(RL.emblem(id))),'#ff7043'); return; }
       if(RL.buildCost(b)+RL.slotCost(id,'rule') > buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over'),'#ff7043'); return; }
-      arr.push(id); AUDIO.emb(); renderBuild(); refocusPaletteOn(id); return;
+      arr.push(id); AUDIO.emb(); renderBuild(); closeEmblemPicker(); return;   // 付けたら自動で閉じてビルド画面へ
     }
     if(!RL.canScope(id, sel.type, sel.key)){
       const e_chk=RL.emblem(id), pl=RL.placeOf(id);
@@ -3700,7 +3631,7 @@ const AUDIO = (function(){
     // 制限はせず、追加コストぶんだけ予算判定する(強さは全部コストで管理)。
     if(RL.buildCost(b) + RL.slotCost(id, sel.type) > buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over'),'#ff7043'); return; }
     arr.push(id); AUDIO.emb();
-    renderBuild(); refocusPaletteOn(id);
+    renderBuild(); closeEmblemPicker();   // 付けたら自動で閉じてビルド画面へ（3タップ以内・確認ダイアログなし）
   }
   function refocusPaletteOn(id){
     const nm = embName(RL.emblem(id));
@@ -3714,9 +3645,13 @@ const AUDIO = (function(){
     MODE.run=null; MODE.kind='quick';
     buildTitle(); show('s-title');
   };
-  $('#build-clear').onclick=()=>{ AUDIO.confirm(); clearSelectedSlot(); };
+  $('#build-clear').onclick=()=> toggleRemoveMode();
+  $('#build-clearall').onclick=()=> clearAllSlots();
   $('#build-recommend').onclick=()=> openRecommend();
   $('#reco-close').onclick=()=> closeRecommend();
+  $('#emblem-close').onclick=()=>{ AUDIO.back(); closeEmblemPicker(); };
+  // 背景(シートの外)をタップしても閉じる
+  $('#ovl-emblem').onclick=(e)=>{ if(e.target.id==='ovl-emblem'){ AUDIO.back(); closeEmblemPicker(); } };
   $('#build-ok').onclick=()=>{
     if(RL.buildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
     if(MODE.kind==='online'){ store.saveBuild(buildState.build); AUDIO.confirm(); NET.afterBuild(buildState.build); return; }  // オンライン=ロビーへ反映
@@ -3827,8 +3762,16 @@ const AUDIO = (function(){
   }
   function chipHTML(slot, e){
     const col=RL.COLORS[e.color];
-    // 「色＋番号」では能力が伝わらないので、名前(連火/越境…)を出す。詳細は🔍しらべるで全文表示。
-    return '<span class="bchip '+col.cls+'"><span class="sk">'+slot+'</span>'+e.ico+' '+embShort(e)+'</span>';
+    // ★文字は載せず「セット元のマーク(白チップ)＋エンブレムのアイコン」を大きく見せる。能力全文は🔍しらべるで。
+    return '<span class="bchip '+col.cls+'"><span class="sk">'+slot+'</span><span class="bi">'+e.ico+'</span></span>';
+  }
+  // チップ群をHTML化。多すぎる時は cap までに丸め、残りは「+N」チップに（UIからはみ出さない）。
+  function buildChipsHTML(build, cap){
+    const chips=buildChips(build);
+    if(!chips.length) return '<span class="no-emb">'+T('no_emblem')+'</span>';
+    let html = chips.slice(0, cap).map(c=>chipHTML(c.slot,c.e)).join('');
+    if(chips.length>cap) html += '<span class="bchip more">+'+(chips.length-cap)+'</span>';
+    return html;
   }
   function renderMatch(){
     if(!G) return;
@@ -3838,12 +3781,12 @@ const AUDIO = (function(){
       const p=G.players[i];
       const off = (typeof NET!=='undefined' && NET.active && NET.seatState(i)==='off');  // 切断中(復帰待ち)の表示
       const d=el('div','opp'+(G.turn===i&&!G.gameOver?' turn':'')+(p.finished?' done':'')+(off?' off':''));
-      let chips=buildChips(p.build).map(c=>chipHTML(c.slot,c.e)).join('');
+      const chips=buildChipsHTML(p.build, 6);   // 相手枠は狭い1行なので 6 個まで、残りは +N に丸める
       const tag = (typeof NET!=='undefined' && NET.active) ? NET.seatTag(i) : '';
       const low = (!p.finished && p.hand.length<=3) ? ' low' : '';   // 残り3枚以下＝上がり間近を赤で強調
       d.innerHTML='<div class="ophead"><div class="nm">'+p.name+tag+'</div>'+
         '<div class="cnt'+low+'">'+p.hand.length+'<small>'+T('cards_unit')+'</small></div></div>'+
-        '<div class="builds">'+(chips||'<span style="color:#cdd6ff;font-size:22px;">'+T('no_emblem')+'</span>')+'</div>';
+        '<div class="builds">'+chips+'</div>';
       if(p.finished) d.appendChild(el('div','place', placeLabel(p.place)));
       opps.appendChild(d);
     });
@@ -3863,7 +3806,7 @@ const AUDIO = (function(){
     const myTag=(typeof NET!=='undefined'&&NET.active)?(' <span style="font-size:22px;color:#9fd9a8;">('+me.name+')</span>'):'';
     const myLow = (!me.finished && me.hand.length<=3) ? ' low' : '';
     $('#self-name').innerHTML=T('you')+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+(me.finished?paren(placeLabel(me.place)):'');
-    const sb=$('#self-builds'); sb.innerHTML = buildChips(me.build).map(c=>chipHTML(c.slot,c.e)).join('') || '<span style="color:#cdd6ff;font-size:22px;">'+T('no_emblem')+'</span>';
+    const sb=$('#self-builds'); sb.innerHTML = buildChipsHTML(me.build, 16);   // 自分バーは1行・幅広め(16個まで、残りは +N)
     renderHand();
     renderActions();
   }
@@ -5187,8 +5130,19 @@ const AUDIO = (function(){
       });
     });
   }
-  // 縦持ちを正式サポートするため、向き固定ロックは廃止(縦=モバイルprofile / 横=PCレイアウト)。
-  function tryLock(){ /* no-op: orientation lock removed to allow portrait play */ }
+  // 横画面固定: 可能なら画面の向きを landscape にロック(全画面/PWA時のみ成功・タブ等の失敗は無視)。
+  // 失敗してもタッチ縦持ちは #rotate-lock オーバーレイが担保する。
+  var _locked=false;
+  function tryLock(){
+    if(_locked) return; _locked=true;
+    try{
+      var o=screen && screen.orientation;
+      if(o && typeof o.lock==='function'){ var p=o.lock('landscape'); if(p&&p.catch) p.catch(function(){}); }
+    }catch(e){}
+  }
+  // 初回ユーザー操作で1回だけ試行(ロックはユーザー操作起点でないと拒否される環境がある)。
+  window.addEventListener('pointerdown', tryLock, { once:true, capture:true });
+  window.addEventListener('keydown', tryLock, { once:true, capture:true });
 })();
 </script>
 </body>
