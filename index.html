@@ -2602,6 +2602,9 @@ const AUDIO = (function(){
   // クリックでもフォーカス追従
   document.addEventListener('click', e=>{
     const f=e.target.closest('.foc');
+    // エンブレム選択パレットのカードは「1回目タップ=フォーカス移動／2回目タップ=セット」を
+    // card.onclick 側で制御するため、ここでの自動フォーカスは行わない。
+    if(f && f.classList.contains('emb') && f.closest('#ovl-emblem')){ AUDIO.ensure(); return; }
     if(f && focusables().includes(f)) setFocus(f);
     AUDIO.ensure();
   }, true);
@@ -3539,7 +3542,10 @@ const AUDIO = (function(){
         badge+
         '<div class="thd"><span class="ico">'+e.ico+'</span><span class="cst">C'+cst+'</span></div>'+
         '<div class="nm">'+embName(e)+'</div>';
-      card.onclick=()=> toggleEquip(id);
+      card.onclick=()=>{
+        if(focusedEl===card){ toggleEquip(id); }
+        else { setFocus(card); AUDIO.move(); }
+      };
       p.appendChild(card);
     });
     p.scrollTop=0;
