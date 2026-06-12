@@ -4441,27 +4441,33 @@ const AUDIO = (function(){
     const arr = type==='rule' ? build.ruleSlots : (type==='rank' ? (build.rankSlots[key]||[]) : (build.suitSlots[key]||[]));
     let i; while(arr && (i=arr.indexOf(id))>=0){ arr.splice(i,1); }
   }
-  // ランダムエンブレムを1個付与する。エンブレム/スロットともランダム(置けない箇所は避ける・既得idは除外)。
-  //   付与した結果を {id, slot:{type,key}} で返す(報酬演出用)。付与不能(全部所持)なら null。
+  // ランダムエンブレムを1個付与する。「エンブレム × 有効スロット」の全組み合わせをフラットに候補化し、
+  //   その中からランダムに1つ選んで付与する。同じ(id, スロット)が既に存在する組み合わせのみ除外。
+  //   別スロットへの同id重複はOK（連火なら数字13枠＋スート4枠の計17候補が常に存在する等）。
+  //   付与した結果を {id, slot:{type,key}} で返す(報酬演出用)。
+  //   全組み合わせ埋まり(全エンブレムを全有効スロットに配置済み)のときのみ null。
   function grantRandomEmblem(run){
     run.randomBuild = run.randomBuild || RL.emptyBuild();
     const rb=run.randomBuild;
-    const have=randEmblemIdSet();
-    const eligible = RL.EMBLEMS.map(e=>e.id).filter(id=> !have.has(id));   // ランダム枠に未所持のidだけ(同じものは付けない)
-    if(!eligible.length) return null;
-    const id = eligible[(Math.random()*eligible.length)|0];               // 獲得エンブレムをランダム選択
-    const slots=[];                                                       // この id を本来置けるスロットだけ列挙(避けるべき箇所を除外)
-    if(RL.placeOf(id)==='whole'){ slots.push({type:'rule', key:'rule'}); }
-    else {
-      RL.DISPLAY_RANKS.forEach(r=>{ if(RL.canScope(id,'rank',r)) slots.push({type:'rank', key:r}); });
-      RL.SUITS.forEach(s=>{ if(RL.canScope(id,'suit',s)) slots.push({type:'suit', key:s}); });
-    }
-    if(!slots.length) return null;
-    const slot = slots[(Math.random()*slots.length)|0];                   // 対象スロットをランダム選択
+    // 全エンブレム × 全有効スロットを候補化。同じ(id, slot)の組が既に存在するものだけ除外。
+    const candidates=[];
+    RL.EMBLEMS.forEach(e=>{
+      const id=e.id;
+      if(RL.placeOf(id)==='whole'){
+        // ルール枠は1箇所のみ。同idが既に入っていればスキップ。
+        if(!(rb.ruleSlots||[]).includes(id)) candidates.push({id, slot:{type:'rule', key:'rule'}});
+      } else {
+        RL.DISPLAY_RANKS.forEach(r=>{ if(RL.canScope(id,'rank',r) && !(rb.rankSlots[r]||[]).includes(id)) candidates.push({id, slot:{type:'rank', key:r}}); });
+        RL.SUITS.forEach(s=>{ if(RL.canScope(id,'suit',s) && !(rb.suitSlots[s]||[]).includes(id)) candidates.push({id, slot:{type:'suit', key:s}}); });
+      }
+    });
+    if(!candidates.length) return null;                                    // 全組み合わせ埋まり(ほぼ起こらない)
+    const pick=candidates[(Math.random()*candidates.length)|0];           // (エンブレム, スロット)をまとめてランダム選択
+    const {id, slot}=pick;
     removeIdFromSlot(run.build, id, slot.type, slot.key);                 // 「同じ枠」に手で付けていた同idだけ外す(別の枠は残す)
-    const arr = slot.type==='rule' ? rb.ruleSlots : (slot.type==='rank' ? rb.rankSlots[slot.key] : rb.suitSlots[slot.key]);
+    const arr=slot.type==='rule' ? rb.ruleSlots : (slot.type==='rank' ? rb.rankSlots[slot.key] : rb.suitSlots[slot.key]);
     arr.push(id);
-    return { id, slot };
+    return {id, slot};
   }
   // 報酬演出用ラベル「J に ⚡ クリティ…」(スロット表記＋アイコン＋名前)。
   function randomGrantLabel(g){
