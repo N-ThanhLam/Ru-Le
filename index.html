@@ -151,6 +151,7 @@
   @media (prefers-reduced-motion: reduce){
     #s-title .logo .big{ animation:none; }
     .opp .cnt.low{ animation:none; }
+    .slot .e.rnd{ animation:none; }
   }
   #s-title .logo .big span{ color:var(--gold); }
   #s-title .logo .sub{
@@ -177,8 +178,15 @@
     #s-title .logo .sub{ animation:none; background-position:0 center; }
     #s-title .logo .sub::before, #s-title .logo .sub::after{ animation:none; }
   }
-  #s-title .menu{ position:absolute; top:460px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:26px; }
-  #s-title .menu .btn{ min-width:560px; }
+  /* タイトルメニュー＝2列×4行のグリッド調(下のカード飾りと重ならない高さに収める)。 */
+  #s-title .menu{ position:absolute; top:440px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  #s-title .title-row{ display:flex; gap:22px; justify-content:center; align-items:stretch; width:1052px; }
+  #s-title .title-row .btn{ flex:1 1 0; min-width:0; white-space:normal; line-height:1.16; font-size:31px; padding:10px 24px; min-height:98px; }
+  #s-title .title-row .btn.wide{ flex:1 1 100%; }          /* 「遊び方」は2列ぶんの幅で単独表示 */
+  #s-title .title-row .btn small{ display:block; font-size:20px; font-weight:700; opacity:.86; margin-top:3px; }
+  /* 巡業再開：中断データが有る時は緑(続きの合図)、無い時は淡色の無効表示。 */
+  #s-title .btn.btn-resume{ background:linear-gradient(180deg,#7fe3af,#2e7d55); color:#fff; border-color:#1b5e38; }
+  #s-title .btn.is-disabled{ opacity:.42; filter:grayscale(.6); }
   #s-title .ver{ position:absolute; bottom:26px; right:34px; color:#b9c4ef; font-size:24px; }
   #s-title .stbox{ position:absolute; bottom:26px; left:34px; color:#9fd9a8; font-size:24px; }
   .cardfan{ position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); display:flex; pointer-events:none; }
@@ -260,8 +268,18 @@
   .slot .es{ display:flex; flex-wrap:wrap; align-items:center; align-content:center; justify-content:center; gap:6px; max-width:100%; }
   .slot .e{ font-size:33px; font-weight:900; color:#fff; padding:3px 9px; border-radius:11px; line-height:1.05; box-shadow:0 2px 5px rgba(0,0,0,.28); }
   .slot .e.more{ background:#5b6080; color:#fff; font-size:27px; }
-  /* ★巡業のランダムエンブレム＝金枠の縁取りだけで区別(背景/アイコンは変えない)。はずせない固定枠の合図。 */
-  .slot .e.rnd{ border:3px solid var(--gold); box-shadow:0 0 0 2px rgba(255,207,77,.45), 0 2px 5px rgba(0,0,0,.3); }
+  /* ★巡業のランダムエンブレム＝金色の塗り＋🎲バッジ＋脈動で「ランダム獲得・外せない固定枠」を一目で。 */
+  .slot .e.rnd{ position:relative; overflow:visible;
+    background:linear-gradient(180deg,#fff1bf 0%, #ffd75e 52%, #f6be2e 100%) !important;
+    color:#5a4500 !important; border:3px solid #b8860b;
+    box-shadow:0 0 0 3px rgba(255,207,77,.55), 0 2px 7px rgba(0,0,0,.32);
+    animation:rndGlow 1.7s ease-in-out infinite; }
+  .slot .e.rnd::after{ content:'🎲'; position:absolute; top:-12px; right:-8px; font-size:24px; line-height:1;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.45)); pointer-events:none; }
+  .slot .e.rnd .rndtag{ display:inline-block; margin-left:8px; font-size:20px; font-weight:900; color:#7a5800;
+    background:rgba(255,255,255,.62); border-radius:8px; padding:1px 9px; }
+  @keyframes rndGlow{ 0%,100%{ box-shadow:0 0 0 3px rgba(255,207,77,.5), 0 2px 7px rgba(0,0,0,.32); }
+    50%{ box-shadow:0 0 0 6px rgba(255,184,77,.88), 0 2px 11px rgba(0,0,0,.4); } }
   .slot .empty{ font-size:60px; color:#b9bedf; font-weight:800; line-height:1; }   /* 「＋」＝押せば付く合図。控えめで圧をかけない */
 
   /* マーク(4枠・固定幅) ＋ 役ルール(右の空き1枠) を同一行に。 */
@@ -904,7 +922,9 @@
     <div class="wrap" style="align-items:center;">
       <div id="lobby-code" style="font-size:30px;font-weight:900;color:#2e7d55;margin:6px 0 18px;"></div>
       <div class="lobbyseats" id="lobby-seats"></div>
-      <div id="lobby-hint" style="margin-top:24px;font-size:26px;color:#556;"></div>
+      <!-- 自分のデッキをワンタップ装填（未解放でもOK）。手動編成は上の「ビルド編成」から。 -->
+      <div class="stylebar" id="lobby-style" style="margin-top:30px;"></div>
+      <div id="lobby-hint" style="margin-top:24px;font-size:26px;color:#cdd6ff;"></div>
     </div>
   </section>
 
@@ -2441,9 +2461,10 @@ const AUDIO = (function(){
       /* 全画面ゲート(スマホ) */
       gate_sub:'よこ画面で あそぶ', gate_start:'▶ START', gate_note:'タップで全画面・横向きにします（できない端末でも自動で横画面で表示します）',
       /* タイトル */
-      menu_run:'🎴 エンブレム巡業（ソロ）', menu_quick:'⚡ クイック対戦', menu_online:'🌐 オンライン対戦',
-      menu_help:'📖 あそびかた', menu_settings:'⚙️ せってい', menu_balance:'🧪 Balance Simulator（開発）',
-      menu_resume_run:'▶ 巡業を再開 — 深度{0}・残機{1}',
+      menu_run:'🎴 エンブレム巡業', menu_quick:'⚡ クイック対戦', menu_online:'🌐 オンライン対戦',
+      menu_help:'📖 遊び方', menu_settings:'⚙️ 設定', menu_lang:'🗣 Tiếng Việt', menu_balance:'🧪 Balance Simulator（開発）',
+      menu_resume_run:'▶ 巡業再開', menu_resume_sub:'深度{0}・残機{1}', menu_resume_none_sub:'中断データなし',
+      toast_no_run:'中断中の巡業はありません',
       title_sub:'カスタム大富豪',
       selftest_word:'selftest', unlocked_emblems:'解放エンブレム',
       /* 編成 */
@@ -2508,7 +2529,8 @@ const AUDIO = (function(){
       next_see_result:'結果を見る', next_loot_win:'🏆 戦利品を選ぶ', next_loot:'戦利品を選ぶ', next_lifedown:'（残機-1）次の深度へ',
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
-      toast_rand_dup:'ランダムで付いたエンブレムと同じものは付けられません',
+      rnd_tag:'ランダム',
+      toast_rand_dup:'この枠にはランダムで付与済み（別の数字／マークには付けられます）',
       /* オンライン: スタイル装填(未解放でも選べる) */
       style_pick:'スタイルを選ぶ（未解放でもOK）', style_jp:'日本式', style_vn:'ベトナム式', style_note:'※ ワンタップで装填・自分で編成も可',
       /* 巡業しゅうりょう */
@@ -2584,9 +2606,10 @@ const AUDIO = (function(){
       doc_title:'Ru-Le Luật',
       /* Cổng toàn màn hình (điện thoại) */
       gate_sub:'Chơi ở màn hình ngang', gate_start:'▶ START', gate_note:'Chạm để vào toàn màn hình & xoay ngang (máy không hỗ trợ vẫn tự hiển thị ngang)',
-      menu_run:'🎴 Lữ hành Biểu Tượng (Đơn)', menu_quick:'⚡ Đấu Nhanh', menu_online:'🌐 Đấu Trực Tuyến',
-      menu_help:'📖 Cách Chơi', menu_settings:'⚙️ Cài Đặt', menu_balance:'🧪 Balance Simulator (Phát triển)',
-      menu_resume_run:'▶ Tiếp tục Lữ hành — Tầng {0} · Mạng {1}',
+      menu_run:'🎴 Lữ hành Biểu Tượng', menu_quick:'⚡ Đấu Nhanh', menu_online:'🌐 Đấu Online',
+      menu_help:'📖 Cách Chơi', menu_settings:'⚙️ Cài Đặt', menu_lang:'🗣 日本語', menu_balance:'🧪 Balance Simulator (Phát triển)',
+      menu_resume_run:'▶ Tiếp tục', menu_resume_sub:'Tầng {0} · Mạng {1}', menu_resume_none_sub:'Chưa có dữ liệu',
+      toast_no_run:'Chưa có lữ hành đang tạm dừng',
       title_sub:'Tiến Lên Tùy Biến',
       selftest_word:'selftest', unlocked_emblems:'Biểu tượng mở khóa',
       bt_run:'Cấu hình Lữ hành — Tầng {0}', bt_quick:'Cấu hình Đấu Nhanh', bt_online:'Cấu hình Trực Tuyến',
@@ -2648,7 +2671,8 @@ const AUDIO = (function(){
       next_see_result:'Xem kết quả', next_loot_win:'🏆 Chọn chiến lợi phẩm', next_loot:'Chọn chiến lợi phẩm', next_lifedown:'(Mạng -1) Sang tầng kế',
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
-      toast_rand_dup:'Không thể gắn trùng với biểu tượng ngẫu nhiên đã có',
+      rnd_tag:'Ngẫu nhiên',
+      toast_rand_dup:'Ô này đã có biểu tượng ngẫu nhiên (ô khác vẫn gắn được)',
       /* Trực tuyến: nạp phong cách (chưa mở khóa vẫn chọn được) */
       style_pick:'Chọn phong cách (chưa mở khóa vẫn được)', style_jp:'Kiểu Nhật', style_vn:'Kiểu Việt', style_note:'※ Nạp 1 chạm · vẫn tự cấu hình được',
       runover_best:' 🎉 Kỷ lục mới!', runover_head:'Kết thúc Lữ hành', runover_ok:'Về Menu',
@@ -3092,38 +3116,41 @@ const AUDIO = (function(){
      ============================================================ */
   function buildTitle(){
     const m=$('#title-menu'); m.innerHTML='';
-    const items=[
-      ['menu_run', ()=> startRun()],
-      ['menu_quick', ()=> startQuick()],
-      ['menu_online', ()=> openOnline()],
-      ['menu_help', ()=> openHelp('s-title')],
-    ];
-    // 中断中の巡業があれば「再開」を先頭に挿入（見た目を区別するため別クラス）
+    // 2列×4行のグリッド。常に4行で固定＝下のカード飾りと重ならない高さに収まる。
+    const mkBtn=(label, fn, cls)=>{
+      const b=el('div','btn foc '+(cls||'primary'), label);
+      b.onclick=()=>{ AUDIO.confirm(); fn(); };
+      return b;
+    };
+    const mkRow=(...btns)=>{ const r=el('div','title-row'); btns.forEach(b=>{ if(b) r.appendChild(b); }); m.appendChild(r); };
+
+    // 1行目: エンブレム巡業 ／ 巡業再開（中断データが有れば緑で続き表示・無ければ淡色の無効）
+    const runBtn=mkBtn(T('menu_run'), ()=> startRun());
+    let resumeBtn;
     if(store.savedRun){
       const d=store.savedRun.run.depth, lv=store.savedRun.run.lives;
-      const rb=el('div','btn foc', T('menu_resume_run', d, lv));
-      rb.style.cssText='background:linear-gradient(180deg,#4caf7d,#2e7d55);color:#fff;border-color:#1b5e38;min-width:560px;';
-      rb.onclick=()=>{ AUDIO.confirm(); resumeRun(); };
-      m.appendChild(rb);
+      resumeBtn=el('div','btn foc btn-resume', T('menu_resume_run')+'<small>'+T('menu_resume_sub', d, lv)+'</small>');
+      resumeBtn.onclick=()=>{ AUDIO.confirm(); resumeRun(); };
+    } else {
+      resumeBtn=el('div','btn foc is-disabled', T('menu_resume_run')+'<small>'+T('menu_resume_none_sub')+'</small>');
+      resumeBtn.onclick=()=>{ AUDIO.bad(); toast(T('toast_no_run'),'#ff9800'); };
     }
-    items.forEach(([key,fn])=>{
-      const b=el('div','btn primary foc', T(key)); b.onclick=()=>{ AUDIO.confirm(); fn(); }; m.appendChild(b);
-    });
-    // 「せってい」ボタンは幅を分け、右に言語切替ボタン(ベトナム語で表記/押すと全言語切替)を並べる。
-    const row=el('div','title-setrow');
-    const sb=el('div','btn primary foc', T('menu_settings')); sb.style.minWidth='360px';
-    sb.onclick=()=>{ AUDIO.confirm(); show('s-set'); };
-    const lb=el('div','btn foc', LANG==='vi'?'日本語':'Tiếng Việt'); lb.id='title-lang'; lb.style.minWidth='240px';
-    lb.onclick=()=> toggleLang();
-    row.appendChild(sb); row.appendChild(lb); m.appendChild(row);
+    mkRow(runBtn, resumeBtn);
+
+    // 2行目: クイック対戦 ／ オン対戦
+    mkRow(mkBtn(T('menu_quick'), ()=> startQuick()), mkBtn(T('menu_online'), ()=> openOnline()));
+
+    // 3行目: 遊び方（左） ／ 設定（右）
+    const helpBtn=mkBtn(T('menu_help'), ()=> openHelp('s-title'));
+    mkRow(helpBtn, mkBtn(T('menu_settings'), ()=> show('s-set')));
+
+    // 4行目: 言語設定（単独・2列ぶんの幅・一番下）
+    const langBtn=el('div','btn foc', T('menu_lang')); langBtn.id='title-lang';
+    langBtn.onclick=()=> toggleLang();
+    langBtn.classList.add('wide');
+    mkRow(langBtn);
     // Balance Simulator は隠し機能。タイトルのボタンは出さず、オンライン画面で
     //   合言葉「バランス」＋名前「タンラム」を入れて進むと開く(openOnline の配線参照)。
-    // ボタン数に応じてメニュー開始位置と間隔を調整（はみ出し防止）
-    const btnCount = m.children.length;
-    if(btnCount >= 7){ m.style.top = '340px'; m.style.gap = '14px'; }
-    else if(btnCount >= 6){ m.style.top = '390px'; m.style.gap = '18px'; }
-    else if(btnCount >= 5){ m.style.top = '430px'; m.style.gap = '22px'; }
-    else { m.style.top = '460px'; m.style.gap = '26px'; }
     // タイトルの飾りカード
     const fan=$('#title-fan'); fan.innerHTML='';
     [['A','♠',false],['K','♥',true],['Q','♦',true],['J','♣',false],['2','♠',false]].forEach(([r,s,red])=>{
@@ -3372,6 +3399,17 @@ const AUDIO = (function(){
       const codeEl=$('#lobby-code'); if(codeEl) codeEl.textContent=T('lobby_code', this.keyword);
       const startBtn=$('#lobby-start'); if(startBtn) startBtn.style.display=this.isHost?'':'none';
       const hint=$('#lobby-hint'); if(hint) hint.textContent = this.isHost ? T('lobby_hint_host') : T('lobby_hint_guest');
+      // 「日本式／ベトナム式」ワンタップ装填バー（未解放でも丸ごと装填して対戦できる＝編成画面から移設）。
+      const sb=$('#lobby-style');
+      if(sb){
+        sb.innerHTML =
+          '<span class="sb-lbl">'+T('style_pick')+'</span>'
+          + '<div class="btn small foc" id="lstyle-jp">🎴 '+T('style_jp')+'</div>'
+          + '<div class="btn small foc" id="lstyle-vn">🐉 '+T('style_vn')+'</div>'
+          + '<span class="sb-note">'+T('style_note')+'</span>';
+        const j=$('#lstyle-jp'); if(j) j.onclick=()=> lobbyLoadStyle('jp');
+        const v=$('#lstyle-vn'); if(v) v.onclick=()=> lobbyLoadStyle('vn');
+      }
       setTimeout(focusFirst,0);
     },
     broadcastLobby(){
@@ -3704,36 +3742,21 @@ const AUDIO = (function(){
     setTimeout(()=> focusFirst(), 0);
   }
   function closeRecommend(){ $('#ovl-recommend').classList.remove('active'); AUDIO.back(); refocusSlot(); }
-  // 編成画面の案内行をモードに合わせて作る。
-  //   オンライン: 「日本式/ベトナム式」のワンタップ装填バー(未解放エンブレムでも丸ごと装填して対戦できる)。
-  //   その他    : 従来の1行案内(.bg-main＝解除モードで色替えされる対象)。
+  // 編成画面の案内行。全モード共通の1行案内(.bg-main＝解除モードで色替えされる対象)。
+  //   ※「日本式/ベトナム式」ワンタップ装填はロビー画面へ移設(NET.renderLobby の #lobby-style)。
   function setupBuildGuide(){
     const guide=$('#build-guide'); if(!guide) return;
-    if(MODE.kind==='online'){
-      guide.innerHTML =
-        '<div class="stylebar">'
-        + '<span class="sb-lbl">'+T('style_pick')+'</span>'
-        + '<div class="btn small foc" id="style-jp">🎴 '+T('style_jp')+'</div>'
-        + '<div class="btn small foc" id="style-vn">🐉 '+T('style_vn')+'</div>'
-        + '<span class="sb-note">'+T('style_note')+'</span>'
-        + '</div>';
-      const j=$('#style-jp'); if(j) j.onclick=()=> loadStyleForce('jp');
-      const v=$('#style-vn'); if(v) v.onclick=()=> loadStyleForce('vn');
-    } else {
-      guide.innerHTML = '<span class="bg-main" data-i18n="build_guide_main">'+T('build_guide_main')+'</span>';
-    }
+    guide.innerHTML = '<span class="bg-main" data-i18n="build_guide_main">'+T('build_guide_main')+'</span>';
   }
-  // スタイル装填(オンライン専用)。プリセットを所持フィルタ無しで丸ごと載せる＝未解放でも選んで対戦できる。
-  function loadStyleForce(id){
-    if(!buildState) return;
-    const pb=RL.presetBuild(id), b=buildState.build;
-    RL.DISPLAY_RANKS.forEach(r=> b.rankSlots[r]=(pb.rankSlots[r]||[]).slice());
-    RL.SUITS.forEach(s=> b.suitSlots[s]=(pb.suitSlots[s]||[]).slice());
-    b.ruleSlots=(pb.ruleSlots||[]).slice();
+  // ロビーでのスタイル装填(オンライン専用)。プリセットを所持フィルタ無しで丸ごと myBuild に反映＝未解放でも対戦できる。
+  //   afterBuild がロビー再描画＋ホスト/ゲストへの同期(ready送信)まで行う。
+  function lobbyLoadStyle(id){
+    if(!NET.active) return;
+    const pb=RL.presetBuild(id);
     const pp=RL.PRESETS.find(p=>p.id===id);
     AUDIO.confirm();
+    NET.afterBuild(pb);
     toast(T('toast_loaded', pp?presetName(pp):''),'#42a5f5');
-    renderBuild(); refocusSlot();
   }
   function loadPreset(id){
     const pb=RL.presetBuild(id), b=buildState.build;
@@ -3788,7 +3811,9 @@ const AUDIO = (function(){
         ids.forEach(id=>{ const e=RL.emblem(id);
           wrap.appendChild(el('div','e '+RL.COLORS[e.color].cls, e.ico+' '+embName(e))); });
         rnd.forEach(id=>{ const e=RL.emblem(id);
-          wrap.appendChild(el('div','e rnd '+RL.COLORS[e.color].cls, e.ico+' '+embName(e))); });
+          const c=el('div','e rnd '+RL.COLORS[e.color].cls, e.ico+' '+embName(e));
+          c.appendChild(el('span','rndtag', T('rnd_tag')));   // 役ルール枠は幅があるので「ランダム」表記も添える
+          wrap.appendChild(c); });
       } else {
         // 数字/マーク枠はアイコンのみの小チップを折り返し。多すぎる時は ＋N に丸めて崩れ防止。
         const es=el('div','es');
@@ -3918,9 +3943,9 @@ const AUDIO = (function(){
     // ヘッダは最小限。説明文(各エンブレムの効果)はタイルに載せず、右の詳細ペインで開示する＝勉強感を消す。
     $('#palette-head').innerHTML = T('palette_head', '<b>'+slotLabel+'</b>');
     // ★この枠に「付けられるエンブレムだけ」を表示する（付けられないものはグレーアウトせず表示から消す）。
-    //   巡業のランダムで付いたエンブレムと同じものは手で付けられない＝候補から外す。
-    const randHave = randEmblemIdSet();
-    const owned = buildState.owned.filter(id=> RL.canScope(id, sel.type, sel.key) && !randHave.has(id));
+    //   巡業のランダムが「この枠」に付いている同idだけ候補から外す＝他の枠では引き続き選べる(per-slot)。
+    const randHere = randIdsFor(sel.type, sel.key);
+    const owned = buildState.owned.filter(id=> RL.canScope(id, sel.type, sel.key) && !randHere.includes(id));
     if(!owned.length){
       const empty=el('div','pal-empty', T('palette_empty'));
       p.appendChild(empty);
@@ -4021,8 +4046,8 @@ const AUDIO = (function(){
   }
   function toggleEquip(id){
     const sel=buildState.selSlot, b=buildState.build;
-    // 巡業のランダムで付いたエンブレムと同じものは手では付けられない(別レイヤー固定枠)。
-    if(randEmblemIdSet().has(id)){ AUDIO.bad(); toast(T('toast_rand_dup'),'#ff7043'); return; }
+    // 巡業のランダムが「この枠」に付いている同idだけ手で重ねられない(別レイヤー固定枠)。別の枠には付けられる。
+    if(randIdsFor(sel.type, sel.key).includes(id)){ AUDIO.bad(); toast(T('toast_rand_dup'),'#ff7043'); return; }
     // 全体ルール枠(whole): 複数装備可(1枠に並べる)。
     if(sel.type==='rule'){
       const arr=b.ruleSlots;
@@ -4167,13 +4192,10 @@ const AUDIO = (function(){
     const rb=MODE.run.randomBuild;
     return type==='rule' ? (rb.ruleSlots||[]) : type==='rank' ? (rb.rankSlots[key]||[]) : (rb.suitSlots[key]||[]);
   }
-  // 通常ビルドから指定idを全スロット分はずす(既に手で付けていた所にランダムが付いたら、その任意エンブレムを外す)。
-  function removeIdFromBuild(build, id){
-    let removed=false, i;
-    RL.DISPLAY_RANKS.forEach(r=>{ const a=build.rankSlots[r]||[]; while((i=a.indexOf(id))>=0){ a.splice(i,1); removed=true; } });
-    RL.SUITS.forEach(s=>{ const a=build.suitSlots[s]||[]; while((i=a.indexOf(id))>=0){ a.splice(i,1); removed=true; } });
-    const ru=build.ruleSlots||[]; while((i=ru.indexOf(id))>=0){ ru.splice(i,1); removed=true; }
-    return removed;
+  // 通常ビルドの「指定スロットだけ」から同idをはずす(per-slot方針＝別の枠に手で付けた同idは残す)。
+  function removeIdFromSlot(build, id, type, key){
+    const arr = type==='rule' ? build.ruleSlots : (type==='rank' ? (build.rankSlots[key]||[]) : (build.suitSlots[key]||[]));
+    let i; while(arr && (i=arr.indexOf(id))>=0){ arr.splice(i,1); }
   }
   // ランダムエンブレムを1個付与する。エンブレム/スロットともランダム(置けない箇所は避ける・既得idは除外)。
   //   付与した結果を {id, slot:{type,key}} で返す(報酬演出用)。付与不能(全部所持)なら null。
@@ -4192,7 +4214,7 @@ const AUDIO = (function(){
     }
     if(!slots.length) return null;
     const slot = slots[(Math.random()*slots.length)|0];                   // 対象スロットをランダム選択
-    removeIdFromBuild(run.build, id);                                     // 手で付けていた同idは外す(重複禁止)
+    removeIdFromSlot(run.build, id, slot.type, slot.key);                 // 「同じ枠」に手で付けていた同idだけ外す(別の枠は残す)
     const arr = slot.type==='rule' ? rb.ruleSlots : (slot.type==='rank' ? rb.rankSlots[slot.key] : rb.suitSlots[slot.key]);
     arr.push(id);
     return { id, slot };
