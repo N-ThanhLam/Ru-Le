@@ -346,6 +346,13 @@
   .palette .emb .badge.on{ background:#2e7d32; }
   .palette .emb .badge.elsewhere{ background:#8a6d00; }
   .palette .emb.equipped{ background:linear-gradient(180deg,#fff7d8,#ffeea6); box-shadow:0 0 0 5px #ffcf4d, 0 5px 12px rgba(0,0,0,.16); }
+  /* 巡業ランダム獲得分: 金色+🎲で一目で分かる(読めるが選択不可) */
+  .palette .emb.rndfix{ background:linear-gradient(135deg,#fff6d8,#ffe08a); border-color:#d4a017;
+    box-shadow:0 0 0 4px rgba(212,160,23,.45), 0 4px 10px rgba(0,0,0,.18); }
+  .palette .emb.rndfix::after{ content:'🎲'; position:absolute; top:-14px; left:-10px; font-size:34px; line-height:1;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  .palette .emb.rndfix .nm{ color:#6b4d00; }
+  .palette .emb .badge.rnd{ background:#b8860b; }
 
   /* 詳細ペイン：フォーカス中の“ひとつ”だけを大きく説明する＝選択した時だけ情報を出す。 */
   .detailpane{ flex:none; width:580px; background:linear-gradient(180deg,#ffffff,#e9edff);
@@ -1174,7 +1181,7 @@ const RL = (function(){
     { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:30, ico:'🔃', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
     { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:2, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     // 青 — ターン操作
-    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:32, suitCost:40, ico:'⏩', effect:['SKIP','SHED_LEAD'], place:'card', desc:'次のプレイヤーを1人飛ばす。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 người kế tiếp. Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
+    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:32, suitCost:40, ico:'⏩', effect:['SKIP','SHED_LEAD'], place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được). Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
     { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:28, suitCost:39, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
     { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:32, suitCost:33, ico:'🔄', effect:['REVERSE_DIR','SHED_LEAD'], place:'card', desc:'手番の向きを反転する。場が空（リード中）なら、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
     { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:27, suitCost:43, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
@@ -1188,7 +1195,7 @@ const RL = (function(){
     { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:32, suitCost:62, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
     { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:45, suitCost:68, ico:'🧹', effect:['SHED_WEAK','SHED_LEAD'], place:'card', desc:'いちばん弱い札を1枚捨てる。場が空（リード中）なら、もう1枚多く捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá nữa.' },
     { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:33, suitCost:33, ico:'🍃', effect:'SHED_LEAD',     place:'card', desc:'場が空（リード中）に出すと、いちばん弱い札を1枚捨てる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'Khi đánh lúc đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
-    { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:22, suitCost:27, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi.' },
+    { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:22, suitCost:27, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。越境・3返し・一撃が活きる場面では分裂せず単騎のまま出る。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi. Khi Vượt Biên / 3 Đè Heo / Nhất Kích có tác dụng thì giữ nguyên lá lẻ, không phân đôi.' },
     // ── マーク専用エンブレム（マークスロットだけに装備する“スート用”カテゴリ）。
     //    3返し(aka07)=そのマークの「3」で場の2を切り返す card(suitOnly)／自由・同種階段(mi05/mi06,place:'suitRun')=そのマークだけ階段に使える per-suit。4マーク全部に積めばコストも4倍。
     { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:3, suitCost:3, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
@@ -1409,12 +1416,25 @@ const RL = (function(){
   /* 分裂(SPLIT): 単騎で出すと同じ札がもう1枚増えて疑似ペアになる(疑似札=同スートの完全コピー)。
      ・適用は「単騎出し」限定。ペア/トリプル/階段に使うときは、そっちの役が優先で分裂しない。
      ・疑似ペアは単騎を超えられない＝場の単騎カードはこれでは返せなくなる(set≠single)。
-     ・疑似札は実体札ではないので手札からは実体1枚だけ減る(applyPlay 側)。  */
+     ・疑似札は実体札ではないので手札からは実体1枚だけ減る(applyPlay 側)。
+     ・単騎専用効果(越境/3返し/一撃)が「今の場で」活きるときは、そちらを優先して分裂しない(v0.16)。  */
   function isSplitSingle(build, combo){
     return !!(build && combo && combo.type==='single' && hasEffect(build, combo.cards[0], 'SPLIT'));
   }
-  function effectiveCombo(build, combo){
-    if(isSplitSingle(build, combo)){
+  // 分裂より単騎専用効果を優先する場面か。ctx={state, handLen}(state が無い旧呼び出しは常に分裂=後方互換)。
+  function splitSuppressed(build, combo, ctx){
+    if(!ctx || !ctx.state) return false;
+    const state=ctx.state, c=combo.cards[0], f=fieldCombo(state);
+    if(!f) return false;                                   // リード(場が空)では単騎効果に意味がない=分裂を採用
+    if(hasEffect(build,c,'WILD')) return true;             // 越境: 単騎のままなら何にでも出せる
+    if(f.type==='single'){
+      if(hasEffect(build,c,'CUT_TOP') && isTopSingle(state,f.key) && !isTopSingle(state,c)) return true; // 3返し
+      if(hasEffect(build,c,'LAST_SUIT') && ctx.handLen===1 && f.key.suit===c.suit) return true;          // 一撃
+    }
+    return false;
+  }
+  function effectiveCombo(build, combo, ctx){
+    if(isSplitSingle(build, combo) && !splitSuppressed(build, combo, ctx)){
       const c = combo.cards[0];
       const phantom = { rank:c.rank, suit:c.suit, phantom:true };   // 同スートの疑似コピー(プレーンデータ)
       return { type:'set', len:2, key:c, cards:[c, phantom], split:true };
@@ -1431,7 +1451,7 @@ const RL = (function(){
   // rules 省略時は state.rules(union/後方互換)。プレイ時は呼び出し側が「出し手 build の per-seat ルール」を渡す。
   function comboBeats(state, build, move, rules, actorHandLen){
     if(!move) return false;
-    move = effectiveCombo(build, move);   // 分裂: 単騎出しは疑似ペア化してから判定(単騎は超えられない)
+    move = effectiveCombo(build, move, {state, handLen:actorHandLen});   // 分裂: 単騎出しは疑似ペア化してから判定(単騎専用効果が活きる場面は単騎のまま)
     rules = rules || state.rules || DEFAULT_RULES;
     const fieldC = fieldCombo(state);
     if(!fieldC) return true;                                              // リード(場が空)= 妥当な役なら何でも
@@ -1444,7 +1464,7 @@ const RL = (function(){
       const lock = Array.isArray(state.field.suitLock) ? state.field.suitLock : [state.field.suitLock];
       if(move.type==='single' || move.type==='set' || move.type==='run'){
         const moveSuits = move.cards.map(c=> c.suit);
-        if(move.type==='set') moveSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0));
+        if(move.type!=='single') moveSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0)); // set/run ともマルチセット比較(並び順非依存)
         if(moveSuits.length!==lock.length || moveSuits.some((s,i)=> s!==lock[i])) return false; // 縛り
       }
     }
@@ -1763,7 +1783,7 @@ const RL = (function(){
     const myHandBefore = p.hand.length;                                    // 出す前の自分の手札枚数(最多/満杯判定に使う)
     const wasFullHand  = myHandBefore === mutatorHandCount(state.mutator);  // 初動: 配り直後の満杯手札か
     const combo = classifyCombo(cards, rules) || singleCombo(cards[0]); // UI/CPU は検証済。保険で単騎扱い。
-    const fieldCombo2 = effectiveCombo(p.build, combo);  // 分裂: 場に出る役(単騎出しは疑似ペア化)。手札除去は実体札のみ。
+    const fieldCombo2 = effectiveCombo(p.build, combo, {state, handLen:myHandBefore});  // 分裂: 場に出る役(単騎出しは疑似ペア化)。手札除去は実体札のみ。
     // 3返し(CUT_TOP)が場の最強単騎(2)を実際に切り返したか(後で場流し＋続行に使う)。
     const wasTopSingleField = !!(prevFieldCombo && prevFieldCombo.type==='single' && isTopSingle(state, prevFieldCombo.key));
     const events = [];
@@ -1789,12 +1809,14 @@ const RL = (function(){
     // 縛り(LOCK_SUIT, 縛り): 場と同じマークで重ねたときだけ発生(日本式大富豪ルール)。
     // 両方あれば無条件側を優先。
     const playedSuits = combo.cards.map(c=> c.suit);
-    if(combo.type==='set') playedSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0));
-    if(effs.includes('LOCK_SUIT_PLAYED')){
+    if(combo.type!=='single') playedSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0)); // set/run とも並び順非依存で照合
+    if(fieldCombo2.split){
+      state.field.suitLock = null;   // 分裂(疑似ペア)は実在しないスート構成＝縛りを掛けると誰も照合できないため発生させない
+    } else if(effs.includes('LOCK_SUIT_PLAYED')){
       state.field.suitLock = playedSuits;
     } else if(effs.includes('LOCK_SUIT') && prevFieldCombo){
       const fieldSuits = prevFieldCombo.cards.map(c=> c.suit);
-      if(combo.type==='set') fieldSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0));
+      if(combo.type!=='single') fieldSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0));
       const suitsMatch = playedSuits.length===fieldSuits.length && playedSuits.every((s,i)=> s===fieldSuits[i]);
       state.field.suitLock = suitsMatch ? playedSuits : null;
     } else {
@@ -1880,16 +1902,17 @@ const RL = (function(){
       return { events, finishedNow };
     }
 
-    // 7) 次手番(パスして降りた席は飛ばす＝このトリックは再参加不可)。
+    // 7) 次手番(自発パスで降りた席だけ飛ばす)。
+    //    ★v0.16: 「トリック再参加不可」は自分でパスした席のみ。加速(SKIP)で飛ばされた席・
+    //      指名(CHOOSE_NEXT)で素通りされた席は降りない＝場が回ってくればまた出せる。
     let next;
     if(fClear || fExtra){ next = playerIndex; }   // 流し(続行) or 連撃 → 同じ人が続行
     else {
-      // 加速(SKIP): 次に打てる席を1つ“降ろす”(このトリックは飛ばし＝以後復帰しない)。
-      if(fSkip){ const sk=nextTurnFrom(state, playerIndex, 1); if(sk!==playerIndex && !state.players[sk].finished && !passedSet(state).includes(sk)) passedSet(state).push(sk); }
       if(fChoose && opts.nextPlayer!=null && !state.players[opts.nextPlayer].finished && !passedSet(state).includes(opts.nextPlayer) && opts.nextPlayer!==playerIndex){
         next = opts.nextPlayer; events.push({kind:'emb', emb:firstWith('CHOOSE_NEXT')});
       } else {
-        next = nextTurnFrom(state, playerIndex, 1);
+        // 加速(SKIP): 次の1席の手番を1回だけ飛ばす(指名があれば指名先を優先)。
+        next = nextTurnFrom(state, playerIndex, fSkip ? 2 : 1);
       }
       // 自分以外に打てる席が居なくなった(全員パス/上がり/飛ばし)→ 場を流して自分がリードし直す。
       const others = trickAlive(state).filter(i=> i!==playerIndex);
@@ -1999,7 +2022,8 @@ const RL = (function(){
 
     const move = { type:'play', cards:chosen.cards };
     if(chosen.type==='single' && hasEffect(p.build, chosen.cards[0], 'CHOOSE_NEXT')){
-      const others = state.players.filter(q=> !q.finished && q.id!==playerIndex).sort((a,b)=> a.hand.length-b.hand.length);
+      const ps=passedSet(state);   // パス済み席は指名不可(applyPlay 側で弾かれ自然手番に落ちるため、最初から除外)
+      const others = state.players.filter(q=> !q.finished && q.id!==playerIndex && !ps.includes(q.id)).sort((a,b)=> a.hand.length-b.hand.length);
       if(others[0]) move.nextPlayer = others[0].id;
     }
     return move;
@@ -2320,16 +2344,18 @@ const RL = (function(){
     lo.field.combo=singleCombo({rank:'7',suit:'S'}); lo.field.card=lo.field.combo.key; lo.field.ownerIndex=0; lo.turn=1; lo.passed=[];
     applyPass(lo,1);
     ok('パスした席は passed に登録', lo.passed.includes(1) && lo.turn===2);
-    // 42 場流しバグ根治: 飛ばし(加速)を挟んでも全員パスで場が流れ、持ち主にリードが戻る(自分パス強制の再発防止)
+    // 42 加速(SKIP)=1回飛ばしのみ(v0.16): 飛ばされた席はトリックに残り、場が回ればまた出せる。
+    //    「トリック再参加不可」になるのは自分でパスを選んだ席だけ。
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 55);                // P0=加速(SKIP)
       sb.players.forEach((p,i)=> p.hand=[{rank:'3',suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
-      applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1飛ばし
-      const skipped = sb.passed.includes(1);
-      applyPass(sb,2); applyPass(sb,3);                                              // 残り全員パス
-      ok('飛ばし席はトリックから降りる', skipped);
-      ok('飛ばし+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+      applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
+      ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
+      applyPass(sb,2); applyPass(sb,3); applyPass(sb,0);                             // P2,P3パス→持ち主P0もパス
+      ok('加速: 飛ばされた席に手番が回ってくる(再参加)', sb.turn===1);
+      applyPass(sb,1);                                                               // 最後のP1もパス→場流し
+      ok('加速+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
     })();
     // 43 3返し: 単騎2を切り返したら場を流して自分が続行
     const c3=newGame(seat0(buildFrom({suit:{S:['aka07']}})), 210);
@@ -2347,6 +2373,33 @@ const RL = (function(){
       applyPlay(g,0,{rank:'5',suit:'S'},{});
       ok('分裂:実体は1枚だけ減る', g.players[0].hand.length===1);
       ok('分裂:場は疑似ペア(2枚)', g.field.combo && g.field.combo.type==='set' && g.field.combo.len===2 && g.field.combo.cards.length===2); })();
+    // 44b 単騎専用効果は分裂より優先(v0.16): 越境/3返し/一撃が活きる場面では分裂しない。
+    (function(){
+      const wb=buildFrom({rank:{'5':['mi08','aka02']}});                              // 分裂+越境
+      const g=newGame(seat0(wb), 221);
+      g.field.combo=singleCombo({rank:'K',suit:'H'}); g.field.card=g.field.combo.key; g.field.ownerIndex=1;
+      ok('分裂×越境: 場ありでは越境優先で単騎のまま出せる', comboBeats(g, wb, singleCombo({rank:'5',suit:'S'}), g.players[0].rules, 5)===true);
+      const e=effectiveCombo(wb, singleCombo({rank:'5',suit:'S'}), {state:g, handLen:5});
+      ok('分裂×越境: 疑似ペア化しない', e.type==='single');
+    })();
+    (function(){
+      const cb2=buildFrom({suit:{S:['aka07','mi08']}});                               // 3返し+分裂(♠)
+      const g=newGame(seat0(cb2), 222);
+      g.players[0].hand=[{rank:'3',suit:'S'},{rank:'K',suit:'S'}];
+      g.field.combo=singleCombo({rank:'2',suit:'H'}); g.field.card=g.field.combo.key; g.field.ownerIndex=1; g.turn=0; g.passed=[];
+      ok('分裂×3返し: 場の2は単騎のまま切り返せる', comboBeats(g, cb2, singleCombo({rank:'3',suit:'S'}), g.players[0].rules, 2)===true);
+      applyPlay(g,0,{rank:'3',suit:'S'},{});
+      ok('分裂×3返し: 切り返しで場が流れ自分が続行', g.field.card===null && g.turn===0);
+    })();
+    // 44c 分裂で出した疑似ペアにはマーク縛りが発生しない(実在しないスート構成のため)。
+    (function(){
+      const lb2=buildFrom({rank:{'5':['mi08','ao04']}});                              // 分裂+指名(無条件縛り)
+      const g=newGame(seat0(lb2), 223);
+      g.players[0].hand=[{rank:'5',suit:'S'},{rank:'K',suit:'C'}];
+      g.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g.turn=0; g.passed=[];
+      applyPlay(g,0,{rank:'5',suit:'S'},{nextPlayer:1});
+      ok('分裂×指名: 疑似ペアに縛りは発生しない', g.field.suitLock===null && g.field.combo && g.field.combo.split===true);
+    })();
     // 45 英雄: 2を4枚配られたら配り時に即1位(2222が同一席に行くseedを探索)
     (function(){
       let seed=-1; for(let s=1;s<4000;s++){ const g=newGame(defs.map(x=>({...x})), s); if(g.players[0].hand.filter(c=>c.rank==='2').length===4){ seed=s; break; } }
@@ -2510,7 +2563,14 @@ const AUDIO = (function(){
     decide:[0], back:[1], pass:[2], sub:[3], pause:[9], play:[4],
     inspect:[5], start:[7]
   };
-  function normInputMap(m, def){ const o={}; KEY_ACTIONS.forEach(a=> o[a] = (m && Array.isArray(m[a])) ? m[a].slice() : def[a].slice()); return o; }
+  function normInputMap(m, def){
+    const o={}; KEY_ACTIONS.forEach(a=> o[a] = (m && Array.isArray(m[a])) ? m[a].slice() : def[a].slice());
+    // 同じキー/ボタンが複数アクションに割当たっていたら先勝ち(KEY_ACTIONS順)で重複を除去。
+    //   キーボードは元々先勝ち判定だがパッドは全部発火していた＝「Xで外した後に選択画面へ移る」の根因。旧セーブも掃除する。
+    const seen=new Set();
+    KEY_ACTIONS.forEach(a=>{ o[a]=o[a].filter(k=>{ const id=String(k); if(seen.has(id)) return false; seen.add(id); return true; }); });
+    return o;
+  }
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
@@ -2624,6 +2684,9 @@ const AUDIO = (function(){
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
       rnd_tag:'ランダム',
       toast_rand_dup:'この枠にはランダムで付与済み（別の数字／マークには付けられます）',
+      toast_rand_fixed:'🎲 巡業で獲得したランダム枠。この枠に固定で、はずせません',
+      act_rand_fixed:'🎲 ランダム獲得（この枠に固定・操作不可）',
+      row_cost_rnd:'コスト：なし（ランダム獲得）',
       /* オンライン: スタイル装填(未解放でも選べる) */
       style_pick:'スタイルを選ぶ（未解放でもOK）', style_jp:'日本式', style_vn:'ベトナム式', style_note:'※ ワンタップで装填・自分で編成も可',
       /* 巡業しゅうりょう */
@@ -2633,7 +2696,7 @@ const AUDIO = (function(){
       draft_topbar:'エンブレム獲得 — 1つ選ぶ', draft_head:'戦利品を1つ選ぶ', draft_skip:'受け取らずに進む',
       draft_depth:'次は 深度 {0}{1}', draft_mut:'　／　お題 {0} {1}', draft_cost:'コスト {0} ／ {1} ／ {2}{3}',
       place_whole_short:'全体ルール', place_suitRun_short:'マーク階段', place_card_short:'数字/マーク',
-      draft_owned:' ・所持済(予算+1に変換)',
+      draft_owned:' ・所持済',
       /* ヘルプ */
       help_topbar:'あそびかた', help_close:'◀ もどる', help_prev:'◀ まえ', help_next:'つぎ ▶',
       help0_h:'Ru-Le とは',
@@ -2645,7 +2708,7 @@ const AUDIO = (function(){
       help3_h:'装備のルール（重要）',
       help3_b:'<ul><li><b>数字</b>スロット＝その数字<b>4枚</b>で発動。<b>マーク</b>スロット＝そのマーク<b>13枚</b>で発動（高頻度ぶん<b>マーク装備のコストは高い</b>＝強い能力ほど跳ね上がる）。</li><li><b>全体ルール枠（全）</b>＝<b>ペア/3枚/4枚許可・革命・ボム・スート順</b>。自分だけに効く。</li><li><b>自由階段・同種階段</b>は<b>マークに装備</b>＝そのマークだけ階段に使える。4マーク全部に積めば全色（コストも4倍）。</li><li><b>同じエンブレムは何か所にでも</b>付けられ、1スロットに<b>複数</b>重ねてもOK。自由に組み、<b>強さはコストで管理</b>（予算100まで何を積んでも同じくらいの強さ）。</li></ul>',
       help4_h:'巡業（ソロ）と解放',
-      help4_b:'<ul><li>4人対戦に勝ち進む<b>ローグライク</b>。<b>1位か2位</b>で次の深度へ（3位以下は残機-1／残機3）。</li><li>勝つと<b>戦利品エンブレムを獲得</b>＆<b>予算アップ</b>。</li><li>巡業で手に入れたエンブレムは<b>永続解放</b>＝<b>クイック対戦でも使える</b>。</li><li>深いほど敵も強い。<b>最高到達深度</b>に挑め。</li></ul>',
+      help4_b:'<ul><li>4人対戦の<b>ローグライク</b>。何位でも<b>毎戦深度+1</b>（3位以下は残機-1／残機3）。</li><li>予算は<b>深度55+5ずつ成長</b>（深度10で100＝あなたはそこで頭打ち、<b>敵はその先も成長</b>）。</li><li>毎戦後に<b>戦利品エンブレム</b>をドラフト＝<b>永続解放</b>で<b>クイック対戦でも使える</b>。</li><li>深いほど敵が強い。<b>最高到達深度</b>に挑め。</li></ul>',
       help5_h:'変則ルールお題',
       help5_b:'<ul><li>対戦ごとに<b>お題</b>が変わる。編成画面の上に表示される。</li><li><span style="color:#ef5350;font-weight:900;">天地無用</span>＝ずっと逆位（弱い札しか出せない）。<span style="color:#66bb6a;font-weight:900;">相席歓迎</span>＝同じ強さも重ねられる。</li><li><b>短期決戦</b>＝手札10枚で速攻決着。<b>大盤振舞／緊縮の掟</b>＝編成コストが増減。</li><li><b>お題を見てからビルドを組み替える</b>のがコツ。同じ構築でもお題で価値が変わる。</li></ul>',
       help6_h:'操作',
@@ -2766,6 +2829,9 @@ const AUDIO = (function(){
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
       rnd_tag:'Ngẫu nhiên',
       toast_rand_dup:'Ô này đã có biểu tượng ngẫu nhiên (ô khác vẫn gắn được)',
+      toast_rand_fixed:'🎲 Ô ngẫu nhiên nhận khi lữ hành. Cố định ở ô này, không gỡ được',
+      act_rand_fixed:'🎲 Nhận ngẫu nhiên (cố định ô này · không thao tác được)',
+      row_cost_rnd:'Chi phí: không (nhận ngẫu nhiên)',
       /* Trực tuyến: nạp phong cách (chưa mở khóa vẫn chọn được) */
       style_pick:'Chọn phong cách (chưa mở khóa vẫn được)', style_jp:'Kiểu Nhật', style_vn:'Kiểu Việt', style_note:'※ Nạp 1 chạm · vẫn tự cấu hình được',
       runover_best:' 🎉 Kỷ lục mới!', runover_head:'Kết thúc Lữ hành', runover_ok:'Về Menu',
@@ -2773,7 +2839,7 @@ const AUDIO = (function(){
       draft_topbar:'Nhận Biểu Tượng — Chọn 1', draft_head:'Chọn 1 chiến lợi phẩm', draft_skip:'Bỏ qua, đi tiếp',
       draft_depth:'Kế tiếp: Tầng {0}{1}', draft_mut:'　/　Đề bài {0} {1}', draft_cost:'Chi phí {0} / {1} / {2}{3}',
       place_whole_short:'Luật bộ', place_suitRun_short:'Sảnh chất', place_card_short:'Số/Chất',
-      draft_owned:' · Đã có (đổi thành +1 ngân sách)',
+      draft_owned:' · Đã có',
       help_topbar:'Cách Chơi', help_close:'◀ Quay lại', help_prev:'◀ Trước', help_next:'Sau ▶',
       help0_h:'Ru-Le là gì',
       help0_b:'<ul><li>52 lá bài <b>chung cho mọi người</b>.</li><li>Khác biệt chỉ đến từ <b>cấu hình Biểu Tượng</b>.</li><li>Gắn biểu tượng lên số/chất để tạo <b>luật của riêng mình</b>.</li><li>Nền tảng là "Tiến Lên thuần (đánh lẻ)".</li></ul>',
@@ -2784,7 +2850,7 @@ const AUDIO = (function(){
       help3_h:'Luật gắn (quan trọng)',
       help3_b:'<ul><li>Ô <b>số</b> = kích hoạt với <b>4 lá</b> số đó. Ô <b>chất</b> = kích hoạt với <b>13 lá</b> chất đó (tần suất cao nên <b>gắn vào chất tốn chi phí hơn</b> = năng lực càng mạnh càng đắt).</li><li>Ô <b>luật bộ</b> = <b>cho đôi/sám/tứ quý, Cách mạng, Chặt heo, thứ tự chất</b>. Chỉ áp dụng cho mình.</li><li><b>Sảnh tự do · sảnh đồng chất</b> <b>gắn vào chất</b> = chỉ chất đó dùng cho sảnh. Gắn cả 4 chất là đủ màu (chi phí cũng ×4).</li><li><b>Cùng biểu tượng gắn được nhiều nơi</b>, một ô cũng xếp <b>nhiều</b> được. Tự do lắp, <b>sức mạnh quản lý bằng chi phí</b> (tới ngân sách 100 thì lắp gì cũng mạnh ngang nhau).</li></ul>',
       help4_h:'Lữ hành (Đơn) và mở khóa',
-      help4_b:'<ul><li><b>Roguelike</b> thắng tiến qua các trận 4 người. <b>Hạng 1 hoặc 2</b> để sang tầng kế (hạng dưới thì -1 mạng / 3 mạng).</li><li>Thắng được <b>nhận biểu tượng chiến lợi phẩm</b> & <b>tăng ngân sách</b>.</li><li>Biểu tượng nhặt khi lữ hành được <b>mở khóa vĩnh viễn</b> = <b>dùng được cả ở Đấu Nhanh</b>.</li><li>Càng sâu địch càng mạnh. Hãy thử <b>tầng cao nhất</b>.</li></ul>',
+      help4_b:'<ul><li><b>Roguelike</b> qua các trận 4 người. Hạng nào cũng <b>+1 tầng mỗi trận</b> (hạng 3/4 thì -1 mạng / 3 mạng).</li><li>Ngân sách <b>55 +5 mỗi tầng</b> (tầng 10 = 100 = bạn dừng ở đó, <b>địch vẫn tăng tiếp</b>).</li><li>Sau mỗi trận <b>draft biểu tượng chiến lợi phẩm</b> = <b>mở khóa vĩnh viễn</b>, <b>dùng được cả ở Đấu Nhanh</b>.</li><li>Càng sâu địch càng mạnh. Hãy thử <b>tầng cao nhất</b>.</li></ul>',
       help5_h:'Đề bài luật biến thể',
       help5_b:'<ul><li>Mỗi trận <b>đề bài</b> đổi khác. Hiện ở phía trên màn hình cấu hình.</li><li><span style="color:#ef5350;font-weight:900;">Đảo Lộn</span> = luôn đảo vị (chỉ đánh lá yếu). <span style="color:#66bb6a;font-weight:900;">Cùng Mạnh</span> = đè được cả lá mạnh ngang.</li><li><b>Tốc Chiến</b> = 10 lá, phân định nhanh. <b>Hào Phóng／Thắt Lưng</b> = ngân sách cấu hình tăng/giảm.</li><li>Mẹo là <b>xem đề bài rồi mới chỉnh cấu hình</b>. Cùng cấu hình nhưng đề bài khác thì giá trị khác.</li></ul>',
       help6_h:'Điều khiển',
@@ -2961,22 +3027,38 @@ const AUDIO = (function(){
     setFocus(f[0]||null);
   }
   function center(e){ const r=e.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+  /* 方向ナビ(v0.16):
+     ・同じ行/列(バンド=進行方向と直交する辺が3割以上重なる相手)を最優先＝「左右を押したのに上下へ飛ぶ」斜め誤爆を排除。
+     ・端でさらに端方向を押したら反対端へラップ(←端で←→右端へ)。左右はバンド内ラップを斜め候補より優先、
+       上下はゾーン移動(斜めでも下の列へ)を先に試し、何も無ければ列内ラップ。 */
   function moveFocus(dir){
     const list=focusables(); if(!list.length) return;
     if(!focusedEl || !list.includes(focusedEl)){ setFocus(list[0]); AUDIO.move(); return; }
-    const c=center(focusedEl); let best=null, bestScore=Infinity;
+    const horiz = (dir==='left'||dir==='right');
+    const fr=focusedEl.getBoundingClientRect();
+    const c=center(focusedEl);
+    let bandBest=null, bandScore=Infinity;   // 同じ行/列で進行方向にある最寄り
+    let anyBest=null,  anyScore=Infinity;    // バンド外も含む進行方向の最寄り(斜めフォールバック)
+    let wrapBest=null, wrapScore=-Infinity;  // 同じ行/列の「反対端」(ラップ先)
     list.forEach(e=>{
       if(e===focusedEl) return;
-      const t=center(e); const dx=t.x-c.x, dy=t.y-c.y;
-      let ok=false, along=0, perp=0;
-      if(dir==='left'){ ok=dx<-6; along=-dx; perp=Math.abs(dy); }
-      if(dir==='right'){ ok=dx>6; along=dx; perp=Math.abs(dy); }
-      if(dir==='up'){ ok=dy<-6; along=-dy; perp=Math.abs(dx); }
-      if(dir==='down'){ ok=dy>6; along=dy; perp=Math.abs(dx); }
-      if(!ok) return;
-      const score=along + perp*2;
-      if(score<bestScore){ bestScore=score; best=e; }
+      const r=e.getBoundingClientRect();
+      const t={x:r.left+r.width/2, y:r.top+r.height/2};
+      const dx=t.x-c.x, dy=t.y-c.y;
+      const along = dir==='left' ? -dx : dir==='right' ? dx : dir==='up' ? -dy : dy;
+      const perp  = horiz ? Math.abs(dy) : Math.abs(dx);
+      const overlap = horiz ? Math.min(fr.bottom,r.bottom)-Math.max(fr.top,r.top)
+                            : Math.min(fr.right,r.right)-Math.max(fr.left,r.left);
+      const inBand = overlap > Math.min(horiz?fr.height:fr.width, horiz?r.height:r.width)*0.3;
+      if(along>6){
+        if(inBand){ const sc=along+perp*0.5; if(sc<bandScore){ bandScore=sc; bandBest=e; } }
+        const sc2=along+perp*3; if(sc2<anyScore){ anyScore=sc2; anyBest=e; }
+      } else if(along<-6 && inBand){
+        const sc=-along-perp*0.5; if(sc>wrapScore){ wrapScore=sc; wrapBest=e; }
+      }
     });
+    const best = horiz ? (bandBest || wrapBest || anyBest)
+                       : (bandBest || anyBest || wrapBest);
     if(best){ setFocus(best); AUDIO.move(); ensureView(); }
   }
   // フォーカス中の要素が、スクロール可能な祖先(編成パレット/閲覧オーバーレイ等)の中で
@@ -3089,6 +3171,26 @@ const AUDIO = (function(){
   // リバインド取り込み中はこの関数が入力を奪う(null=通常運転)。
   let keyCapture=null, padCapture=null;
 
+  /* ---------- ナビ長押しオートリピート(キーボード/パッド共通) ----------
+     方向入力を0.5秒以上押しっぱなしにすると、その方向へ約9回/秒で自動移動し続ける。
+     最初の1回は押した瞬間に発火(従来どおり)。離す/フォーカス喪失で停止。 */
+  const NAV_ACTS=['up','down','left','right'];
+  const NAV_REPEAT_DELAY=500, NAV_REPEAT_IV=110;   // 長押し判定0.5s / リピート間隔(ms)
+  const navHeld={};   // holdId('k_up'/'p0_left'等) -> {dir, t0, last}
+  let navLoopOn=false;
+  function navHoldStart(id, dir){ const now=performance.now(); navHeld[id]={dir, t0:now, last:now}; startNavLoop(); }
+  function navHoldEnd(id){ delete navHeld[id]; }
+  function navHoldClear(){ for(const k2 in navHeld) delete navHeld[k2]; }
+  function startNavLoop(){ if(navLoopOn) return; navLoopOn=true; requestAnimationFrame(navTick); }
+  function navTick(){
+    const ids=Object.keys(navHeld);
+    if(!ids.length){ navLoopOn=false; return; }
+    const now=performance.now();
+    ids.forEach(id=>{ const h=navHeld[id]; if(now-h.t0>=NAV_REPEAT_DELAY && now-h.last>=NAV_REPEAT_IV){ h.last=now; dispatchAction(h.dir); } });
+    requestAnimationFrame(navTick);
+  }
+  window.addEventListener('blur', navHoldClear);
+
   /* ---------- キーボード ---------- */
   window.addEventListener('keydown', e=>{
     const k=e.key;
@@ -3105,9 +3207,18 @@ const AUDIO = (function(){
     const action = keyActionFor(k);
     // ナビ/決定/戻る等・Space・Tab はブラウザ既定(スクロール/フォーカス移動)を抑止。
     if(action || k===' ' || k==='Tab') e.preventDefault();
-    if(action){ dispatchAction(action); return; }
+    // OSのキーリピートは使わない: ナビは自前の長押しリピート、決定/パス等は長押しで連打させない(誤操作防止)。
+    if(e.repeat) return;
+    if(action){
+      if(NAV_ACTS.includes(action)) navHoldStart('k_'+action, action);
+      dispatchAction(action); return;
+    }
     // 固定ショートカット(リマップ対象外): Space=即出し。しらべる/対戦開始はキー設定でリバインド可。
     if(k===' ') spaceAction();
+  });
+  window.addEventListener('keyup', e=>{
+    const action = keyActionFor(e.key);
+    if(action && NAV_ACTS.includes(action)) navHoldEnd('k_'+action);
   });
 
   /* ---------- ゲームパッド (接続中のみポーリング。未接続時はrAFを回さない) ---------- */
@@ -3115,6 +3226,9 @@ const AUDIO = (function(){
   function pollPadOnce(){
     const pads=navigator.getGamepads?navigator.getGamepads():[];
     const pm=store.padmap||DEFAULT_PADMAP;
+    // 切断されたパッドの保持ナビを解除(押しっぱなしのまま抜くとリピートが止まらなくなるのを防ぐ)。
+    const present=new Set(); for(const gp of pads){ if(gp) present.add(gp.index); }
+    Object.keys(navHeld).forEach(id=>{ if(id[0]==='p' && !present.has(parseInt(id.slice(1),10))) delete navHeld[id]; });
     for(const gp of pads){
       if(!gp) continue;
       const b=gp.buttons.map(x=>x.pressed);
@@ -3129,14 +3243,27 @@ const AUDIO = (function(){
       // キーボードのリバインド取込中はパッド入力を無視(誤爆防止・prev更新のみ)。
       if(keyCapture){ gp.buttons.forEach((x,i)=> padPrev[gp.index+'_'+i]=x.pressed); continue; }
       const lx=ax[0]||0, ly=ax[1]||0;
-      const axEdge=(name,cond)=>{ const key=gp.index+'_'+name; if(cond){ if(!padPrev[key]){ padPrev[key]=true; return true; } } else padPrev[key]=false; return false; };
-      // スティックは常時ナビ(リマップ対象外)。十字キーは padmap(既定で 12-15) 経由。
-      if(axEdge('lx-', lx<-0.5)) dispatchAction('left');
-      if(axEdge('lx+', lx>0.5))  dispatchAction('right');
-      if(axEdge('ly-', ly<-0.5)) dispatchAction('up');
-      if(axEdge('ly+', ly>0.5))  dispatchAction('down');
-      // ボタンは割当マップ参照(各アクションに割り当てられた全ボタンの立ち上がりで発火)。
-      KEY_ACTIONS.forEach(a=> (pm[a]||[]).forEach(i=>{ if(edge(i)) dispatchAction(a); }));
+      // ナビ(スティック+十字キー)は「押されている間」の保持判定＝長押しオートリピート対応。
+      const navActive=(dir)=>{
+        let v=(pm[dir]||[]).some(i=> b[i]);
+        if(dir==='left')  v = v || lx<-0.5;
+        if(dir==='right') v = v || lx>0.5;
+        if(dir==='up')    v = v || ly<-0.5;
+        if(dir==='down')  v = v || ly>0.5;
+        return v;
+      };
+      NAV_ACTS.forEach(dir=>{
+        const id='p'+gp.index+'_'+dir;
+        if(navActive(dir)){ if(!navHeld[id]){ navHoldStart(id, dir); dispatchAction(dir); } }
+        else navHoldEnd(id);
+      });
+      // ナビ以外のボタンはエッジ(押した瞬間)のみ。1ボタン=1アクション(KEY_ACTIONS順の先勝ち)＝キーボードと同じ優先規則。
+      //   ※旧実装は同一ボタンの全割当を発火していて「パス(X)→解除後に決定も発火して選択画面が開く」等のキーボードとの差異を生んでいた。
+      for(let i=0;i<b.length;i++){
+        if(!edge(i)) continue;
+        const a=KEY_ACTIONS.find(a2=> !NAV_ACTS.includes(a2) && (pm[a2]||[]).includes(i));
+        if(a) dispatchAction(a);
+      }
       gp.buttons.forEach((x,i)=> padPrev[gp.index+'_'+i]=x.pressed);
     }
   }
@@ -3176,7 +3303,7 @@ const AUDIO = (function(){
         else if(MODE.kind==='quick'){ show('s-title'); }
         // 巡業の結果は「すすむ」専用ボタンのみ＝ESC では先に進めない(誤操作防止)
         break;
-      case 's-draft':   if(MODE.run){ MODE.run.budget+=4; store.saveRun(MODE.run, MODE.mutator); openBuild(T('bt_run', MODE.run.depth)); } break;
+      case 's-draft':   if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); openBuild(T('bt_run', MODE.run.depth)); } break;
       case 's-runover': MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;
       case 's-title': break;
       default: break;
@@ -3285,11 +3412,15 @@ const AUDIO = (function(){
   }
 
   // 巡業(ローグライク)
+  // ★v0.16 予算ルール: 55スタート・深度+1ごとに+5(勝敗/順位は無関係)＝深度10でちょうど100。
+  //   プレイヤーは以降100で頭打ち、CPUは同じ式のまま100を超えて+5し続ける(深いほど不利になる仕様)。
+  function runBudget(depth){ return Math.min(100, 50 + 5*depth); }   // 深度1=55, 2=60, …, 10=100, 以降100固定
+  function runCpuBudget(depth){ return 50 + 5*depth; }               // CPUは上限なし(深度11=105, 12=110, …)
   function freshRun(){
     return {
-      depth:1, lives:3, budget:65,                 // 初期予算(深度ごとに成長・100系)。開始ビルド連火28+投棄33=61が収まる値。
+      depth:1, lives:3, budget:runBudget(1),       // 予算は常に深度から決まる(加算ボーナスは廃止)
       owned:['aka01','ki01','ao01','aka04'],       // 巡業内の所持プール(ドラフトで増える)
-      build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['ki01']; return b; })(), // 連火28+投棄33=61(予算65内)
+      build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild()                  // ★巡業限定のランダムエンブレム枠(1位クリアで成長・コスト/解放と無関係・次の巡業でリセット)
     };
   }
@@ -3305,6 +3436,7 @@ const AUDIO = (function(){
     MODE.run=JSON.parse(JSON.stringify(saved.run));
     // 旧セーブ互換: ランダムエンブレム枠が無ければ空で補完(中断復帰で獲得済みを失わないよう正規化)。
     MODE.run.randomBuild = MODE.run.randomBuild ? RL.normalizeBuild(MODE.run.randomBuild) : RL.emptyBuild();
+    MODE.run.budget = runBudget(MODE.run.depth);   // 旧セーブ互換: 予算は加算値を捨て、常に深度から再計算
     MODE.mutator=saved.mutator ? JSON.parse(JSON.stringify(saved.mutator)) : rollMutator(MODE.run.depth);
     openBuild(T('bt_run', MODE.run.depth));
   }
@@ -3995,7 +4127,7 @@ const AUDIO = (function(){
     AUDIO.move();
     // 付けられるエンブレムの先頭へフォーカス(キーボード/パッドでも即操作)
     setTimeout(()=>{
-      const first = focusables().find(x=> x.classList.contains('emb') && !x.classList.contains('locked')) || focusables()[0];
+      const first = focusables().find(x=> x.classList.contains('emb') && !x.classList.contains('locked') && !x.classList.contains('rndfix')) || focusables()[0];
       setFocus(first||null);
     }, 0);
   }
@@ -4039,7 +4171,23 @@ const AUDIO = (function(){
     //   巡業のランダムが「この枠」に付いている同idだけ候補から外す＝他の枠では引き続き選べる(per-slot)。
     const randHere = randIdsFor(sel.type, sel.key);
     const owned = buildState.owned.filter(id=> RL.canScope(id, sel.type, sel.key) && !randHere.includes(id));
-    if(!owned.length){
+    // ★この枠に付いている巡業ランダムエンブレムは金色タイルで先頭に表示(名前・効果を読める)。選択は不可。
+    randHere.forEach(id=>{
+      const e=RL.emblem(id); const col=RL.COLORS[e.color];
+      const card=el('div','emb foc rndfix');
+      card.dataset.eid=id; card.dataset.rndfix='1';
+      card.style.borderLeft='10px solid '+col.hex;
+      card.innerHTML =
+        '<span class="badge rnd">'+T('rnd_tag')+'</span>'+
+        '<div class="thd"><span class="ico">'+e.ico+'</span></div>'+
+        '<div class="nm">'+embName(e)+'</div>';
+      card.onclick=()=>{
+        if(focusedEl===card){ AUDIO.bad(); toast(T('toast_rand_fixed'),'#b8860b'); }
+        else { setFocus(card); AUDIO.move(); }
+      };
+      p.appendChild(card);
+    });
+    if(!owned.length && !randHere.length){
       const empty=el('div','pal-empty', T('palette_empty'));
       p.appendChild(empty);
       requestAnimationFrame(updateScrollCue);
@@ -4076,7 +4224,7 @@ const AUDIO = (function(){
   function renderDetail(){
     const host=$('#build-detail'); if(!host||!buildState) return;
     const f=focusedEl; let r;
-    if(f && f.classList.contains('emb') && f.dataset.eid) r=detailForEmblem(f.dataset.eid);
+    if(f && f.classList.contains('emb') && f.dataset.eid) r=detailForEmblem(f.dataset.eid, f.dataset.rndfix==='1');
     else if(f && f.classList.contains('slot')) r=detailForSlot(f.dataset.type, f.dataset.key);
     else { r=detailForSlot(buildState.selSlot.type, buildState.selSlot.key);
            r.hint=T('hint_detail_default', actKey('decide')); }
@@ -4088,7 +4236,7 @@ const AUDIO = (function(){
   function slotDisplayLabel(type,key){
     return type==='rule' ? T('slot_disp_rule') : type==='suit' ? T('slot_disp_suit', RL.SUIT_SYM[key]) : T('slot_disp_rank', key);
   }
-  function detailForEmblem(id){
+  function detailForEmblem(id, rndFixed){
     const e=RL.emblem(id), col=RL.COLORS[e.color];
     const sel=buildState.selSlot, b=buildState.build;
     const allowed=RL.canScope(id, sel.type, sel.key);
@@ -4098,7 +4246,8 @@ const AUDIO = (function(){
     const placeTxt = e.suitOnly ? T('place_suit_only') : e.rankLock ? T('slot_disp_rank', e.rankLock.join('/'))+'のみ' : pl==='whole' ? T('place_whole') : pl==='suitRun' ? T('place_suitRun') : T('place_card');
     const where = sel.type==='suit'?RL.SUIT_SYM[sel.key]:sel.type==='rule'?T('where_rule'):sel.key;
     let act, actCls='';
-    if(!allowed){ const rlk=e.rankLock; act=rlk ? T('act_cannot', T('slot_disp_rank', rlk.join('/'))) : T('act_cannot', placeTxt); actCls=' no'; }
+    if(rndFixed){ act=T('act_rand_fixed'); actCls=' rnd'; }   // 巡業ランダム獲得分: 効果は読めるが操作不可
+    else if(!allowed){ const rlk=e.rankLock; act=rlk ? T('act_cannot', T('slot_disp_rank', rlk.join('/'))) : T('act_cannot', placeTxt); actCls=' no'; }
     else if(here){ act=T('act_equipped', actKey('decide')); }
     else { act=T('act_equip', actKey('decide'), where, cst); }
     const html=
@@ -4107,14 +4256,16 @@ const AUDIO = (function(){
       +'<div class="dt-name">'+embName(e)+'</div>'
       +'<div class="dt-desc">'+embDesc(e)+'</div>'
       +'<div class="dt-rows"><div class="dt-row">'+T('row_place', placeTxt)+'</div>'
-        +'<div class="dt-row">'+T('row_cost', cst)+'</div></div>'
+        +'<div class="dt-row">'+(rndFixed ? T('row_cost_rnd') : T('row_cost', cst))+'</div></div>'
       +'<div class="dt-spacer"></div>'
       +'<div class="dt-act'+actCls+'" id="dt-act">'+act+'</div>';
-    const hint = allowed
+    const hint = rndFixed
+      ? T('hint_emb_no', actKey('back'))
+      : allowed
       ? T('hint_emb_ok', here?T('emb_remove'):T('emb_equip'), actKey('decide'), actKey('back'))
       : T('hint_emb_no', actKey('back'));
-    // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない時は null。
-    return {html, hint, actId: allowed ? id : null};
+    // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない/ランダム固定は null。
+    return {html, hint, actId: (allowed && !rndFixed) ? id : null};
   }
   function detailForSlot(type,key){
     const b=buildState.build;
@@ -4209,7 +4360,7 @@ const AUDIO = (function(){
   function openConstraintViolated(){ return G && G.openSpade3===meIdx() && !handSel.some(c=> c.rank==='3'&&c.suit==='S'); }
   function selLegal(){ const m=selCombo(); const mi=meIdx(); return !!m && !openConstraintViolated() && RL.comboBeats(G, G.players[mi].build, m, humanRules(), G.players[mi].hand.length); }
   // 表示用: 分裂は単騎出しでもペアとして場に乗るので、ラベルもペア表記にする。
-  function effComboLabel(combo){ const eff=RL.effectiveCombo(G.players[meIdx()].build, combo); return comboLabel(eff)+(eff&&eff.split?T('split_tag'):''); }
+  function effComboLabel(combo){ const mi=meIdx(); const eff=RL.effectiveCombo(G.players[mi].build, combo, {state:G, handLen:G.players[mi].hand.length}); return comboLabel(eff)+(eff&&eff.split?T('split_tag'):''); }
   function comboLabel(combo){
     if(!combo) return '';
     if(combo.type==='single') return T('combo_single');
@@ -4258,7 +4409,7 @@ const AUDIO = (function(){
     const keys=['speed','control','tempo','vietnam'];
     let pool=CPU_ARCHE[keys[idx%3]].slice();                    // 名前(速攻/支配/翻弄)と一致
     if(depth>=4) pool=pool.concat(CPU_ARCHE[keys[3]]);          // 深いほどベトナム式の役も混ぜる
-    const budget=Math.min(RL.CONFIG.MAX_BUILD_COST, 40 + depth*8);   // 巡業CPUの予算(深度で成長・100系)
+    const budget=runCpuBudget(depth);   // 巡業CPUの予算=プレイヤーと同式だが上限なし(深度10超は+5し続けプレイヤーより強くなる)
     return assembleCpuBuild(pool, budget);
   }
 
@@ -4536,7 +4687,7 @@ const AUDIO = (function(){
     const cards=handSel.slice();
     // 指名(単騎のみ)が絡む場合は先に相手を選ぶ
     if(combo.type==='single' && RL.hasEffect(G.players[mi].build, cards[0], 'CHOOSE_NEXT')){
-      const cands=G.players.filter(q=>!q.finished && q.id!==mi);
+      const cands=G.players.filter(q=>!q.finished && q.id!==mi && !(G.passed||[]).includes(q.id));   // パス済み席は指名できない
       if(cands.length>=2){ openChoose(cards, cands); return; }
       execPlay(cards, {nextPlayer: cands[0]?cands[0].id:undefined}); return;
     }
@@ -4717,7 +4868,7 @@ const AUDIO = (function(){
     // ★1位クリア → ランダムエンブレムを1個獲得(巡業限定のローグライク成長)。
     let rewardMsg='';
     if(place===1){ const g=grantRandomEmblem(run); if(g) rewardMsg=randomGrantLabel(g); }
-    // 1位/2位 → 前進、3位/4位 → 残機減
+    // ★v0.16: 深度は勝っても負けても何位でも毎戦+1(=予算も毎戦+5)。3位/4位は残機-1のみ。
     const advanced = place<=2;
     if(!advanced) run.lives--;
     if(run.lives<0){
@@ -4728,7 +4879,7 @@ const AUDIO = (function(){
     }
     // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
     run.depth++;
-    run.budget += (place===1 ? 8 : 4);   // 1位は予算+8、2位/3位は+4(100系)
+    run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(加算ボーナス廃止)
     MODE.mutator = rollMutator(run.depth);
     store.saveRun(run, MODE.mutator);
     const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : T('next_lifedown');
@@ -4753,10 +4904,11 @@ const AUDIO = (function(){
     const m=MODE.mutator;
     const mTxt = (m && m.effect!=='NONE') ? T('draft_mut', m.ico, mutName(m)) : '';
     $('#draft-depth').textContent=T('draft_depth', run.depth, mTxt);
-    // 所持していない物を優先して3枚
+    // ★v0.16: 重複は引き直し＝候補は常に「未所持」から出す(1〜2種しか残っていなければその枚数だけ)。
+    //   全エンブレム所持済みのときだけ所持済みから出す(獲得しても変化なし)。予算ボーナス変換は廃止。
     const pool=RL.EMBLEMS.map(e=>e.id);
     const notOwned=pool.filter(id=>!run.owned.includes(id));
-    const src = notOwned.length>=3 ? notOwned : pool;
+    const src = notOwned.length ? notOwned : pool;
     draftPicks = pick3(src);
     const wrap=$('#draft-cards'); wrap.innerHTML='';
     draftPicks.forEach(id=>{
@@ -4774,19 +4926,18 @@ const AUDIO = (function(){
     show('s-draft');
   }
   function pick3(arr){
+    // 未所持プールからユニークに最大3枚。プールが3未満ならある分だけ出す(水増しの重複は出さない)。
     const a=arr.slice(); const out=[];
     while(out.length<3 && a.length){ const i=Math.floor(Math.random()*a.length); out.push(a.splice(i,1)[0]); }
-    while(out.length<3) out.push(RL.EMBLEMS[Math.floor(Math.random()*RL.EMBLEMS.length)].id);
     return out;
   }
   function takeDraft(id, dup){
     const run=MODE.run;
-    if(dup){ run.budget+=4; }   // 重複は予算ボーナスに(100系)
-    else { run.owned.push(id); store.unlock(id); }  // 巡業の戦利品は永続解放→クイック/オンでも使える
+    if(!dup){ run.owned.push(id); store.unlock(id); }  // 巡業の戦利品は永続解放→クイック/オンでも使える(全所持済み時のdupは変化なし)
     store.saveRun(run, MODE.mutator);   // ドラフトの戦利品を中断セーブに反映
     openBuild(T('bt_run', run.depth));
   }
-  $('#draft-skip').onclick=()=>{ AUDIO.back(); MODE.run.budget+=4; store.saveRun(MODE.run, MODE.mutator); openBuild(T('bt_run', MODE.run.depth)); };
+  $('#draft-skip').onclick=()=>{ AUDIO.back(); store.saveRun(MODE.run, MODE.mutator); openBuild(T('bt_run', MODE.run.depth)); };
 
   /* ============================================================
      ポーズ
@@ -4932,12 +5083,19 @@ const AUDIO = (function(){
     if(kind==='key'){
       keyCapture=(kn)=>{
         endCapture();
-        if(kn && kn!=='escape'){ store.keymap[act]=[kn]; store.save(); AUDIO.emb(); } else AUDIO.back();
+        if(kn && kn!=='escape'){
+          KEY_ACTIONS.forEach(a=>{ store.keymap[a]=(store.keymap[a]||[]).filter(x=>x!==kn); });   // 同じキーを他アクションから外す(1キー=1アクション)
+          store.keymap[act]=[kn]; store.save(); AUDIO.emb();
+        } else AUDIO.back();
         renderKeys(); refocusCell(act,kind);
       };
     } else {
       startPadLoop();   // パッド入力を取り込めるようループを起動(未起動なら)
-      padCapture=(i)=>{ endCapture(); store.padmap[act]=[i]; store.save(); AUDIO.emb(); renderKeys(); refocusCell(act,kind); };
+      padCapture=(i)=>{
+        endCapture();
+        KEY_ACTIONS.forEach(a=>{ store.padmap[a]=(store.padmap[a]||[]).filter(x=>x!==i); });      // 同じボタンを他アクションから外す(1ボタン=1アクション)
+        store.padmap[act]=[i]; store.save(); AUDIO.emb(); renderKeys(); refocusCell(act,kind);
+      };
       // パッド取り込み中でもキーボード Esc でキャンセルできるようにする。
       keyCapture=(kn)=>{ if(kn==='escape'){ endCapture(); AUDIO.back(); renderKeys(); refocusCell(act,kind); } };
     }
