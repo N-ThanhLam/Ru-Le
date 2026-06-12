@@ -728,7 +728,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.14</div>
+    <div class="ver">v0.15</div>
   </section>
 
   <!-- ===================== BUILD ===================== -->
@@ -1204,6 +1204,10 @@ const RL = (function(){
     // 全体ルール — 配り時に判定する特殊エンブレム(コスト1)。
     { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に2が4枚そろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có đủ tứ quý heo (bốn lá 2) thì vô điều kiện về Nhất (thoát ngay).' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:10, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
+    // ── 条件付き発動エンブレム(v0.15)。コストは暫定で全て1(校正は次回)。
+    { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:3, suitCost:6, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
+    { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:2, suitCost:5, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その札は場の単騎と同じマークなら数字に関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, nếu cùng chất với lá lẻ trên bãi thì đánh được bất kể số (qua được cả con 2 mạnh nhất).' },
+    { id:'aka10', code:'赤10', color:'aka', name:'晩成', cost:23, suitCost:40, ico:'🌳', effect:'CLEAR_IF_MOST', place:'card', desc:'自分の手札がいちばん多いときに出すと、場を流して続けてもう一度出せる（連火と同じ効果）。', nameVi:'Hậu Phát', abbrVi:'Hậu', codeVi:'Đ10', descVi:'Khi đánh lúc đang cầm nhiều bài nhất thì dọn sạch bãi và được đánh tiếp ngay (như Liên Hỏa).' },
   ];
   const EMB_BY_ID = {}; EMBLEMS.forEach(e=>EMB_BY_ID[e.id]=e);
   function emblem(id){ return EMB_BY_ID[id]; }
@@ -1389,10 +1393,17 @@ const RL = (function(){
     return null;
   }
   function isBomb(combo, rules){ return !!(rules && rules.bomb) && ((combo.type==='set' && combo.len===4) || combo.type==='pairRun'); }
-  function bombPower(combo){
-    if(combo.type==='set' && combo.len===4) return 1000 + strength(combo.key.rank);
-    if(combo.type==='pairRun')              return 2000 + combo.len*100 + strength(combo.key.rank);
+  // ボムの強さレベル(右が上書きできる)。3ペア階段=1 < 4カード=2 < 4ペア階段=3 < 5ペア階段=4 …
+  function bombLevel(combo){
+    if(combo.type==='set' && combo.len===4) return 2;                                   // 4カード(クアッド)
+    if(combo.type==='pairRun')              return combo.len===3 ? 1 : (combo.len-1);    // 3組=1 / 4組=3 / 5組=4 …
     return 0;
+  }
+  // ボム同士はレベルが上の方が勝つ。同レベルは札の強さ(key)で決着。
+  function bombPower(combo){ return bombLevel(combo)*1000 + strength(combo.key.rank); }
+  // 場が「最強ランクの組」(単騎2 / ペア22 / トリプル222 …)か＝ボムのチョップ対象。革命中は実効最強で判定。
+  function isTopSet(state, combo){
+    return !!combo && (combo.type==='single' || combo.type==='set') && effStrength(state, combo.key.rank)===RANKS.length-1;
   }
   function singleCombo(card){ return { type:'single', len:1, key:card, cards:[card] }; }
   /* 分裂(SPLIT): 単騎で出すと同じ札がもう1枚増えて疑似ペアになる(疑似札=同スートの完全コピー)。
@@ -1418,13 +1429,16 @@ const RL = (function(){
   }
   // move(役)が場を超えられるか。出し手 build はエンブレム(WILD/CUT_TOP/縛り)を見るため。
   // rules 省略時は state.rules(union/後方互換)。プレイ時は呼び出し側が「出し手 build の per-seat ルール」を渡す。
-  function comboBeats(state, build, move, rules){
+  function comboBeats(state, build, move, rules, actorHandLen){
     if(!move) return false;
     move = effectiveCombo(build, move);   // 分裂: 単騎出しは疑似ペア化してから判定(単騎は超えられない)
     rules = rules || state.rules || DEFAULT_RULES;
     const fieldC = fieldCombo(state);
     if(!fieldC) return true;                                              // リード(場が空)= 妥当な役なら何でも
     if(move.type==='single' && hasEffect(build, move.cards[0], 'WILD')) return true; // 越境
+    // 一撃: 手札が残り1枚のとき、その単騎は場の単騎と同マークなら値を無視して出せる(最強2も超える)。
+    if(move.type==='single' && actorHandLen===1 && fieldC.type==='single'
+       && fieldC.key.suit===move.cards[0].suit && hasEffect(build, move.cards[0], 'LAST_SUIT')) return true;
     // 縛り: 単体・同値複数・階段に適用(ボム/ペア階段は貫通)
     if(state.field.suitLock && !isBomb(move, rules) && move.type!=='pairRun'){
       const lock = Array.isArray(state.field.suitLock) ? state.field.suitLock : [state.field.suitLock];
@@ -1434,9 +1448,12 @@ const RL = (function(){
         if(moveSuits.length!==lock.length || moveSuits.some((s,i)=> s!==lock[i])) return false; // 縛り
       }
     }
-    // ボム override(4枚役/ペア階段で最強単騎を切る・ボム同士は強い方)
+    // ボム override: 場の「最強ランクの組(2)」をボムのレベルで切る／ボム同士はレベルが上の方が勝つ。
     if(isBomb(move, rules)){
-      if(fieldC.type==='single' && isTopSingle(state, fieldC.key)) return true;
+      if(isTopSet(state, fieldC) && !isBomb(fieldC, rules)){
+        // 単騎2=どのボムでも(Lv1+) / ペア22=4カード(Lv2)以上 / トリプル222以上は切れない。
+        return fieldC.len<=2 && bombLevel(move) >= fieldC.len;
+      }
       if(isBomb(fieldC, rules)) return bombPower(move) > bombPower(fieldC);
     }
     // 3返し(CUT_TOP): 自分の単騎で最強単騎を切り返す
@@ -1537,7 +1554,7 @@ const RL = (function(){
   function legalMoves(state, playerIndex){
     const p=state.players[playerIndex];
     const pr=playerRules(state, playerIndex);            // 自分が組める役は自分の build のルールで決まる
-    let moves = handCombos(p.hand, pr).filter(m=> comboBeats(state, p.build, m, pr));
+    let moves = handCombos(p.hand, pr).filter(m=> comboBeats(state, p.build, m, pr, p.hand.length));
     // 弱者: 最初の1手は必ず♠3を含めて出す。
     if(state.openSpade3===playerIndex) moves = moves.filter(m=> m.cards.some(c=> c.rank==='3'&&c.suit==='S'));
     return moves;
@@ -1743,6 +1760,8 @@ const RL = (function(){
     const cards = Array.isArray(cardsArg) ? cardsArg.slice() : [cardsArg];
     const wasFieldEmpty = !fieldCombo(state);
     const prevFieldCombo = fieldCombo(state);  // 場更新前のコンボ(縛り発動条件の比較用)
+    const myHandBefore = p.hand.length;                                    // 出す前の自分の手札枚数(最多/満杯判定に使う)
+    const wasFullHand  = myHandBefore === mutatorHandCount(state.mutator);  // 初動: 配り直後の満杯手札か
     const combo = classifyCombo(cards, rules) || singleCombo(cards[0]); // UI/CPU は検証済。保険で単騎扱い。
     const fieldCombo2 = effectiveCombo(p.build, combo);  // 分裂: 場に出る役(単騎出しは疑似ペア化)。手札除去は実体札のみ。
     // 3返し(CUT_TOP)が場の最強単騎(2)を実際に切り返したか(後で場流し＋続行に使う)。
@@ -1793,8 +1812,8 @@ const RL = (function(){
 
     // 3) carry / shed (手札操作)。出した各札のエンブレムを処理。
     const CARRY_SHED = ['CARRY_SAME','CARRY_TWO_SAME','CARRY_NEIGHBOR','CARRY_RUN','SHED_WEAK','SHED_TWO_WEAK','SHED_STRONG'];
-    // SHED_WEAK_IF_MOST(逆位/指名): 出した後の自分の手札が、未上がりの他プレイヤーの誰よりも少なくない＝最多(同数も含む)のときだけ発動。
-    const iHaveMost = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= p.hand.length);
+    // 最多判定(逆位 SHED_WEAK_IF_MOST / 晩成 CLEAR_IF_MOST): 出す前の自分の手札が、未上がりの他プレイヤーの誰よりも少なくない＝最多(同数も含む)のときだけ発動。
+    const iHaveMost = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= myHandBefore);
     const handled = new Set();
     playedEmblems.forEach(pe=>{
       effList(emblem(pe.eid)).forEach(eff0=>{
@@ -1802,7 +1821,10 @@ const RL = (function(){
         if(isShedLead && !wasFieldEmpty) return;
         const isShedMost = (eff0==='SHED_WEAK_IF_MOST');
         if(isShedMost && !iHaveMost) return;
-        const eff = (isShedLead || isShedMost) ? 'SHED_WEAK' : eff0;
+        const isShedFull = (eff0==='SHED_WEAK_IF_FULL' || eff0==='SHED_STRONG_IF_FULL');  // 初動: 満杯手札のみ
+        if(isShedFull && !wasFullHand) return;
+        const eff = (isShedLead || isShedMost || eff0==='SHED_WEAK_IF_FULL') ? 'SHED_WEAK'
+                  : (eff0==='SHED_STRONG_IF_FULL') ? 'SHED_STRONG' : eff0;
         if(!CARRY_SHED.includes(eff)) return;
         const remaining = p.hand.filter(c=> !handled.has(c.rank+c.suit));
         let picks = pickByEffect(remaining, pe.card, eff);
@@ -1830,7 +1852,8 @@ const RL = (function(){
     // 5) フラグ
     // 3返し(CUT_TOP): 自分の単騎で場の最強単騎(2)を切り返したら、場を流して続けて出せる。
     const cutWin = effs.includes('CUT_TOP') && combo.type==='single' && wasTopSingleField;
-    const fClear = (effs.includes('CLEAR_FIELD') || cutWin) && !finishedNow;
+    const banseiClear = effs.includes('CLEAR_IF_MOST') && iHaveMost;   // 晩成: 手札最多なら連火と同効果
+    const fClear = (effs.includes('CLEAR_FIELD') || cutWin || banseiClear) && !finishedNow;
     const fExtra = effs.includes('EXTRA_TURN')  && !finishedNow;
     const fSkip  = effs.includes('SKIP');
     const fRev   = effs.includes('REVERSE_DIR');
@@ -1838,6 +1861,7 @@ const RL = (function(){
     if(fieldCombo2 !== combo)            events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
     if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
     else if(cutWin)                      events.push({kind:'emb', emb:firstWith('CUT_TOP')});      // 3返しの場流し
+    else if(banseiClear)                 events.push({kind:'emb', emb:firstWith('CLEAR_IF_MOST')}); // 晩成の場流し
     if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
     if(fRev)  events.push({kind:'emb', emb:firstWith('REVERSE_DIR')});
@@ -1920,18 +1944,19 @@ const RL = (function(){
     const lead0 = !fieldCombo(state);
     const emblemBonus = (m)=>{
       let bo=0;
-      // 逆位の SHED_WEAK_IF_MOST は「出した後に自分が手札最多(同数含む)」のときだけ発火＝engine と同条件で価値計上。
-      const myAfter = p.hand.length - m.cards.length;
-      const iHaveMostAfter = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= myAfter);
+      // 逆位/晩成は「出す前に自分が手札最多(同数含む)」のときだけ発火＝engine と同条件で価値計上。
+      const iHaveMostBefore = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= p.hand.length);
+      const handFull = p.hand.length === mutatorHandCount(state.mutator);     // 初動: 配り直後の満杯手札か
       m.cards.forEach(c=>{
         const eff = effectsForCard(p.build, c);
         if(eff.includes('SHED_WEAK')) bo+=1.0;                                  // 余計な弱札を1枚処分
-        if(eff.includes('SHED_WEAK_IF_MOST') && iHaveMostAfter) bo+=1.0;        // 最多のときだけ弱札を処分(逆位)
+        if(eff.includes('SHED_WEAK_IF_MOST') && iHaveMostBefore) bo+=1.0;       // 最多のときだけ弱札を処分(逆位)
+        if((eff.includes('SHED_WEAK_IF_FULL')||eff.includes('SHED_STRONG_IF_FULL')) && handFull) bo+=1.0; // 初動: 満杯時に弱/強を1枚ずつ処分
         if(eff.includes('SHED_LEAD') && lead0) bo+=1.0;                         // リード時のみ処分が乗る
         if(eff.includes('SHED_STRONG')) bo-=0.6;                                // 最強札を失うコスト(放出)。場流しの得を一部相殺＝弱札への盲目的な放出を抑止
         if(eff.includes('CARRY_SAME')||eff.includes('CARRY_NEIGHBOR')) bo+=0.8; // 関連札を1枚同時に手放す
         if(eff.includes('CARRY_TWO_SAME')||eff.includes('CARRY_RUN')) bo+=1.5;  // 最大2枚同時に手放す
-        if(eff.includes('CLEAR_FIELD')||eff.includes('EXTRA_TURN')) bo+=1.2;    // 場流し/連撃で主導権
+        if(eff.includes('CLEAR_FIELD')||eff.includes('EXTRA_TURN')||(eff.includes('CLEAR_IF_MOST')&&iHaveMostBefore)) bo+=1.2; // 場流し/連撃/晩成で主導権
         if(eff.includes('SKIP')) bo+=0.5;                                       // 飛ばし
         if(eff.includes('CHOOSE_NEXT')) bo+=0.4;                                // 指名: 次に出す人を選べる主導権
         if(eff.includes('CUT_TOP')) bo+=2.2;                                    // 3返し: 最強単騎を奪える価値は大
@@ -2340,6 +2365,74 @@ const RL = (function(){
       const lm=legalMoves(wg, holder);
       ok('弱者: 最初の合法手は全て♠3を含む', lm.length>0 && lm.every(m=> m.cards.some(c=>c.rank==='3'&&c.suit==='S')));
     })();
+
+    // 47 ボム階層(v0.15): 3ペア階段(Lv1) < 4カード(Lv2) < 4ペア階段(Lv3)。場の2の組はボムのレベルで切る。
+    const bh=newGame(seat0(buildFrom({rule:['aka06']})), 211);
+    const RB=bh.players[0].rules;
+    const pr3=classifyCombo([{rank:'3',suit:'S'},{rank:'3',suit:'H'},{rank:'4',suit:'S'},{rank:'4',suit:'H'},{rank:'5',suit:'S'},{rank:'5',suit:'H'}], RB); // 334455
+    const q5 =classifyCombo([{rank:'5',suit:'S'},{rank:'5',suit:'H'},{rank:'5',suit:'D'},{rank:'5',suit:'C'}], RB); // 5555
+    const pr4=classifyCombo([{rank:'6',suit:'S'},{rank:'6',suit:'H'},{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'8',suit:'S'},{rank:'8',suit:'H'},{rank:'9',suit:'S'},{rank:'9',suit:'H'}], RB); // 66778899
+    ok('ボムレベル: 3ペア階段<4カード<4ペア階段', bombLevel(pr3)===1 && bombLevel(q5)===2 && bombLevel(pr4)===3);
+    bh.field.combo=pr3; bh.field.card=pr3.key;
+    ok('4カードは3ペア階段を上書きできる', comboBeats(bh, emptyBuild(), q5, RB)===true);
+    bh.field.combo=q5; bh.field.card=q5.key;
+    ok('3ペア階段は4カードを上書きできない', comboBeats(bh, emptyBuild(), pr3, RB)===false);
+    ok('4ペア階段は4カードを上書きできる',   comboBeats(bh, emptyBuild(), pr4, RB)===true);
+    // 場の2の組チョップ: 単騎2=どのボムでも / 22=4カード以上(3ペア階段は不可) / 222は切れない
+    const two1={type:'single',len:1,key:{rank:'2',suit:'S'},cards:[{rank:'2',suit:'S'}]};
+    const two2={type:'set',len:2,key:{rank:'2',suit:'H'},cards:[{rank:'2',suit:'S'},{rank:'2',suit:'H'}]};
+    const two3={type:'set',len:3,key:{rank:'2',suit:'H'},cards:[{rank:'2',suit:'S'},{rank:'2',suit:'H'},{rank:'2',suit:'D'}]};
+    bh.field.combo=two1; bh.field.card=two1.key;
+    ok('単騎2は3ペア階段で切れる', comboBeats(bh, emptyBuild(), pr3, RB)===true);
+    bh.field.combo=two2; bh.field.card=two2.key;
+    ok('ペア22は3ペア階段では切れない', comboBeats(bh, emptyBuild(), pr3, RB)===false);
+    ok('ペア22は4カードで切れる',       comboBeats(bh, emptyBuild(), q5, RB)===true);
+    ok('ペア22は4ペア階段で切れる',     comboBeats(bh, emptyBuild(), pr4, RB)===true);
+    bh.field.combo=two3; bh.field.card=two3.key;
+    ok('トリプル222は誰も切れない', comboBeats(bh, emptyBuild(), pr4, RB)===false && comboBeats(bh, emptyBuild(), q5, RB)===false);
+
+    // 48 一撃(aka09): 残り1枚&場の単騎と同マークなら値を無視して出せる(最強2も超える)。
+    const oneB=buildFrom({suit:{H:['aka09']}});
+    const oneG=newGame(seat0(oneB), 212);
+    const R1=oneG.players[0].rules;
+    oneG.field.combo=singleCombo({rank:'K',suit:'H'}); oneG.field.card=oneG.field.combo.key;
+    ok('一撃: 残り1枚&同スートなら弱札でも出せる', comboBeats(oneG, oneB, singleCombo({rank:'3',suit:'H'}), R1, 1)===true);
+    ok('一撃: 手札2枚以上では発動しない',           comboBeats(oneG, oneB, singleCombo({rank:'3',suit:'H'}), R1, 2)===false);
+    oneG.field.combo=singleCombo({rank:'K',suit:'S'}); oneG.field.card=oneG.field.combo.key;
+    ok('一撃: 場と異スートなら出せない',             comboBeats(oneG, oneB, singleCombo({rank:'3',suit:'H'}), R1, 1)===false);
+    oneG.field.combo=singleCombo({rank:'2',suit:'H'}); oneG.field.card=oneG.field.combo.key;
+    ok('一撃: 同スートなら最強2も超える',            comboBeats(oneG, oneB, singleCombo({rank:'5',suit:'H'}), R1, 1)===true);
+
+    // 49 初動(ki05): 満杯手札(配り直後)で出すと最弱と最強を1枚ずつ捨てる。
+    const opB=buildFrom({rank:{'7':['ki05']}});
+    const opG=newGame(seat0(opB), 213);
+    opG.players[0].hand=['3','4','5','6','7','8','9','10','J','Q','K','A','2'].map(r=>({rank:r,suit:'S'})); // 満杯13枚(最弱3♠/最強2♠)
+    opG.field.combo=null; opG.field.card=null;
+    applyPlay(opG, 0, [{rank:'7',suit:'S'}], {});
+    ok('初動: 満杯で出すと3枚減る(出した1+最弱+最強)', opG.players[0].hand.length===10);
+    ok('初動: 最弱(3)と最強(2)を捨てた', !opG.players[0].hand.some(c=>c.rank==='3'||c.rank==='2'||c.rank==='7'));
+    const opG2=newGame(seat0(opB), 214);
+    opG2.players[0].hand=[{rank:'7',suit:'S'},{rank:'3',suit:'D'},{rank:'2',suit:'D'}]; // 満杯でない3枚
+    opG2.field.combo=null; opG2.field.card=null;
+    applyPlay(opG2, 0, [{rank:'7',suit:'S'}], {});
+    ok('初動: 満杯でない手札では発動しない', opG2.players[0].hand.length===2);
+
+    // 50 晩成(aka10): 手札最多(出す前・同数含む)で出すと連火と同効果(場を流して続行)。
+    const lbB=buildFrom({rank:{'7':['aka10']}});
+    const lbG=newGame(seat0(lbB), 215);
+    lbG.players[0].hand=[{rank:'7',suit:'S'},{rank:'3',suit:'S'},{rank:'4',suit:'S'},{rank:'5',suit:'S'},{rank:'6',suit:'S'}]; // 5枚(最多)
+    lbG.players[1].hand=[{rank:'4',suit:'H'}]; lbG.players[2].hand=[{rank:'5',suit:'H'}]; lbG.players[3].hand=[{rank:'6',suit:'H'}];
+    lbG.field.combo=singleCombo({rank:'9',suit:'D'}); lbG.field.card=lbG.field.combo.key; lbG.field.ownerIndex=1;
+    applyPlay(lbG, 0, [{rank:'7',suit:'S'}], {});
+    ok('晩成: 手札最多で出すと場が流れる', fieldCombo(lbG)===null);
+    ok('晩成: 場流し後は自分の手番(続けて出せる)', lbG.turn===0);
+    const lbG2=newGame(seat0(lbB), 216);
+    lbG2.players[0].hand=[{rank:'7',suit:'S'},{rank:'3',suit:'S'}]; // 2枚
+    lbG2.players[1].hand=[{rank:'4',suit:'H'},{rank:'5',suit:'H'},{rank:'6',suit:'H'}]; // 3枚(自分より多い)
+    lbG2.players[2].hand=[{rank:'8',suit:'H'}]; lbG2.players[3].hand=[{rank:'9',suit:'H'}];
+    lbG2.field.combo=singleCombo({rank:'10',suit:'D'}); lbG2.field.card=lbG2.field.combo.key; lbG2.field.ownerIndex=1;
+    applyPlay(lbG2, 0, [{rank:'7',suit:'S'}], {});
+    ok('晩成: 手札最多でないと場流ししない', fieldCombo(lbG2)!==null);
 
     const passed=res.filter(r=>r.pass).length;
     return { passed, total:res.length, results:res };
@@ -3083,7 +3176,7 @@ const AUDIO = (function(){
         else if(MODE.kind==='quick'){ show('s-title'); }
         // 巡業の結果は「すすむ」専用ボタンのみ＝ESC では先に進めない(誤操作防止)
         break;
-      case 's-draft':   if(MODE.run){ MODE.run.budget+=4; openBuild(T('bt_run', MODE.run.depth)); } break;
+      case 's-draft':   if(MODE.run){ MODE.run.budget+=4; store.saveRun(MODE.run, MODE.mutator); openBuild(T('bt_run', MODE.run.depth)); } break;
       case 's-runover': MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;
       case 's-title': break;
       default: break;
@@ -4114,7 +4207,7 @@ const AUDIO = (function(){
   function selCombo(){ return handSel.length ? RL.classifyCombo(handSel, humanRules()) : null; }
   // 弱者: 最初の1手は♠3を含めて出す。含まない選択は不可。
   function openConstraintViolated(){ return G && G.openSpade3===meIdx() && !handSel.some(c=> c.rank==='3'&&c.suit==='S'); }
-  function selLegal(){ const m=selCombo(); return !!m && !openConstraintViolated() && RL.comboBeats(G, G.players[meIdx()].build, m, humanRules()); }
+  function selLegal(){ const m=selCombo(); const mi=meIdx(); return !!m && !openConstraintViolated() && RL.comboBeats(G, G.players[mi].build, m, humanRules(), G.players[mi].hand.length); }
   // 表示用: 分裂は単騎出しでもペアとして場に乗るので、ラベルもペア表記にする。
   function effComboLabel(combo){ const eff=RL.effectiveCombo(G.players[meIdx()].build, combo); return comboLabel(eff)+(eff&&eff.split?T('split_tag'):''); }
   function comboLabel(combo){
@@ -4251,6 +4344,7 @@ const AUDIO = (function(){
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
+    if(MODE.kind==='run') store.saveRun(MODE.run, MODE.mutator);   // 対戦開始時に中断用セーブ(1戦目も含めて確定ビルドを永続化)
     busy=false; pendingChoose=null; endedShown=false;
     $('#match-title').textContent = MODE.kind==='run' ? T('mt_run', depth, MODE.run.lives) : T('mt_quick');
     show('s-match');
@@ -4438,7 +4532,7 @@ const AUDIO = (function(){
     const mi=meIdx();
     const combo=selCombo();
     if(openConstraintViolated()){ AUDIO.bad(); toast(T('act_need_spade3'),'#ff7043'); return; }   // 弱者: 最初は♠3込み
-    if(!combo || !RL.comboBeats(G, G.players[mi].build, combo, humanRules())){ AUDIO.bad(); toast(T('toast_bad_play'),'#ff7043'); return; }
+    if(!combo || !RL.comboBeats(G, G.players[mi].build, combo, humanRules(), G.players[mi].hand.length)){ AUDIO.bad(); toast(T('toast_bad_play'),'#ff7043'); return; }
     const cards=handSel.slice();
     // 指名(単騎のみ)が絡む場合は先に相手を選ぶ
     if(combo.type==='single' && RL.hasEffect(G.players[mi].build, cards[0], 'CHOOSE_NEXT')){
@@ -4543,7 +4637,7 @@ const AUDIO = (function(){
     else {
       const rules=G.players[seat].rules;
       const combo=RL.classifyCombo(action.cards||[], rules);
-      if(!combo || !RL.comboBeats(G, G.players[seat].build, combo, rules)){ NET.sendStateTo(seat); return; } // 非合法→再同期
+      if(!combo || !RL.comboBeats(G, G.players[seat].build, combo, rules, G.players[seat].hand.length)){ NET.sendStateTo(seat); return; } // 非合法→再同期
       if(mustSpade3 && !(action.cards||[]).some(c=> c.rank==='3'&&c.suit==='S')){ NET.sendStateTo(seat); return; } // ♠3欠落→再同期
       r=RL.applyPlay(G, seat, action.cards, {nextPlayer:action.next});
     }
@@ -4579,9 +4673,11 @@ const AUDIO = (function(){
     if(MODE.kind==='run') endRunMatch(myPlace);
     else showResult();
   }
-  function showResult(nextLabel, onNext, rewardMsg){
+  function showResult(nextLabel, onNext, rewardMsg, runDepth){
     const online = NET.active;
-    $('#result-title').textContent = (!online && MODE.kind==='run') ? T('result_run_title', MODE.run.depth) : T('result_title');
+    // 巡業の結果タイトルは「今プレイした深度」を出す(前進処理を先に適用済みでも runDepth で固定できる)。
+    const rd = (runDepth!=null) ? runDepth : (MODE.run ? MODE.run.depth : 1);
+    $('#result-title').textContent = (!online && MODE.kind==='run') ? T('result_run_title', rd) : T('result_title');
     const me=G.players[meIdx()];
     $('#result-head').textContent = me.place===1 ? T('result_win') : T('result_head');
     // 巡業の1位報酬(ランダムエンブレム獲得)を結果に出す。無ければ枠を消す。
@@ -4617,23 +4713,26 @@ const AUDIO = (function(){
   /* ----- 巡業の勝敗処理 ----- */
   function endRunMatch(place){
     const run=MODE.run;
-    // ★1位クリア → ランダムエンブレムを1個獲得(巡業限定のローグライク成長)。獲得後の run を即保存。
+    const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
+    // ★1位クリア → ランダムエンブレムを1個獲得(巡業限定のローグライク成長)。
     let rewardMsg='';
-    if(place===1){ const g=grantRandomEmblem(run); if(g){ rewardMsg=randomGrantLabel(g); store.saveRun(run, MODE.mutator); } }
+    if(place===1){ const g=grantRandomEmblem(run); if(g) rewardMsg=randomGrantLabel(g); }
     // 1位/2位 → 前進、3位/4位 → 残機減
     const advanced = place<=2;
     if(!advanced) run.lives--;
     if(run.lives<0){
-      // 終了
-      showResult(T('next_see_result'), ()=> runOver(), rewardMsg);
+      // 終了: 残機尽きた巡業は復帰させない(中断セーブを破棄)。
+      store.clearRun();
+      showResult(T('next_see_result'), ()=> runOver(), rewardMsg, playedDepth);
       return;
     }
-    if(advanced){
-      const bonus = place===1 ? 8 : 4; // 1位は予算+8、2位は+4(100系)
-      showResult(place===1?T('next_loot_win'):T('next_loot'), ()=> { run.depth++; run.budget+=bonus; MODE.mutator=rollMutator(run.depth); openDraft(); }, rewardMsg);
-    } else {
-      showResult(T('next_lifedown'), ()=> { run.depth++; run.budget+=4; MODE.mutator=rollMutator(run.depth); openDraft(); }, rewardMsg);
-    }
+    // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
+    run.depth++;
+    run.budget += (place===1 ? 8 : 4);   // 1位は予算+8、2位/3位は+4(100系)
+    MODE.mutator = rollMutator(run.depth);
+    store.saveRun(run, MODE.mutator);
+    const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : T('next_lifedown');
+    showResult(label, ()=> openDraft(), rewardMsg, playedDepth);
   }
   function runOver(){
     const run=MODE.run;
@@ -4684,9 +4783,10 @@ const AUDIO = (function(){
     const run=MODE.run;
     if(dup){ run.budget+=4; }   // 重複は予算ボーナスに(100系)
     else { run.owned.push(id); store.unlock(id); }  // 巡業の戦利品は永続解放→クイック/オンでも使える
+    store.saveRun(run, MODE.mutator);   // ドラフトの戦利品を中断セーブに反映
     openBuild(T('bt_run', run.depth));
   }
-  $('#draft-skip').onclick=()=>{ AUDIO.back(); MODE.run.budget+=4; openBuild(T('bt_run', MODE.run.depth)); };
+  $('#draft-skip').onclick=()=>{ AUDIO.back(); MODE.run.budget+=4; store.saveRun(MODE.run, MODE.mutator); openBuild(T('bt_run', MODE.run.depth)); };
 
   /* ============================================================
      ポーズ
