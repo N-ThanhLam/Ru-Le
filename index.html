@@ -223,6 +223,15 @@
   .buildstatus{ display:flex; align-items:center; gap:22px; }
   .mutbar{ display:flex; align-items:center; gap:16px; background:rgba(8,11,28,.5); border:5px solid var(--gold); border-radius:17px; padding:11px 24px; }
   .mutbar.plain{ border-color:rgba(255,255,255,.22); border-style:dashed; background:rgba(8,11,28,.3); }
+  /* メタ崩壊(v0.22) 宿敵の標的宣言バナー(編成画面・封じ中だけ表示) */
+  .banbar{ display:none; align-items:center; gap:14px; background:rgba(46,8,8,.6); border:5px solid #ff5252; border-radius:17px; padding:10px 24px; margin-bottom:13px; animation:banpulse 1.6s ease-in-out infinite; }
+  .banbar.show{ display:flex; }
+  .banbar .btag{ display:inline-flex; align-items:center; gap:10px; font-size:35px; font-weight:900; color:#ff8a80; white-space:nowrap; }
+  .banbar .bds{ font-size:29px; font-weight:700; color:#ffd7d2; }
+  @keyframes banpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,82,82,.0); } 50%{ box-shadow:0 0 22px 3px rgba(255,82,82,.45); } }
+  /* 封じられたエンブレムのパレットタイル(選択不可) */
+  .emb.banned{ opacity:.5; filter:grayscale(.6); }
+  .emb .badge.ban{ background:#ff5252; color:#fff; }
   .mutbar .mtag{ display:inline-flex; align-items:center; gap:10px; font-size:37px; font-weight:900; color:#fff; padding:5px 20px; border-radius:13px; white-space:nowrap; }
   .mutbar .mds{ font-size:31px; font-weight:700; color:#eef2ff; white-space:nowrap; }
   .costbox{ margin-left:auto; display:flex; align-items:center; gap:20px; background:rgba(8,11,28,.5); border:5px solid #fff; border-radius:17px; padding:10px 26px; }
@@ -756,7 +765,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.21</div>
+    <div class="ver">v0.22</div>
     <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
     <div class="ovl" id="ovl-confirm">
       <div class="card-modal" style="text-align:center; max-width:1100px;">
@@ -782,6 +791,8 @@
       <div class="btn small primary foc" id="build-ok" style="flex-shrink:0;" data-i18n="build_ok">けってい ▶</div>
     </div>
     <div class="wrap">
+      <!-- メタ崩壊(v0.22)：巡業で宿敵があなたの常用エンブレムを読み、この深度だけ封じる。封じ中だけ表示。 -->
+      <div class="banbar" id="build-ban"></div>
       <!-- 常時表示の“情報”はこの1行だけ：お題（左）＋コスト（右） -->
       <div class="buildstatus">
         <div class="mutbar" id="build-mutator"></div>
@@ -1214,54 +1225,53 @@ const RL = (function(){
     //   並び順: 赤(場操作) → 青(ターン操作) → 緑(役追加) → 黄(手札操作)。
     //   cost = 数字(rank)スロットのコスト / suitCost = マーク(suit)スロットのコスト(place:'card' のみ意味を持つ)。
     // ───────── 赤 (aka) — 場操作 ─────────
-    { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:28, suitCost:43, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
-    { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:15, suitCost:47, ico:'🪽', effect:'WILD',         place:'card', desc:'場の役と同じ種類・同じ枚数で出すとき、数字（強弱）だけ無視して重ねて出せる。出す札すべてに越境が必要（例：2に越境3／77に越境ペア33／JQKAに全部越境の5678）。縛り・階段の形は通常どおり守る（縛りは貫通しない）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Khi đánh bộ cùng loại và cùng số lá với bãi, được đè bằng cách bỏ qua riêng phần số (mạnh/yếu). Mọi lá đánh ra đều phải có Vượt Biên (vd: heo ← 3 vượt biên; đôi 77 ← đôi 33 vượt biên; JQKA ← 5678 toàn vượt biên). Vẫn phải theo khóa chất và hình sảnh (không xuyên khóa chất).' },
-    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:30, ico:'🔃', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
-    { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:2, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
+    { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:27, suitCost:45, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
+    { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:11, suitCost:32, ico:'🪽', effect:'WILD',         place:'card', desc:'場の役と同じ種類・同じ枚数で出すとき、数字（強弱）だけ無視して重ねて出せる。出す札すべてに越境が必要（例：2に越境3／77に越境ペア33／JQKAに全部越境の5678）。縛り・階段の形は通常どおり守る（縛りは貫通しない）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Khi đánh bộ cùng loại và cùng số lá với bãi, được đè bằng cách bỏ qua riêng phần số (mạnh/yếu). Mọi lá đánh ra đều phải có Vượt Biên (vd: heo ← 3 vượt biên; đôi 77 ← đôi 33 vượt biên; JQKA ← 5678 toàn vượt biên). Vẫn phải theo khóa chất và hình sảnh (không xuyên khóa chất).' },
+    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:42, ico:'🔃', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
+    { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:3, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     { id:'aka05',code:'赤05', color:'aka',    name:'革命',     cost:4, ico:'🚩', effect:'REVOLUTION', place:'whole', desc:'同じ数字を4枚出すと強弱が逆転し、次の革命まで続く（革命があれば4枚出しも可）。自分だけが起こせる。', nameVi:'Cách Mạng', abbrVi:'Cm', codeVi:'Đ05', descVi:'Đánh 4 lá cùng số sẽ đảo ngược mạnh/yếu, kéo dài đến lần Cách mạng kế tiếp (có Cách mạng thì được đánh tứ quý). Chỉ mình mới phát động được.' },
-    { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:3, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。さらに、ボムで場を切るたび、そこまで積み上がった“罰カード”を切った相手（直前の人）へ押し付ける（2単騎・弱ボム＝1枚／22・強ボム＝2枚ぶんが積み上がる）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình. Ngoài ra, mỗi lần chặt bằng bom, dồn hết "lá phạt" đã tích lên người vừa bị chặt (người liền trước) — heo lẻ / bom yếu = 1 lá, đôi heo / bom mạnh = 2 lá tích dồn.' },
+    { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。さらに、ボムで場を切るたび、そこまで積み上がった“罰カード”を切った相手（直前の人）へ押し付ける（2単騎・弱ボム＝1枚／22・強ボム＝2枚ぶんが積み上がる）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình. Ngoài ra, mỗi lần chặt bằng bom, dồn hết "lá phạt" đã tích lên người vừa bị chặt (người liền trước) — heo lẻ / bom yếu = 1 lá, đôi heo / bom mạnh = 2 lá tích dồn.' },
     //   3返し(aka07): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「3」で場の2を切り返す。
     //   マーク枠にしか置けないので使われるコストは suitCost のみ(rank の cost は持たない)。
-    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:3, suitCost:3, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
+    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:2, suitCost:2, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
     { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に「2が4枚」または「ペア5階段／ペア6階段（445566778899など連続する数字のペア）」がそろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có "tứ quý heo (bốn lá 2)" hoặc "5/6 đôi thông (các đôi số liên tiếp như 445566778899)" thì vô điều kiện về Nhất (thoát ngay).' },
-    { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:2, suitCost:5, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その札は場の単騎と同じマークなら数字に関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, nếu cùng chất với lá lẻ trên bãi thì đánh được bất kể số (qua được cả con 2 mạnh nhất).' },
-    { id:'aka10', code:'赤10', color:'aka', name:'晩成', cost:23, suitCost:40, ico:'🌳', effect:'CLEAR_IF_MOST', place:'card', desc:'自分の手札がいちばん多いときに出すと、場を流して続けてもう一度出せる（連火と同じ効果）。', nameVi:'Hậu Phát', abbrVi:'Hậu', codeVi:'Đ10', descVi:'Khi đánh lúc đang cầm nhiều bài nhất thì dọn sạch bãi và được đánh tiếp ngay (như Liên Hỏa).' },
-    { id:'aka11', code:'赤11', color:'aka', name:'偽装', cost:1, suitCost:1, ico:'🥸', effect:'DISGUISE', place:'card', desc:'単騎で出すと数字が1つ上の札に化ける（8♠→9♠／マークは同じ）。最強の2が上限（A→2・2→2）。革命中は逆に弱くなるリスクあり。', nameVi:'Ngụy Trang', abbrVi:'N.Trang', codeVi:'Đ11', descVi:'Khi đánh lẻ, lá biến thành lá lớn hơn 1 bậc (8♠→9♠, giữ nguyên chất). Tối đa là con 2 mạnh nhất (A→2, 2→2). Khi Cách mạng thì ngược lại sẽ yếu đi (rủi ro).' },
+    { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:2, suitCost:3, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その札は場の単騎と同じマークなら数字に関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, nếu cùng chất với lá lẻ trên bãi thì đánh được bất kể số (qua được cả con 2 mạnh nhất).' },
+    { id:'aka11', code:'赤11', color:'aka', name:'偽装', cost:2, suitCost:4, ico:'🥸', effect:'DISGUISE', place:'card', desc:'単騎で出すと数字が1つ上の札に化ける（8♠→9♠／マークは同じ）。最強の2が上限（A→2・2→2）。革命中は逆に弱くなるリスクあり。', nameVi:'Ngụy Trang', abbrVi:'N.Trang', codeVi:'Đ11', descVi:'Khi đánh lẻ, lá biến thành lá lớn hơn 1 bậc (8♠→9♠, giữ nguyên chất). Tối đa là con 2 mạnh nhất (A→2, 2→2). Khi Cách mạng thì ngược lại sẽ yếu đi (rủi ro).' },
     // ── リアクション(後出し)。自分の手番の第3の選択肢＝「返せない場でも、たまったチャージを切って場を吹き飛ばし手番を奪う」。
     //    試合“中”の能動判断(撃つ/溜める/読む)を生む。札を出すたびにチャージが貯まる(パスでは貯まらない＝溜め込み消極プレイにならない)。
     //    ★正調ミラー不変の要: これはオプトイン専用で jp/vn プリセットには入れない。盤面に1枚も無ければ applyReact の出番ゼロ＝ターン進行は現状と同一。
-    { id:'aka12', code:'赤12', color:'aka', name:'反撃', cost:8, ico:'⚡', effect:'REACT_BLOWBACK', place:'whole', react:true, reactCost:6, desc:'札を出すたびにチャージがたまる（最大6）。たまっていれば自分の手番に、相手の場を吹き飛ばして手番を奪える（後出し＝返せない場でも仕切り直せる）。自分だけに適用。', nameVi:'Phản Kích', abbrVi:'P.Kích', codeVi:'Đ12', descVi:'Mỗi lần đánh bài sẽ tích năng lượng (tối đa 6). Khi đủ, tới lượt mình có thể thổi bay bãi của đối thủ và giành quyền dẫn (hậu thủ — kể cả khi không chặn được vẫn lật lại được). Chỉ áp dụng cho mình.' },
-    { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:12, suitCost:20, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その単騎を場の単騎にマーク・数字を無視して重ねて出せる（最強の2も超える＝劣勢版の越境）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá lẻ đó đè được lên lá lẻ trên bãi bất kể chất/số (qua cả con 2 mạnh nhất = Vượt Biên bản yếu thế).' },
+    { id:'aka12', code:'赤12', color:'aka', name:'反撃', cost:28, ico:'⚡', effect:'REACT_BLOWBACK', place:'whole', react:true, reactCost:6, desc:'札を出すたびにチャージがたまる（最大6）。たまっていれば自分の手番に、相手の場を吹き飛ばして手番を奪える（後出し＝返せない場でも仕切り直せる）。自分だけに適用。', nameVi:'Phản Kích', abbrVi:'P.Kích', codeVi:'Đ12', descVi:'Mỗi lần đánh bài sẽ tích năng lượng (tối đa 6). Khi đủ, tới lượt mình có thể thổi bay bãi của đối thủ và giành quyền dẫn (hậu thủ — kể cả khi không chặn được vẫn lật lại được). Chỉ áp dụng cho mình.' },
+    { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:11, suitCost:29, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その単騎を場の単騎にマーク・数字を無視して重ねて出せる（最強の2も超える＝劣勢版の越境）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá lẻ đó đè được lên lá lẻ trên bãi bất kể chất/số (qua cả con 2 mạnh nhất = Vượt Biên bản yếu thế).' },
     //   ★v0.21 溜め撃ち(activated): 気を払って自分の手番に発動する能動エンブレム。反撃(aka12)の攻め版＝相手の場を能動的に流す。
-    { id:'aka14', code:'赤14', color:'aka', name:'溜め火', cost:12, ico:'🎆', effect:'ACT_CLEAR', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、相手の場を流して続けて出せる（後出しの能動仕切り直し）。自分だけに適用。札を出すたびに気がたまる。', nameVi:'Tích Hỏa', abbrVi:'T.Hỏa', codeVi:'Đ14', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để dọn sạch bãi của đối thủ rồi đánh tiếp (chủ động lật lại thế cờ). Chỉ áp dụng cho mình. Mỗi lần đánh bài sẽ tích năng lượng.' },
+    { id:'aka14', code:'赤14', color:'aka', name:'溜め火', cost:32, ico:'🎆', effect:'ACT_CLEAR', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、相手の場を流して続けて出せる（後出しの能動仕切り直し）。自分だけに適用。札を出すたびに気がたまる。', nameVi:'Tích Hỏa', abbrVi:'T.Hỏa', codeVi:'Đ14', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để dọn sạch bãi của đối thủ rồi đánh tiếp (chủ động lật lại thế cờ). Chỉ áp dụng cho mình. Mỗi lần đánh bài sẽ tích năng lượng.' },
     // ───────── 青 (ao) — ターン操作 ─────────
-    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:32, suitCost:40, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được).' },
-    { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:28, suitCost:39, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
-    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:32, suitCost:33, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi.' },
-    { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:27, suitCost:43, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
-    { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:10, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
-    { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:10, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
+    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:15, suitCost:40, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được).' },
+    { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:23, suitCost:38, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
+    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:24, suitCost:35, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi.' },
+    { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:22, suitCost:32, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
+    { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
+    { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
     { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:1, ico:'🔁', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
     // ───────── 緑 (midori) — 役追加 ─────────
     //   2/3/4カード可(set2-4)・革命/ボム/スート順などは place:'whole'(自分だけに効く全体ルール枠=ruleSlots)。
-    { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:40, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
+    { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:43, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
     { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:8, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
     { id:'set4', code:'役4', color:'midori', name:'4カード可', cost:1, ico:'4️⃣', effect:'SET4', place:'whole', desc:'同じ数字を4枚でまとめて出せる（革命・ボムを持っていれば自動で可）。', nameVi:'Cho Tứ Quý', abbrVi:'Tứ', codeVi:'B4', descVi:'Được đánh 4 lá cùng số (tứ quý) cùng lúc (có Cách mạng / Chặt Heo thì tự động được).' },
-    { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:27, suitCost:32, ico:'🪜', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
-    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:32, suitCost:35, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
-    { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:45, suitCost:45, ico:'☄️', effect:'CARRY_RUN',      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2).' },
+    { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:15, suitCost:27, ico:'🪜', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
+    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:21, suitCost:51, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
+    { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:37, suitCost:45, ico:'☄️', effect:'CARRY_RUN',      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2).' },
     //   自由階段・同種階段(mi05/mi06, place:'suitRun')=装備マークだけで階段に使えるマーク階段専用枠。4マークに積めば素コスト×4。
-    { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:7, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
+    { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:8, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
     { id:'mi06', code:'緑06', color:'midori', name:'同種階段', cost:1,  ico:'🎴', effect:'RUN_SUIT', place:'suitRun', desc:'このマークだけで連続する数字3枚以上の「階段」を出せる（マークは混ぜない）。自分だけに適用。', nameVi:'Sảnh Đồng Chất', abbrVi:'S.Đồng', codeVi:'L06', descVi:'Chỉ riêng chất này tạo "sảnh" từ 3 lá số liên tiếp trở lên (không trộn chất). Chỉ áp dụng cho mình.' },
-    { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:22, suitCost:27, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。越境・3返し・一撃が活きる場面では分裂せず単騎のまま出る。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi. Khi Vượt Biên / 3 Đè Heo / Nhất Kích có tác dụng thì giữ nguyên lá lẻ, không phân đôi.' },
-    { id:'mi09', code:'緑09', color:'midori', name:'共鳴', cost:18, ico:'🔮', effect:'RESONANCE', place:'whole', desc:'あなたの「一緒に捨てる／余分に捨てる」効果（三重・連番・流星・投棄・掃除・放出・軽身・初動など）が発動したら、いつも弱い札を1枚多く捨てる。自分だけに適用。', nameVi:'Cộng Hưởng', abbrVi:'C.Hưởng', codeVi:'L09', descVi:'Mỗi khi hiệu ứng "bỏ kèm / bỏ thêm" của bạn (Tam Trùng, Liên Số, Sao Băng, Vứt Bỏ, Quét, Xả, Nhẹ Mình, Khởi Đầu...) kích hoạt, luôn bỏ thêm 1 lá yếu nhất. Chỉ áp dụng cho mình.' },
+    { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:8, suitCost:8, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。越境・3返し・一撃が活きる場面では分裂せず単騎のまま出る。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi. Khi Vượt Biên / 3 Đè Heo / Nhất Kích có tác dụng thì giữ nguyên lá lẻ, không phân đôi.' },
+    { id:'mi09', code:'緑09', color:'midori', name:'共鳴', cost:28, ico:'🔮', effect:'RESONANCE', place:'whole', desc:'あなたの「一緒に捨てる／余分に捨てる」効果（三重・連番・流星・投棄・掃除・放出・軽身・初動など）が発動したら、いつも弱い札を1枚多く捨てる。自分だけに適用。', nameVi:'Cộng Hưởng', abbrVi:'C.Hưởng', codeVi:'L09', descVi:'Mỗi khi hiệu ứng "bỏ kèm / bỏ thêm" của bạn (Tam Trùng, Liên Số, Sao Băng, Vứt Bỏ, Quét, Xả, Nhẹ Mình, Khởi Đầu...) kích hoạt, luôn bỏ thêm 1 lá yếu nhất. Chỉ áp dụng cho mình.' },
     // ───────── 黄 (ki) — 手札操作(不要な札も一緒に捨てる) ─────────
     //   ★v0.21 溜め撃ち化: 投棄/軽身は「出すと自動で捨てる」受動から「気を払って自分の手番に発動」へ転生(activated)。place:'whole'。
-    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:33, ico:'🗑️', effect:'ACT_SHED', actN:2, place:'whole', activated:true, chargeCost:3, desc:'【溜め撃ち】気を3つ払って自分の手番に発動し、いちばん弱い札を2枚まとめて捨てる（最後の1枚は残す）。札を出すたびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 3 năng lượng, kích hoạt trong lượt của mình để bỏ 2 lá yếu nhất (chừa lại 1 lá). Mỗi lần đánh bài sẽ tích năng lượng.' },
-    { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:32, suitCost:62, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
-    { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:45, suitCost:68, ico:'🧹', effect:'SHED_WEAK', place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất.' },
-    { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:33, ico:'🍃', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:2, desc:'【溜め撃ち】気を2つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。札を出すたびに気がたまる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'【Nạp】Tốn 2 năng lượng, kích hoạt trong lượt để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần đánh bài sẽ tích năng lượng.' },
-    { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:3, suitCost:6, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
+    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:38, ico:'🗑️', effect:'ACT_SHED', actN:2, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を2枚まとめて捨てる（最後の1枚は残す）。札を出すたびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 2 lá yếu nhất (chừa lại 1 lá). Mỗi lần đánh bài sẽ tích năng lượng.' },
+    { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:42, suitCost:78, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
+    { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:28, suitCost:68, ico:'🧹', effect:'SHED_WEAK', place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất.' },
+    { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:30, ico:'🍃', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:2, desc:'【溜め撃ち】気を2つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。札を出すたびに気がたまる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'【Nạp】Tốn 2 năng lượng, kích hoạt trong lượt để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần đánh bài sẽ tích năng lượng.' },
+    { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:1, suitCost:2, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
   ];
   const EMB_BY_ID = {}; EMBLEMS.forEach(e=>EMB_BY_ID[e.id]=e);
   function emblem(id){ return EMB_BY_ID[id]; }
@@ -1952,7 +1962,7 @@ const RL = (function(){
 
     // 3) carry / shed (手札操作)。出した各札のエンブレムを処理。
     const CARRY_SHED = ['CARRY_SAME','CARRY_TWO_SAME','CARRY_NEIGHBOR','CARRY_RUN','SHED_WEAK','SHED_TWO_WEAK','SHED_STRONG'];
-    // 最多判定(逆位 SHED_WEAK_IF_MOST / 晩成 CLEAR_IF_MOST): 出す前の自分の手札が、未上がりの他プレイヤーの誰よりも少なくない＝最多(同数も含む)のときだけ発動。
+    // 最多判定(逆位 SHED_WEAK_IF_MOST): 出す前の自分の手札が、未上がりの他プレイヤーの誰よりも少なくない＝最多(同数も含む)のときだけ発動。
     const iHaveMost = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= myHandBefore);
     const handled = new Set();
     playedEmblems.forEach(pe=>{
@@ -2010,8 +2020,7 @@ const RL = (function(){
     // 5) フラグ
     // 3返し(CUT_TOP): 自分の単騎で場の最強単騎(2)を切り返したら、場を流して続けて出せる。
     const cutWin = effs.includes('CUT_TOP') && combo.type==='single' && wasTopSingleField;
-    const banseiClear = effs.includes('CLEAR_IF_MOST') && iHaveMost;   // 晩成: 手札最多なら連火と同効果
-    const fClear = (effs.includes('CLEAR_FIELD') || cutWin || banseiClear) && !finishedNow;
+    const fClear = (effs.includes('CLEAR_FIELD') || cutWin) && !finishedNow;
     const fExtra = effs.includes('EXTRA_TURN')  && !finishedNow;
     const fSkip  = effs.includes('SKIP');
     const fRev   = effs.includes('REVERSE_DIR');
@@ -2020,7 +2029,6 @@ const RL = (function(){
     if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
     if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
     else if(cutWin)                      events.push({kind:'emb', emb:firstWith('CUT_TOP')});      // 3返しの場流し
-    else if(banseiClear)                 events.push({kind:'emb', emb:firstWith('CLEAR_IF_MOST')}); // 晩成の場流し
     if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
     if(fRev)  events.push({kind:'emb', emb:firstWith('REVERSE_DIR')});
@@ -2241,7 +2249,7 @@ const RL = (function(){
     const lead0 = !fieldCombo(state);
     const emblemBonus = (m)=>{
       let bo=0;
-      // 逆位/晩成は「出す前に自分が手札最多(同数含む)」のときだけ発火＝engine と同条件で価値計上。
+      // 逆位は「出す前に自分が手札最多(同数含む)」のときだけ発火＝engine と同条件で価値計上。
       const iHaveMostBefore = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= p.hand.length);
       const handFull = p.hand.length === mutatorHandCount(state.mutator);     // 初動: 配り直後の満杯手札か
       m.cards.forEach(c=>{
@@ -2253,7 +2261,7 @@ const RL = (function(){
         if(eff.includes('SHED_STRONG')) bo-=0.6;                                // 最強札を失うコスト(放出)。場流しの得を一部相殺＝弱札への盲目的な放出を抑止
         if(eff.includes('CARRY_SAME')||eff.includes('CARRY_NEIGHBOR')) bo+=0.8; // 関連札を1枚同時に手放す
         if(eff.includes('CARRY_TWO_SAME')||eff.includes('CARRY_RUN')) bo+=1.5;  // 最大2枚同時に手放す
-        if(eff.includes('CLEAR_FIELD')||eff.includes('EXTRA_TURN')||(eff.includes('CLEAR_IF_MOST')&&iHaveMostBefore)) bo+=1.2; // 場流し/連撃/晩成で主導権
+        if(eff.includes('CLEAR_FIELD')||eff.includes('EXTRA_TURN')) bo+=1.2; // 場流し/連撃で主導権
         if(eff.includes('SKIP')) bo+=0.5;                                       // 飛ばし
         if(eff.includes('CHOOSE_NEXT')) bo+=0.4;                                // 指名: 次に出す人を選べる主導権
         if(eff.includes('CUT_TOP')) bo+=2.2;                                    // 3返し: 最強単騎を奪える価値は大
@@ -2416,7 +2424,7 @@ const RL = (function(){
     hg.players[0].charge=5; const hb=hg.players[0].hand.length;
     applyActivate(hg,0,'ki01');
     ok('投棄発動で2枚減', hg.players[0].hand.length===hb-2);
-    ok('投棄発動で気-3', hg.players[0].charge===2);
+    ok('投棄発動で気-4(chargeCost4)', hg.players[0].charge===1);
     // 12 三重(CARRY_TWO_SAME): 同ランク2枚あれば2枚減
     const dg=newGame(defs.map(x=>({...x})),100);
     // 手札に同ランク2枚を作る
@@ -2800,23 +2808,6 @@ const RL = (function(){
     opG2.field.combo=null; opG2.field.card=null;
     applyPlay(opG2, 0, [{rank:'7',suit:'S'}], {});
     ok('初動: 満杯でない手札では発動しない', opG2.players[0].hand.length===2);
-
-    // 50 晩成(aka10): 手札最多(出す前・同数含む)で出すと連火と同効果(場を流して続行)。
-    const lbB=buildFrom({rank:{'7':['aka10']}});
-    const lbG=newGame(seat0(lbB), 215);
-    lbG.players[0].hand=[{rank:'7',suit:'S'},{rank:'3',suit:'S'},{rank:'4',suit:'S'},{rank:'5',suit:'S'},{rank:'6',suit:'S'}]; // 5枚(最多)
-    lbG.players[1].hand=[{rank:'4',suit:'H'}]; lbG.players[2].hand=[{rank:'5',suit:'H'}]; lbG.players[3].hand=[{rank:'6',suit:'H'}];
-    lbG.field.combo=singleCombo({rank:'9',suit:'D'}); lbG.field.card=lbG.field.combo.key; lbG.field.ownerIndex=1;
-    applyPlay(lbG, 0, [{rank:'7',suit:'S'}], {});
-    ok('晩成: 手札最多で出すと場が流れる', fieldCombo(lbG)===null);
-    ok('晩成: 場流し後は自分の手番(続けて出せる)', lbG.turn===0);
-    const lbG2=newGame(seat0(lbB), 216);
-    lbG2.players[0].hand=[{rank:'7',suit:'S'},{rank:'3',suit:'S'}]; // 2枚
-    lbG2.players[1].hand=[{rank:'4',suit:'H'},{rank:'5',suit:'H'},{rank:'6',suit:'H'}]; // 3枚(自分より多い)
-    lbG2.players[2].hand=[{rank:'8',suit:'H'}]; lbG2.players[3].hand=[{rank:'9',suit:'H'}];
-    lbG2.field.combo=singleCombo({rank:'10',suit:'D'}); lbG2.field.card=lbG2.field.combo.key; lbG2.field.ownerIndex=1;
-    applyPlay(lbG2, 0, [{rank:'7',suit:'S'}], {});
-    ok('晩成: 手札最多でないと場流ししない', fieldCombo(lbG2)!==null);
 
     /* ── リアクション(後出し / v0.18) ── */
     {
@@ -3264,6 +3255,11 @@ const AUDIO = (function(){
       rival_word:'宿敵', rival_p_counter:'カウンター', rival_p_mirror:'ミラー', rival_p_exp:'実験', rival_p_mix:'混合',
       rival_dom_aka:'場操作', rival_dom_ao:'ターン', rival_dom_midori:'役', rival_dom_ki:'手札', rival_dom_none:'様子見',
       rival_countered:'あなたの「{0}」偏重を見て対策してきた', rival_first:'まだあなたを観察している…', rival_record:'因縁  あなた {0}勝 {1}敗',
+      /* メタ崩壊(v0.22) 宿敵の標的宣言(Meta-Ban) */
+      ban_tag:'封じ', badge_ban:'封じ', act_banned:'宿敵に封じられている（この深度は装備できない）',
+      ban_banner:'{0} があなたの手を読んだ！', ban_banner_ds:'この深度は「{0}」を封じられた。別の手で攻略しよう。',
+      toast_banned:'「{0}」は宿敵に読まれて封じられている', rival_banned:'今回はあなたの「{0}」を封じてきた',
+      reward_outwit_head:'🏆 裏をかいた！', reward_outwit_line:'封じを攻略。次の対戦だけ コスト容量 +{0}',
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
       /* 巡業1位ボーナス(次戦のみコスト容量+25) */
@@ -3424,6 +3420,11 @@ const AUDIO = (function(){
       rival_word:'Kỳ phùng', rival_p_counter:'Khắc chế', rival_p_mirror:'Phản chiếu', rival_p_exp:'Thử nghiệm', rival_p_mix:'Pha trộn',
       rival_dom_aka:'Khống sân', rival_dom_ao:'Lượt', rival_dom_midori:'Bộ bài', rival_dom_ki:'Lá bài', rival_dom_none:'Quan sát',
       rival_countered:'Đã nhắm thiên hướng "{0}" của bạn để khắc chế', rival_first:'Vẫn đang quan sát bạn…', rival_record:'Duyên nợ  Bạn {0} thắng {1} thua',
+      /* Sụp đổ meta (v0.22) — Tuyên bố cấm của kỳ phùng (Meta-Ban) */
+      ban_tag:'Bị cấm', badge_ban:'Cấm', act_banned:'Bị kỳ phùng cấm (tầng này không gắn được)',
+      ban_banner:'{0} đã đọc được bài của bạn!', ban_banner_ds:'Tầng này bị cấm "{0}". Hãy phá bằng cách khác.',
+      toast_banned:'"{0}" đã bị kỳ phùng đọc thấu và cấm dùng', rival_banned:'Lần này đã cấm "{0}" của bạn',
+      reward_outwit_head:'🏆 Lật ngược thế cờ!', reward_outwit_line:'Phá được lệnh cấm. Riêng trận kế: ngân sách +{0}',
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
       /* Thưởng hạng 1 (chỉ trận kế: ngân sách +25) */
@@ -4048,7 +4049,8 @@ const AUDIO = (function(){
       depth:1, lives:3, budget:runBudget(1), nextBonus:0,   // 予算は深度から決まる／nextBonus=1位通過で次戦のみ加算される+25
       owned:BASE_UNLOCKED.slice(),                 // 巡業の初期所持=基本セット(クイック/オンの初期解放と同一)。ドラフトで増える
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
-      randomBuild:RL.emptyBuild()                  // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
+      randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
+      ban:{ ids:[], depth:1 }                      // ★v0.22 メタ崩壊: この深度で宿敵が封じた常用エンブレム(深度進行で更新)
     };
   }
   // タイトルの「巡業」ボタン入口。中断データがある時は確認をはさむ＝誤操作1発で消えるのを防ぐ。
@@ -4066,6 +4068,7 @@ const AUDIO = (function(){
     MODE.kind='run'; MODE.run=freshRun();
     store.clearRun();   // 新規開始は保存データを破棄
     MODE.mutator = rollMutator(MODE.run.depth);
+    MODE.run.ban = decideBan(MODE.run, MODE.run.depth);   // 深度1は基本ban無し
     openBuild(T('bt_run', 1));
   }
   function resumeRun(){
@@ -4076,6 +4079,7 @@ const AUDIO = (function(){
     MODE.run.randomBuild = MODE.run.randomBuild ? RL.normalizeBuild(MODE.run.randomBuild) : RL.emptyBuild();
     MODE.run.budget = runBudget(MODE.run.depth);   // 旧セーブ互換: 予算は加算値を捨て、常に深度から再計算
     MODE.run.nextBonus = MODE.run.nextBonus || 0;  // 旧セーブ互換: 1位ボーナス枠
+    MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致は決め直す
     MODE.mutator=saved.mutator ? JSON.parse(JSON.stringify(saved.mutator)) : rollMutator(MODE.run.depth);
     openBuild(T('bt_run', MODE.run.depth));
   }
@@ -4560,6 +4564,15 @@ const AUDIO = (function(){
     // クイックは「解放済みエンブレムだけ」使える＝保存ビルドに残った未解放分を編成入り口で掃除。
     //   オンラインは「日本式/ベトナム式」装填で未解放でも対戦できる仕様なので掃除しない(再入場で剥がさない)。
     if(MODE.kind==='quick') pruneBuildToOwned(buildState.build, buildState.owned);
+    // ★v0.22 メタ崩壊: 巡業で封じられたエンブレムはビルドから外す(所持には残る＝封じが解ける次深度で再装備可・コスト枠も解放)。
+    if(MODE.kind==='run'){
+      const ban=bannedIdSet();
+      if(ban.size){ const drop=id=>!ban.has(id);
+        RL.DISPLAY_RANKS.forEach(r=> buildState.build.rankSlots[r]=(buildState.build.rankSlots[r]||[]).filter(drop));
+        RL.SUITS.forEach(s=> buildState.build.suitSlots[s]=(buildState.build.suitSlots[s]||[]).filter(drop));
+        buildState.build.ruleSlots=(buildState.build.ruleSlots||[]).filter(drop);
+      }
+    }
     $('#build-title').textContent=titleTxt;
     // モードに応じて「タイトルへ」ボタンを表示・ラベル変更（巡業=中断あり、クイック=単純戻り、オンライン=ロビーへ）
     const backBtn=$('#build-back');
@@ -4588,6 +4601,14 @@ const AUDIO = (function(){
     const col=RL.COLORS[m.color];
     host.className='mutbar';
     host.innerHTML='<span class="mtag '+col.cls+'">'+m.ico+' '+mutName(m)+'</span><span class="mds">'+mutDesc(m)+'</span>';
+  }
+  // ★v0.22 メタ崩壊: 宿敵の標的宣言バナー(編成画面・封じ中だけ表示)。
+  function renderBanBanner(host){
+    if(!host) return;
+    const names=banNames();
+    if(!names.length){ host.className='banbar'; host.innerHTML=''; return; }
+    host.className='banbar show';
+    host.innerHTML='<span class="btag">🚫 '+T('ban_banner', RIVAL.name())+'</span><span class="bds">'+T('ban_banner_ds', names.join('・'))+'</span>';
   }
   // おすすめ構成オーバーレイ：初心者がワンタップで完成形を入れられる近道。常時表示はせず、必要な時だけ開く。
   function openRecommend(){
@@ -4640,8 +4661,9 @@ const AUDIO = (function(){
   }
   function renderBuild(){
     const b=buildState.build;
-    // お題バナー(今回の対戦に掛かる共通ルール)
+    // お題バナー(今回の対戦に掛かる共通ルール)＋宿敵の標的宣言(メタ崩壊)
     renderMutatorBanner($('#build-mutator'));
+    renderBanBanner($('#build-ban'));
     // コスト
     const cost=RL.buildCost(b), max=buildState.budget;
     $('#build-cost').textContent=cost+' / '+max;
@@ -4810,7 +4832,10 @@ const AUDIO = (function(){
     // ★この枠に「付けられるエンブレムだけ」を表示する（付けられないものはグレーアウトせず表示から消す）。
     //   巡業のランダムが「この枠」に付いている同idだけ候補から外す＝他の枠では引き続き選べる(per-slot)。
     const randHere = randIdsFor(sel.type, sel.key);
-    const owned = buildState.owned.filter(id=> RL.canScope(id, sel.type, sel.key) && !randHere.includes(id));
+    const ban = bannedIdSet();
+    // ★v0.22 メタ崩壊: 封じられたエンブレムは選べないが「何が封じられたか」を見せる＝🚫タイルで提示(組み替えの判断材料)。
+    const bannedHere = buildState.owned.filter(id=> ban.has(id) && RL.canScope(id, sel.type, sel.key) && !randHere.includes(id));
+    const owned = buildState.owned.filter(id=> RL.canScope(id, sel.type, sel.key) && !randHere.includes(id) && !ban.has(id));
     // ★この枠に付いている巡業ランダムエンブレムは金色タイルで先頭に表示(名前・効果を読める)。選択は不可。
     randHere.forEach(id=>{
       const e=RL.emblem(id); const col=RL.COLORS[e.color];
@@ -4827,7 +4852,23 @@ const AUDIO = (function(){
       };
       p.appendChild(card);
     });
-    if(!owned.length && !randHere.length){
+    // ★封じられたエンブレム(🚫タイル・選択不可)
+    bannedHere.forEach(id=>{
+      const e=RL.emblem(id); const col=RL.COLORS[e.color];
+      const card=el('div','emb foc banned');
+      card.dataset.eid=id; card.dataset.banned='1';
+      card.style.borderLeft='10px solid '+col.hex;
+      card.innerHTML =
+        '<span class="badge ban">'+T('ban_tag')+'</span>'+
+        '<div class="thd"><span class="ico">'+e.ico+'</span></div>'+
+        '<div class="nm">'+embName(e)+'</div>';
+      card.onclick=()=>{
+        if(focusedEl===card){ AUDIO.bad(); toast(T('toast_banned', embName(e)),'#ff5252'); }
+        else { setFocus(card); AUDIO.move(); }
+      };
+      p.appendChild(card);
+    });
+    if(!owned.length && !randHere.length && !bannedHere.length){
       const empty=el('div','pal-empty', T('palette_empty'));
       p.appendChild(empty);
       requestAnimationFrame(updateScrollCue);
@@ -4885,8 +4926,10 @@ const AUDIO = (function(){
     const cst = RL.slotCost(id, sel.type), pl=RL.placeOf(id);
     const placeTxt = e.suitOnly ? T('place_suit_only') : e.rankLock ? T('slot_disp_rank', e.rankLock.join('/'))+'のみ' : pl==='whole' ? T('place_whole') : pl==='suitRun' ? T('place_suitRun') : T('place_card');
     const where = sel.type==='suit'?RL.SUIT_SYM[sel.key]:sel.type==='rule'?T('where_rule'):sel.key;
+    const banned=bannedIdSet().has(id);   // ★v0.22 メタ崩壊: 封じ中は効果を読めるが装備不可
     let act, actCls='';
     if(rndFixed){ act=T('act_rand_fixed'); actCls=' rnd'; }   // 巡業ランダム獲得分: 効果は読めるが操作不可
+    else if(banned){ act=T('act_banned'); actCls=' no'; }
     else if(!allowed){ const rlk=e.rankLock; act=rlk ? T('act_cannot', T('slot_disp_rank', rlk.join('/'))) : T('act_cannot', placeTxt); actCls=' no'; }
     else if(here){ act=T('act_equipped', actKey('decide')); }
     else { act=T('act_equip', actKey('decide'), where, cst); }
@@ -4899,13 +4942,13 @@ const AUDIO = (function(){
         +'<div class="dt-row">'+(rndFixed ? T('row_cost_rnd') : T('row_cost', cst))+'</div></div>'
       +'<div class="dt-spacer"></div>'
       +'<div class="dt-act'+actCls+'" id="dt-act">'+act+'</div>';
-    const hint = rndFixed
+    const hint = (rndFixed || banned)
       ? T('hint_emb_no', actKey('back'))
       : allowed
       ? T('hint_emb_ok', here?T('emb_remove'):T('emb_equip'), actKey('decide'), actKey('back'))
       : T('hint_emb_no', actKey('back'));
-    // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない/ランダム固定は null。
-    return {html, hint, actId: (allowed && !rndFixed) ? id : null};
+    // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない/ランダム固定/封じ中は null。
+    return {html, hint, actId: (allowed && !rndFixed && !banned) ? id : null};
   }
   function detailForSlot(type,key){
     const b=buildState.build;
@@ -4930,6 +4973,8 @@ const AUDIO = (function(){
   }
   function toggleEquip(id){
     const sel=buildState.selSlot, b=buildState.build;
+    // ★v0.22 メタ崩壊: この深度で封じられたエンブレムは装備できない(別の枠でも不可)。
+    if(bannedIdSet().has(id)){ AUDIO.bad(); toast(T('toast_banned', embName(RL.emblem(id))),'#ff5252'); return; }
     // 巡業のランダムが「この枠」に付いている同idだけ手で重ねられない(別レイヤー固定枠)。別の枠には付けられる。
     if(randIdsFor(sel.type, sel.key).includes(id)){ AUDIO.bad(); toast(T('toast_rand_dup'),'#ff7043'); return; }
     // 全体ルール枠(whole): 複数装備可(1枠に並べる)。
@@ -5098,6 +5143,36 @@ const AUDIO = (function(){
   }
 
   /* ============================================================
+     メタ崩壊(v0.22) ─ 宿敵の標的宣言(Meta-Ban)。巡業のみ・エンジン非介入(SHELL の編成制限だけ)。
+     ・宿敵があなたの「常用エンブレム(公開情報=過去ビルド傾向 store.rival.prof)」を読み、その深度だけ封じる。
+       → 強ビルドの再利用を内的に阻止＝メタが自己崩壊し、毎深度ビルドを組み替えさせる。
+     ・封じても基本ビルド(素の大富豪＋残りの所持)は常に成立＝詰み無し。深度1は無し。負け越し中は mercy で無し。
+     ============================================================ */
+  const BAN_WIN_BONUS = 15;   // 封じ下で1位通過 → 通常の RUN_WIN_BONUS に上乗せ(宿敵の読みを外した報酬)
+  function decideBan(run, depth){
+    if(depth<=1) return { ids:[], depth };                       // 序盤(データ蓄積前)はban無し
+    const r=store.rival; if(!r) return { ids:[], depth };
+    const w=r.w||0, l=r.l||0;                                    // l=あなたの勝ち / w=あなたの負け
+    if(w - l >= 2) return { ids:[], depth };                     // あなたが負け越し → mercy(封じ無し・難易度自己調整)
+    const owned = run.owned || [];
+    if(owned.length < 6) return { ids:[], depth };               // 所持が少ないうちは封じない(組み替え余地を確保)
+    const top = RIVAL.topIds(8).filter(id=> owned.includes(id) && RL.emblem(id));
+    if(!top.length) return { ids:[], depth };
+    const n = (l - w >= 2) ? 2 : 1;                              // あなたが勝ち越し → 鋭く2種読む(エスカレーション)
+    const ids = top.slice(0, Math.max(1, Math.min(n, owned.length-4)));   // 念のため最低4枠は残す
+    return { ids, depth };
+  }
+  // この深度で封じられているエンブレムid集合(巡業のみ・深度一致時だけ有効＝旧深度の封じは効かない)。
+  function bannedIdSet(){
+    const set=new Set();
+    if(MODE.kind==='run' && MODE.run && MODE.run.ban && MODE.run.ban.depth===MODE.run.depth){
+      (MODE.run.ban.ids||[]).forEach(id=> set.add(id));
+    }
+    return set;
+  }
+  function banNames(){ return (Array.from(bannedIdSet())).map(id=> RL.emblem(id)? embName(RL.emblem(id)) : id); }
+
+  /* ============================================================
      巡業ランダムエンブレム(その回限りのローグライク成長)
      ・通常ビルド(run.build)とは別レイヤー run.randomBuild に保持。プレイヤーは編集/解除/移動できない。
      ・効果は「対戦開始時に build と randomBuild を統合」して反映する＝既存エンブレム処理は無改造。
@@ -5169,10 +5244,19 @@ const AUDIO = (function(){
       RL.SUITS.forEach(s=> b.suitSlots[s]=(b.suitSlots[s]||[]).concat(rb.suitSlots[s]||[]));
       b.ruleSlots=(b.ruleSlots||[]).concat(rb.ruleSlots||[]);
     }
+    // ★v0.22 メタ崩壊: 封じられたエンブレムは対戦ビルドから除去(エンジンは封じ札を一切見ない＝決定論/正調ミラー不変)。
+    const ban=bannedIdSet();
+    if(ban.size){
+      const drop=id=> !ban.has(id);
+      RL.DISPLAY_RANKS.forEach(r=> b.rankSlots[r]=(b.rankSlots[r]||[]).filter(drop));
+      RL.SUITS.forEach(s=> b.suitSlots[s]=(b.suitSlots[s]||[]).filter(drop));
+      b.ruleSlots=(b.ruleSlots||[]).filter(drop);
+    }
     return b;
   }
 
   function beginMatch(){
+    MODE.matchBanNames = (MODE.kind==='run') ? banNames() : [];   // ★v0.22 この対戦で封じられた名前を控える(結果画面の宿敵レポート用・深度前進前)
     const human = { name:T('you'), isHuman:true, build: MODE.kind==='run' ? effectiveRunBuild() : cloneBuild(MODE.quickBuild) };
     const cpuNames = MODE.kind==='run'
       ? [T('cpu_speed'),T('cpu_control'),T('cpu_tempo')]
@@ -5255,6 +5339,7 @@ const AUDIO = (function(){
     // 状態バッジ
     const sc=$('#match-state'); sc.innerHTML='';
     if(G.mutator && G.mutator.effect!=='NONE') sc.appendChild(badge(G.mutator.ico,T('badge_mut'), mutName(G.mutator), true));
+    { const bn=banNames(); if(bn.length) sc.appendChild(badge('🚫',T('badge_ban'), bn.join('・'), true)); }   // ★v0.22 封じ中バッジ
     sc.appendChild(badge('🔁',T('badge_dir'), G.direction>0?T('dir_normal'):T('dir_rev'), false));
     const lockSuits = G.field.suitLock;
     const lockDisplay = lockSuits ? (Array.isArray(lockSuits) ? lockSuits.map(s=>RL.SUIT_SYM[s]).join('') : RL.SUIT_SYM[lockSuits]) : null;
@@ -5611,8 +5696,9 @@ const AUDIO = (function(){
         const r=store.rival, info=MODE.rivalInfo||{};
         const personaNm=T(RIVAL_PERSONA_KEYS[info.persona||0]);
         const line=(r.n>1 && info.dom) ? T('rival_countered', T('rival_dom_'+info.dom)) : T('rival_first');
+        const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-l">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
         riv.innerHTML='<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+' <span class="rv-p">'+personaNm+'</span></div>'
-          +'<div class="rv-l">'+line+'</div>'
+          +'<div class="rv-l">'+line+'</div>'+banLn
           +'<div class="rv-rec">'+T('rival_record', r.l||0, r.w||0)+'</div>';
         riv.classList.add('show');
       } else { riv.innerHTML=''; riv.classList.remove('show'); }
@@ -5648,8 +5734,15 @@ const AUDIO = (function(){
     // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
     //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
     // ★v0.18: 1位だけでなく3位にも+25。1位は前進(残機維持)・3位は残機-1という不利を、次戦の予算+25で補って4位と差をつける。
+    // ★v0.22 メタ崩壊: 封じが掛かった深度を1位通過 → 「裏をかいた」上乗せボーナス(banをペナルティから駆け引きへ)。
+    const banWasActive = !!(run.ban && run.ban.depth===playedDepth && (run.ban.ids||[]).length);
     let reward=null;
-    if(place===1 || place===3){ run.nextBonus = RUN_WIN_BONUS; reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) }; }
+    if(place===1 && banWasActive){
+      run.nextBonus = RUN_WIN_BONUS + BAN_WIN_BONUS;
+      reward={ head:T('reward_outwit_head'), line:T('reward_outwit_line', RUN_WIN_BONUS + BAN_WIN_BONUS) };
+    } else if(place===1 || place===3){
+      run.nextBonus = RUN_WIN_BONUS; reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) };
+    }
     // ★v0.16: 深度は勝っても負けても何位でも毎戦+1(=予算も毎戦+5)。3位/4位は残機-1のみ。
     const advanced = place<=2;
     if(!advanced) run.lives--;
@@ -5662,6 +5755,7 @@ const AUDIO = (function(){
     // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
     run.depth++;
     run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(深度予算。1位ボーナス+25は nextBonus で別管理)
+    run.ban = decideBan(run, run.depth);   // ★v0.22 次深度の封じを宿敵が決め直す(観測が増えるほど鋭く)
     MODE.mutator = rollMutator(run.depth);
     store.saveRun(run, MODE.mutator);
     const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : T('next_lifedown');
