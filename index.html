@@ -136,6 +136,16 @@
   .btn.ghost{ background:
     linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 46%),
     linear-gradient(180deg,#2b3666,#222c55); color:#fff; }
+  /* リアクション(後出し)ボタン＝赤。チャージが満ちた手番にだけ出現＝強く目を引く。 */
+  .btn.react{ background:
+    linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(180deg,#ff6b5e,#e53935); color:#fff; border-color:#fff; animation:reactpulse 1.1s ease-in-out infinite; }
+  @keyframes reactpulse{ 0%,100%{ box-shadow:0 6px 0 #1a1f3d, 0 10px 18px rgba(0,0,0,.32); } 50%{ box-shadow:0 6px 0 #1a1f3d, 0 0 26px rgba(229,57,53,.85); } }
+  /* チャージ・ピル(反撃保持者の名前横)。満タンは赤＝後出し可。 */
+  .chgpill{ display:inline-flex; align-items:center; margin-left:10px; padding:2px 12px; border-radius:999px; font-size:22px; font-weight:900;
+    background:#3949ab; color:#fff; border:2px solid rgba(255,255,255,.5); vertical-align:middle; }
+  .chgpill.full{ background:#e53935; border-color:#fff; animation:chgpulse 1.1s ease-in-out infinite; }
+  @keyframes chgpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(229,57,53,.0); } 50%{ box-shadow:0 0 14px 2px rgba(229,57,53,.8); } }
   .btn.small{ min-height:64px; font-size:28px; padding:0 28px; border-width:4px; box-shadow:0 5px 0 #1a1f3d, 0 8px 14px rgba(0,0,0,.3); }
   .btn[disabled]{ opacity:.4; }
 
@@ -1138,6 +1148,7 @@ const RL = (function(){
     RANK_ORDER_2HIGH: ['3','4','5','6','7','8','9','10','J','Q','K','A','2'], // 標準(2最強)
     RANK_ORDER_AHIGH: ['2','3','4','5','6','7','8','9','10','J','Q','K','A'], // 変則(A最強)
     SUITS: ['S','C','D','H'],   // 表示/並び順を ♠♣♦♥ に統一(スート強さ SUIT_STRENGTH と同順)。手札ソート・編成のマーク枠・場札の並びすべてこの順。
+    REACT_COST_DEFAULT: 6,      // リアクション(後出し)の既定チャージコスト。emblem.reactCost で個別指定可。札を出すたびに +枚数 たまり、この値で発動できる。
   };
   // 現在有効な強さ順(設定で差し替え可能)。スロット並びは常に標準表示順を使う。
   let RANKS = CONFIG.RANK_ORDER_2HIGH.slice();
@@ -1227,6 +1238,10 @@ const RL = (function(){
     { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に「2が4枚」または「ペア5階段／ペア6階段（445566778899など連続する数字のペア）」がそろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có "tứ quý heo (bốn lá 2)" hoặc "5/6 đôi thông (các đôi số liên tiếp như 445566778899)" thì vô điều kiện về Nhất (thoát ngay).' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:10, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
     { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:1, ico:'🔁', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
+    // ── リアクション(後出し)。自分の手番の第3の選択肢＝「返せない場でも、たまったチャージを切って場を吹き飛ばし手番を奪う」。
+    //    試合“中”の能動判断(撃つ/溜める/読む)を生む。札を出すたびにチャージが貯まる(パスでは貯まらない＝溜め込み消極プレイにならない)。
+    //    ★正調ミラー不変の要: これはオプトイン専用で jp/vn プリセットには入れない。盤面に1枚も無ければ applyReact の出番ゼロ＝ターン進行は現状と同一。
+    { id:'aka12', code:'赤12', color:'aka', name:'反撃', cost:8, ico:'⚡', effect:'REACT_BLOWBACK', place:'whole', react:true, reactCost:6, desc:'札を出すたびにチャージがたまる（最大6）。たまっていれば自分の手番に、相手の場を吹き飛ばして手番を奪える（後出し＝返せない場でも仕切り直せる）。自分だけに適用。', nameVi:'Phản Kích', abbrVi:'P.Kích', codeVi:'Đ12', descVi:'Mỗi lần đánh bài sẽ tích năng lượng (tối đa 6). Khi đủ, tới lượt mình có thể thổi bay bãi của đối thủ và giành quyền dẫn (hậu thủ — kể cả khi không chặn được vẫn lật lại được). Chỉ áp dụng cho mình.' },
     // ── 条件付き発動エンブレム(v0.15)。コストは暫定で全て1(校正は次回)。
     { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:3, suitCost:6, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
     { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:2, suitCost:5, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その札は場の単騎と同じマークなら数字に関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, nếu cùng chất với lá lẻ trên bãi thì đánh được bất kể số (qua được cả con 2 mạnh nhất).' },
@@ -1345,7 +1360,8 @@ const RL = (function(){
     return { twoStrong: opts.twoStrong!==false, set2:false, set3:false, set4:false,
       runFree:{S:false,H:false,D:false,C:false}, runSuit:{S:false,H:false,D:false,C:false},
       pairRuns:false, revolution:false, bomb:false, suitTiebreak:false,
-      hero:false, weakStart:false, resume:false };
+      hero:false, weakStart:false, resume:false,
+      reactClear:false, reactCost:0 };   // リアクション(後出し): reactClear=能力あり / reactCost=発動に必要なチャージ
   }
   const DEFAULT_RULES = emptyRules({twoStrong:true});
   function xorB(){ let r=0; for(let i=0;i<arguments.length;i++) r ^= (arguments[i]?1:0); return !!r; }
@@ -1553,6 +1569,7 @@ const RL = (function(){
       else if(eff==='HERO') r.hero=true;               // 英雄: 配り直後に2を4枚持っていれば即1位
       else if(eff==='WEAK_START') r.weakStart=true;    // 弱者: ♠3保持で先手(最初は♠3を含めて出す)
       else if(eff==='RESUME') r.resume=true;           // 再開: パスしてもトリックから降りない(誰かが出すたび復帰)
+      else if(eff==='REACT_BLOWBACK'){ r.reactClear=true; r.reactCost = e.reactCost||CONFIG.REACT_COST_DEFAULT; }  // 反撃: 後出しで場を吹き飛ばし手番を奪える
     }); });
     // マーク階段(suitRun): 付けたマークだけ階段に使える(per-suit)
     SUITS.forEach(s=>{ ((build.suitSlots && build.suitSlots[s])||[]).forEach(id=>{ const e=emblem(id); if(!e) return; effList(e).forEach(eff=>{
@@ -1681,7 +1698,8 @@ const RL = (function(){
     const mut = mutator || null;
     const players = playerDefs.map((p,i)=>({
       id:i, name:p.name, isHuman:!!p.isHuman,
-      build:normalizeBuild(p.build), hand:[], finished:false, place:null
+      build:normalizeBuild(p.build), hand:[], finished:false, place:null,
+      charge:0                                    // リアクション(後出し)用チャージ。札を出すと貯まる。反撃を持つ席のみ増える(他席は常に0)。
     }));
     // 配札: 通常は全52枚を均等。SHORT(短期決戦)は各自 handCount 枚で残りは場外(未使用)。
     const handCount = mutatorHandCount(mut);
@@ -1975,6 +1993,9 @@ const RL = (function(){
     }
     state.turn = next;
     state.passCount = passedSet(state).length;   // 後方互換(表示用)。判定は passed/trickAlive に一本化。
+    // リアクション・チャージ: 反撃を持つ席だけ「出した枚数ぶん」貯まる(上限=reactCost)。パスでは貯まらない＝溜め込み消極プレイにならない。
+    //   反撃を持たない席は加算されない＝charge は 0 のまま＝正調ミラーの挙動はバイト単位で不変。
+    if(rules.reactClear){ p.charge = Math.min(rules.reactCost||CONFIG.REACT_COST_DEFAULT, (p.charge||0) + cards.length); }
     return { events, finishedNow };
   }
 
@@ -2001,13 +2022,47 @@ const RL = (function(){
     return { events };
   }
 
+  /* ---- リアクション(後出し) — 自分の手番の第3の選択肢 ----
+     相手の場に返せない(あるいは返さない)とき、たまったチャージを切って場を吹き飛ばし、自分が手番を奪ってリードし直す。
+     ・場が空(リード中)では撃てない＝吹き飛ばす対象が無い。自分の場(持ち主=自分)にも撃たない。
+     ・発動後は場が空＝直後に再発動はできない(無限ループ構造的に不可)。チャージは reactCost ぶん消費。
+     ・applyPass の兄弟＝新しいターンフェーズ/スタックを作らない(=スタック地獄の構造的回避・P2P も action 種別の追加だけ)。 */
+  function canReact(state, i){
+    const p = state.players[i];
+    if(!p || p.finished || state.gameOver) return false;
+    const r = playerRules(state, i);
+    if(!r || !r.reactClear) return false;
+    if(!fieldCombo(state)) return false;             // 場が空＝後出しの対象が無い
+    if(state.field.ownerIndex===i) return false;     // 自分が出した場には撃たない
+    return (p.charge||0) >= (r.reactCost||CONFIG.REACT_COST_DEFAULT);
+  }
+  function applyReact(state, i){
+    const events=[];
+    if(!canReact(state, i)) return { events };        // 念のため(非合法は無視)
+    const r = playerRules(state, i), p = state.players[i];
+    p.charge = Math.max(0, (p.charge||0) - (r.reactCost||CONFIG.REACT_COST_DEFAULT));
+    events.push({kind:'react', index:i});
+    clearField(state); state.passed=[]; state.passCount=0;
+    state.turn = i;                                   // 場を吹き飛ばして自分がリードを奪う(新しいトリック＝全員復帰)
+    events.push({kind:'clear'});
+    return { events };
+  }
+
   /* ---- CPU 思考(コンボ対応) ----
      戻り値: { type:'play', cards:[...], nextPlayer? } / { type:'pass' }
   */
   function cpuDecide(state, playerIndex){
     const p = state.players[playerIndex];
     const moves = legalMoves(state, playerIndex);
-    if(!moves.length) return { type:'pass' };
+    if(!moves.length){
+      // 返せない＝本来パス。だがチャージが満ちていて、場の持ち主が「自分より手札が少ない(先行している)現役の相手」なら、
+      //   後出しで場を吹き飛ばして主導権を奪う(逃げ切られる前に仕切り直す)。場が空/自分の場では canReact が false。
+      if(canReact(state, playerIndex)){
+        const fo=state.field.ownerIndex;
+        if(fo!=null && !state.players[fo].finished && state.players[fo].hand.length <= p.hand.length) return { type:'react' };
+      }
+      return { type:'pass' };
+    }
     const rules = playerRules(state, playerIndex);
     // ★強弱の実効向き: 革命中(と「天地無用」お題)は低ランクが強い。これを無視すると、
     //   本当は強い低ランクを無駄打ちし、本当は弱い高ランクを抱え込む＝革命時に弱くなる。
@@ -2381,7 +2436,7 @@ const RL = (function(){
     (function(){
       const full=buildFrom({rule:['set2','set3','aka05','aka06','ao05'], suit:allSuit('mi05')});
       const fg=newGame([{name:'A',build:full},{name:'B',build:presetBuild('jp')},{name:'C',build:presetBuild('vn')},{name:'D',build:emptyBuild()}], 4242);
-      let guard=0; while(!fg.gameOver && guard<5000){ const idx=fg.turn; const mv=cpuDecide(fg, idx); if(mv.type==='pass') applyPass(fg, idx); else applyPlay(fg, idx, mv.cards, {nextPlayer:mv.nextPlayer}); guard++; }
+      let guard=0; while(!fg.gameOver && guard<5000){ const idx=fg.turn; const mv=cpuDecide(fg, idx); if(mv.type==='pass') applyPass(fg, idx); else if(mv.type==='react') applyReact(fg, idx); else applyPlay(fg, idx, mv.cards, {nextPlayer:mv.nextPlayer}); guard++; }
       ok('全役卓の自己対戦が完走(順位確定)', fg.gameOver===true && fg.players.every(p=>p.place>=1 && p.place<=4));
     })();
     // 40 per-seat ルール: 持ち込んだ役は本人専用(他人の自由階段は効かない)
@@ -2597,6 +2652,68 @@ const RL = (function(){
     applyPlay(lbG2, 0, [{rank:'7',suit:'S'}], {});
     ok('晩成: 手札最多でないと場流ししない', fieldCombo(lbG2)!==null);
 
+    /* ── リアクション(後出し / v0.18) ── */
+    {
+      const ab=emptyBuild(); ab.ruleSlots.push('aka12');
+      const ar=computeTableRules([ab],{twoStrong:true});
+      ok('反撃: emblem react フラグ', !!(EMB_BY_ID['aka12'] && EMB_BY_ID['aka12'].react));
+      ok('反撃: place=whole', placeOf('aka12')==='whole');
+      ok('反撃: rules.reactClear & reactCost', ar.reactClear===true && ar.reactCost===6);
+      ok('反撃なし: rules.reactClear=false', computeTableRules([emptyBuild()],{twoStrong:true}).reactClear===false);
+      // チャージ加算: 反撃保持席は出すと +枚数 / 非保持席は 0 のまま
+      const cg=newGame(seat0(ab), 222); cg.turn=0;
+      const c0=cg.players[0].hand[0]; const b0=cg.players[0].charge||0;
+      applyPlay(cg,0,[c0],{});
+      ok('反撃保持: 出すとチャージ+1', cg.players[0].charge===b0+1);
+      cg.turn=1; const c1=cg.players[1].hand[0]; applyPlay(cg,1,[c1],{});
+      ok('反撃なし: チャージ0のまま', (cg.players[1].charge||0)===0);
+      // canReact ゲート & applyReact(場流し+手番奪取+チャージ消費)
+      const rg=newGame(seat0(ab), 999);
+      rg.field.combo=singleCombo({rank:'9',suit:'S'}); rg.field.card=rg.field.combo.key; rg.field.ownerIndex=1;
+      rg.turn=0; rg.players[0].charge=0;
+      ok('反撃: チャージ不足では撃てない', canReact(rg,0)===false);
+      rg.players[0].charge=6;
+      ok('反撃: 満タン&相手の場なら撃てる', canReact(rg,0)===true);
+      rg.field.ownerIndex=0; ok('反撃: 自分の場には撃たない', canReact(rg,0)===false);
+      rg.field.ownerIndex=1;
+      const rr=applyReact(rg,0);
+      ok('反撃: 発動で場が空', fieldCombo(rg)===null);
+      ok('反撃: 発動で手番が自分', rg.turn===0);
+      ok('反撃: チャージ消費(0)', (rg.players[0].charge||0)===0);
+      ok('反撃: event に react', rr.events.some(e=>e.kind==='react'));
+      ok('反撃: 直後(場が空)は再発動不可', canReact(rg,0)===false);
+      rg.players[0].charge=4;
+      ok('charge シリアライズ往復', JSON.parse(JSON.stringify(rg)).players[0].charge===4);
+      // ★正調ミラー不変: 反撃を1枚も含まない卓(jp/vn)では canReact が常に false＝後出しは一切起きず、ターン進行は従来どおり。
+      const mirror=(pid,seed)=>{
+        const g=newGame([0,1,2,3].map(i=>({name:'P'+i,isHuman:false,build:presetBuild(pid)})), seed);
+        let guard=0, sawCan=false, sawReact=false;
+        while(!g.gameOver && guard<6000){
+          const idx=g.turn;
+          if(canReact(g,idx)) sawCan=true;
+          const mv=cpuDecide(g,idx);
+          if(mv.type==='react'){ sawReact=true; applyReact(g,idx); }
+          else if(mv.type==='pass') applyPass(g,idx);
+          else applyPlay(g,idx,mv.cards,{nextPlayer:mv.nextPlayer});
+          guard++;
+        }
+        return g.gameOver && !sawCan && !sawReact;
+      };
+      ok('正調ミラー不変(日本式): 後出し発生せず完走', mirror('jp', 31415));
+      ok('正調ミラー不変(ベトナム式): 後出し発生せず完走', mirror('vn', 27182));
+      // 反撃入り混成卓が無限ループ無しで終局(headless)
+      const fg=newGame([{name:'A',isHuman:false,build:ab},{name:'B',isHuman:false,build:presetBuild('jp')},{name:'C',isHuman:false,build:emptyBuild()},{name:'D',isHuman:false,build:presetBuild('vn')}], 8675309);
+      let g2=0;
+      while(!fg.gameOver && g2<6000){
+        const idx=fg.turn; const mv=cpuDecide(fg,idx);
+        if(mv.type==='react') applyReact(fg,idx);
+        else if(mv.type==='pass') applyPass(fg,idx);
+        else applyPlay(fg,idx,mv.cards,{nextPlayer:mv.nextPlayer});
+        g2++;
+      }
+      ok('反撃入り卓が無限ループ無しで終局', fg.gameOver===true);
+    }
+
     const passed=res.filter(r=>r.pass).length;
     return { passed, total:res.length, results:res };
   }
@@ -2608,7 +2725,7 @@ const RL = (function(){
     emptyBuild, normalizeBuild, placeOf, buildCost, slotCost, canScope, emblemSlotOf, emblemsForCard, effectsForCard, hasEffect,
     PRESETS, presetBuild, buildFrom,
     classifyCombo, singleCombo, comboBeats, effectiveCombo, disguiseRank, maxPairRunLen, isBomb, bombPower, fieldCombo, handCombos, legalMoves, computeTableRules, playerRules,
-    newGame, sortHand, legalCards, canPlay, applyPlay, applyPass, cpuDecide,
+    newGame, sortHand, legalCards, canPlay, applyPlay, applyPass, canReact, applyReact, cpuDecide,
     activeIndices, trickAlive, selftest
   };
 })();
@@ -2780,9 +2897,9 @@ const AUDIO = (function(){
       field_empty:'場は空<br>好きな札を出せる',
       act_choose:'札をえらぶ', act_play:'✅ 出す（{0}）', act_play_no:'⛔ {0}は場に出せない', act_no_combo:'⛔ 役になっていない',
       act_need_spade3:'⛔ 最初は♠3を含めて出す', split_tag:'（分裂）', disguise_tag:'（偽装→{0}）',
-      act_clear_sel:'✕ 選択解除', act_pass:'✋ パス', turn_of:'{0} の番…',
+      act_clear_sel:'✕ 選択解除', act_pass:'✋ パス', act_react:'⚡ 後出し', turn_of:'{0} の番…',
       place_n:'{0}位', title_daifugo:'大富豪', title_fugo:'富豪', title_hinmin:'貧民', title_daihinmin:'大貧民',
-      toast_flush:'場流し', toast_bad_play:'その手は出せない',
+      toast_flush:'場流し', toast_react:'⚡ 後出し！場を吹き飛ばした', toast_bad_play:'その手は出せない',
       choose_h2:'「指名」— 次に出す人を選べ', choose_btn:'{0}（{1}枚）',
       inspect_h2:'エンブレム能力 — カーソルを当てると能力が読めます', inspect_close:'◀ もどる', inspect_turnnow:'いまの手番',
       pause_h2:'メニュー', pause_resume:'つづける', pause_help:'あそびかた', pause_quit:'タイトルへもどる',
@@ -2936,9 +3053,9 @@ const AUDIO = (function(){
       field_empty:'Bãi trống<br>đánh lá tùy ý',
       act_choose:'Chọn lá', act_play:'✅ Đánh ({0})', act_play_no:'⛔ {0} không đánh được', act_no_combo:'⛔ Chưa thành bộ',
       act_need_spade3:'⛔ Nước đầu phải đánh kèm ♠3', split_tag:' (Phân liệt)', disguise_tag:' (Ngụy trang→{0})',
-      act_clear_sel:'✕ Bỏ chọn', act_pass:'✋ Bỏ lượt', turn_of:'Lượt của {0}…',
+      act_clear_sel:'✕ Bỏ chọn', act_pass:'✋ Bỏ lượt', act_react:'⚡ Hậu thủ', turn_of:'Lượt của {0}…',
       place_n:'Hạng {0}', title_daifugo:'Đại Phú', title_fugo:'Phú', title_hinmin:'Bần', title_daihinmin:'Đại Bần',
-      toast_flush:'Dọn bãi', toast_bad_play:'Nước này không đánh được',
+      toast_flush:'Dọn bãi', toast_react:'⚡ Hậu thủ! Thổi bay bãi', toast_bad_play:'Nước này không đánh được',
       choose_h2:'「Chỉ định」— Chọn người đánh kế', choose_btn:'{0} ({1} lá)',
       inspect_h2:'Năng lực Biểu Tượng — Trỏ con trỏ vào để đọc', inspect_close:'◀ Quay lại', inspect_turnnow:'Lượt hiện tại',
       pause_h2:'Menu', pause_resume:'Tiếp tục', pause_help:'Cách chơi', pause_quit:'Về Menu',
@@ -4698,6 +4815,13 @@ const AUDIO = (function(){
     if(chips.length>cap) html += '<span class="bchip more">+'+(chips.length-cap)+'</span>';
     return html;
   }
+  // リアクション・チャージのピル(反撃を持つ席のみ表示)。満タンは赤で強調＝「後出しが撃てる」合図。
+  function chargeHTML(p){
+    const rr = p && p.rules;
+    if(!rr || !rr.reactClear) return '';
+    const cost = rr.reactCost || RL.CONFIG.REACT_COST_DEFAULT;
+    return '<span class="chgpill'+(((p.charge||0)>=cost)?' full':'')+'">⚡'+(p.charge||0)+'/'+cost+'</span>';
+  }
   function renderMatch(){
     if(!G) return;
     // 相手
@@ -4709,7 +4833,7 @@ const AUDIO = (function(){
       const chips=buildChipsHTML(p.build, 6);   // 相手枠は狭い1行なので 6 個まで、残りは +N に丸める
       const tag = (typeof NET!=='undefined' && NET.active) ? NET.seatTag(i) : '';
       const low = (!p.finished && p.hand.length<=3) ? ' low' : '';   // 残り3枚以下＝上がり間近を赤で強調
-      d.innerHTML='<div class="ophead"><div class="nm">'+p.name+tag+'</div>'+
+      d.innerHTML='<div class="ophead"><div class="nm">'+p.name+tag+chargeHTML(p)+'</div>'+
         '<div class="cnt'+low+'">'+p.hand.length+'<small>'+T('cards_unit')+'</small></div></div>'+
         '<div class="builds">'+chips+'</div>';
       if(p.finished) d.appendChild(el('div','place', placeLabel(p.place)));
@@ -4730,7 +4854,7 @@ const AUDIO = (function(){
     const me=G.players[meIdx()];
     const myTag=(typeof NET!=='undefined'&&NET.active)?(' <span style="font-size:22px;color:#9fd9a8;">('+me.name+')</span>'):'';
     const myLow = (!me.finished && me.hand.length<=3) ? ' low' : '';
-    $('#self-name').innerHTML=T('you')+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+(me.finished?paren(placeLabel(me.place)):'');
+    $('#self-name').innerHTML=T('you')+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+chargeHTML(me)+(me.finished?paren(placeLabel(me.place)):'');
     const sb=$('#self-builds'); sb.innerHTML = buildChipsHTML(me.build, 16);   // 自分バーは1行・幅広め(16個まで、残りは +N)
     renderHand();
     renderActions();
@@ -4809,6 +4933,8 @@ const AUDIO = (function(){
       a.appendChild(play);
       if(handSel.length){ const clr=el('div','btn ghost foc',T('act_clear_sel')); clr.onclick=()=>{ handSel=[]; renderHand(); renderActions(); setTimeout(focusFirstHand,0); }; a.appendChild(clr); }
       const pass=el('div','btn ghost foc', T('act_pass')); pass.onclick=()=> doPass(); a.appendChild(pass);
+      // リアクション(後出し): チャージが満ちていれば「⚡後出し」を出す。返せない場でも切れる第3の選択肢。
+      if(RL.canReact(G, meIdx())){ const rc=el('div','btn react foc', T('act_react')); rc.onclick=()=> doReact(); a.appendChild(rc); }
     } else if(!G.gameOver){
       const who=G.players[G.turn];
       const info=el('div','btn', T('turn_of', who?who.name:'')); info.style.pointerEvents='none'; a.appendChild(info);
@@ -4835,6 +4961,7 @@ const AUDIO = (function(){
     events.forEach(ev=>{
       if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; AUDIO.emb(); embFlash(e.ico); toast(e.ico+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
       else if(ev.kind==='flush'){ AUDIO.flush(); toast(T('toast_flush'),'#5c6bc0'); }
+      else if(ev.kind==='react'){ embFlash('⚡'); toast(T('toast_react'),'#e53935'); }   // 後出し: 場を吹き飛ばし手番を奪った
       else if(ev.kind==='finish'){ /* 個別演出は afterStep で */ }
     });
   }
@@ -4880,6 +5007,16 @@ const AUDIO = (function(){
     if(NET.active && NET.isHost) NET.broadcast();
     afterStep();
   }
+  // リアクション(後出し): 自分の手番の第3の選択肢。場を吹き飛ばし手番を奪う。
+  function doReact(){
+    if(!humanTurnReady() || !RL.canReact(G, meIdx())) return;
+    if(NET.active && !NET.isHost){ AUDIO.flush(); NET.sendAction({k:'react'}); busy=true; renderMatch(); return; }
+    AUDIO.flush();
+    const r=RL.applyReact(G, meIdx());
+    renderMatch(); eventToast(r.events);
+    if(NET.active && NET.isHost) NET.broadcast();
+    afterStep();
+  }
 
   /* 指名オーバーレイ */
   function openChoose(cards, cands){
@@ -4918,6 +5055,7 @@ const AUDIO = (function(){
     const mv=RL.cpuDecide(G, idx);
     let r;
     if(mv.type==='pass'){ AUDIO.pass(); r=RL.applyPass(G, idx); }
+    else if(mv.type==='react'){ AUDIO.flush(); r=RL.applyReact(G, idx); }
     else { AUDIO.play(); r=RL.applyPlay(G, idx, mv.cards, {nextPlayer:mv.nextPlayer}); }
     renderMatch(); eventToast(r.events);
     if(G.gameOver){ setTimeout(endMatch, 650); return; }
@@ -4941,7 +5079,7 @@ const AUDIO = (function(){
     const seat=G.turn;
     if(NET.seatCtrl(seat)!=='cpu'){ afterStep(); return; }  // 席状態が変わった(復帰等)
     const mv=RL.cpuDecide(G, seat);
-    let r; if(mv.type==='pass'){ r=RL.applyPass(G,seat); } else { r=RL.applyPlay(G,seat,mv.cards,{nextPlayer:mv.nextPlayer}); }
+    let r; if(mv.type==='pass'){ r=RL.applyPass(G,seat); } else if(mv.type==='react'){ r=RL.applyReact(G,seat); } else { r=RL.applyPlay(G,seat,mv.cards,{nextPlayer:mv.nextPlayer}); }
     AUDIO.play(); renderMatch(); eventToast(r.events);
     NET.broadcast();
     if(G.gameOver){ setTimeout(endMatch, 650); return; }
@@ -4953,6 +5091,7 @@ const AUDIO = (function(){
     const mustSpade3 = (G.openSpade3===seat);   // 弱者: 最初の1手は♠3込み・パス不可
     let r;
     if(action.k==='pass'){ if(mustSpade3){ NET.sendStateTo(seat); return; } r=RL.applyPass(G, seat); }
+    else if(action.k==='react'){ if(!RL.canReact(G, seat)){ NET.sendStateTo(seat); return; } r=RL.applyReact(G, seat); }  // 後出し: ホストが合法性検証
     else {
       const rules=G.players[seat].rules;
       const combo=RL.classifyCombo(action.cards||[], rules);
@@ -5327,6 +5466,7 @@ const AUDIO = (function(){
       var idx = state.turn;
       var mv = RL.cpuDecide(state, idx);
       if(mv.type === 'pass') RL.applyPass(state, idx);
+      else if(mv.type === 'react') RL.applyReact(state, idx);
       else RL.applyPlay(state, idx, mv.cards, { nextPlayer: mv.nextPlayer });
       g++;
     }
@@ -5963,6 +6103,8 @@ const AUDIO = (function(){
       const mv  = RL.cpuDecide(state, idx);
       if(mv.type === 'pass'){
         RL.applyPass(state, idx);
+      } else if(mv.type === 'react'){
+        RL.applyReact(state, idx);
       } else {
         RL.applyPlay(state, idx, mv.cards, { nextPlayer: mv.nextPlayer });
       }
