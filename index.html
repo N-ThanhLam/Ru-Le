@@ -541,6 +541,9 @@
   .draftcard .nm{ font-size:36px; font-weight:900; }
   .draftcard .ds{ font-size:26px; color:#333; line-height:1.3; min-height:108px; }
   .draftcard .cost{ font-size:28px; font-weight:900; color:#b25a00; }
+  /* 既得カード → ランダム獲得枠(巡業限定の一時付与) */
+  .draftcard.rnd{ background:linear-gradient(160deg,#fff8e1,#ffe9a8); border-color:#e0a200; }
+  .draftcard .code.rnd{ background:linear-gradient(135deg,#f0a500,#ffd54a); color:#3a2a00; box-shadow:0 3px 0 #c98700; }
 
   /* ヘルプ/設定ページ */
   .page{ min-width:1200px; min-height:520px; }
@@ -735,7 +738,18 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.15</div>
+    <div class="ver">v0.18</div>
+    <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
+    <div class="ovl" id="ovl-confirm">
+      <div class="card-modal" style="text-align:center; max-width:1100px;">
+        <h2 id="confirm-title"></h2>
+        <div id="confirm-body" style="font-size:30px; font-weight:800; margin:14px 0 26px; line-height:1.5;"></div>
+        <div class="rowbtns">
+          <div class="btn ghost foc" id="confirm-cancel"></div>
+          <div class="btn primary foc" id="confirm-ok"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ===================== BUILD ===================== -->
@@ -1123,7 +1137,7 @@ const RL = (function(){
     HAND: 13,                 // 52 / 4
     RANK_ORDER_2HIGH: ['3','4','5','6','7','8','9','10','J','Q','K','A','2'], // 標準(2最強)
     RANK_ORDER_AHIGH: ['2','3','4','5','6','7','8','9','10','J','Q','K','A'], // 変則(A最強)
-    SUITS: ['S','H','D','C'],
+    SUITS: ['S','C','D','H'],   // 表示/並び順を ♠♣♦♥ に統一(スート強さ SUIT_STRENGTH と同順)。手札ソート・編成のマーク枠・場札の並びすべてこの順。
   };
   // 現在有効な強さ順(設定で差し替え可能)。スロット並びは常に標準表示順を使う。
   let RANKS = CONFIG.RANK_ORDER_2HIGH.slice();
@@ -1196,6 +1210,7 @@ const RL = (function(){
     { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:45, suitCost:68, ico:'🧹', effect:['SHED_WEAK','SHED_LEAD'], place:'card', desc:'いちばん弱い札を1枚捨てる。場が空（リード中）なら、もう1枚多く捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất. Nếu đang dẫn (bãi trống) thì bỏ thêm 1 lá nữa.' },
     { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:33, suitCost:33, ico:'🍃', effect:'SHED_LEAD',     place:'card', desc:'場が空（リード中）に出すと、いちばん弱い札を1枚捨てる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'Khi đánh lúc đang dẫn (bãi trống) thì bỏ 1 lá yếu nhất.' },
     { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:22, suitCost:27, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。越境・3返し・一撃が活きる場面では分裂せず単騎のまま出る。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi. Khi Vượt Biên / 3 Đè Heo / Nhất Kích có tác dụng thì giữ nguyên lá lẻ, không phân đôi.' },
+    { id:'aka11', code:'赤11', color:'aka', name:'偽装', cost:1, suitCost:1, ico:'🥸', effect:'DISGUISE', place:'card', desc:'単騎で出すと数字が1つ上の札に化ける（8♠→9♠／マークは同じ）。最強の2が上限（A→2・2→2）。革命中は逆に弱くなるリスクあり。', nameVi:'Ngụy Trang', abbrVi:'N.Trang', codeVi:'Đ11', descVi:'Khi đánh lẻ, lá biến thành lá lớn hơn 1 bậc (8♠→9♠, giữ nguyên chất). Tối đa là con 2 mạnh nhất (A→2, 2→2). Khi Cách mạng thì ngược lại sẽ yếu đi (rủi ro).' },
     // ── マーク専用エンブレム（マークスロットだけに装備する“スート用”カテゴリ）。
     //    3返し(aka07)=そのマークの「3」で場の2を切り返す card(suitOnly)／自由・同種階段(mi05/mi06,place:'suitRun')=そのマークだけ階段に使える per-suit。4マーク全部に積めばコストも4倍。
     { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:3, suitCost:3, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
@@ -1209,8 +1224,9 @@ const RL = (function(){
     { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:3, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình.' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:10, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     // 全体ルール — 配り時に判定する特殊エンブレム(コスト1)。
-    { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に2が4枚そろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có đủ tứ quý heo (bốn lá 2) thì vô điều kiện về Nhất (thoát ngay).' },
+    { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に「2が4枚」または「ペア5階段／ペア6階段（445566778899など連続する数字のペア）」がそろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có "tứ quý heo (bốn lá 2)" hoặc "5/6 đôi thông (các đôi số liên tiếp như 445566778899)" thì vô điều kiện về Nhất (thoát ngay).' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:10, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
+    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:1, ico:'🔁', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
     // ── 条件付き発動エンブレム(v0.15)。コストは暫定で全て1(校正は次回)。
     { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:3, suitCost:6, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
     { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:2, suitCost:5, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その札は場の単騎と同じマークなら数字に関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, nếu cùng chất với lá lẻ trên bãi thì đánh được bất kể số (qua được cả con 2 mạnh nhất).' },
@@ -1329,7 +1345,7 @@ const RL = (function(){
     return { twoStrong: opts.twoStrong!==false, set2:false, set3:false, set4:false,
       runFree:{S:false,H:false,D:false,C:false}, runSuit:{S:false,H:false,D:false,C:false},
       pairRuns:false, revolution:false, bomb:false, suitTiebreak:false,
-      hero:false, weakStart:false };
+      hero:false, weakStart:false, resume:false };
   }
   const DEFAULT_RULES = emptyRules({twoStrong:true});
   function xorB(){ let r=0; for(let i=0;i<arguments.length;i++) r ^= (arguments[i]?1:0); return !!r; }
@@ -1359,6 +1375,17 @@ const RL = (function(){
     const reps = ranks.map(r=> byRank[r][0]);
     if(!isConsecutive(reps)) return null;
     return { key: topCardOf(cards) };
+  }
+  // 手札内で「連続する数字を各々2枚以上(=ペア)持つ」最長の連なりの長さ(ペア階段の最大長)。
+  //   例: 445566778899 → 6(ペア6階段)。英雄の無条件勝利判定(ペア5階段/ペア6階段)に使う。
+  //   連続は現在の強さ順(RANKS=3..2)で判定。各ランクは2枚以上(トリプル等も可)。
+  function maxPairRunLen(hand){
+    const cnt={}; hand.forEach(c=>{ cnt[c.rank]=(cnt[c.rank]||0)+1; });
+    let best=0, cur=0;
+    for(let i=0;i<RANKS.length;i++){
+      if((cnt[RANKS[i]]||0)>=2){ cur++; if(cur>best) best=cur; } else cur=0;
+    }
+    return best;
   }
   // 階段の判定(per-suit)。
   //   同種階段(runSuit): 全カードが1マークで、そのマークが有効・3枚以上。
@@ -1433,7 +1460,26 @@ const RL = (function(){
     }
     return false;
   }
+  /* 偽装(DISGUISE): 単騎で出すと数字が1つ上の札に化ける(8♠→9♠・マークは同じ)。
+     ・最強ランク(2)が上限＝A→2・2→2(これ以上は上がらない)。
+     ・革命中は強さが反転するので「1つ上」が逆に弱くなる(=リスク。特別扱いはせず自然にそうなる)。
+     ・適用は「単騎出し」限定。化けた札(疑似)を場に乗せ、手札からは元の実体札を1枚捨てる(applyPlay 側)。
+     ・分裂と同じ単騎変換系なので、両方を同じ札に積んだ場合は偽装を優先(化けてから出す)。 */
+  function disguiseRank(rank){
+    const s = strength(rank), maxS = RANKS.length-1;
+    return RANKS[Math.min(s+1, maxS)];   // 1つ上(2が上限)
+  }
+  function isDisguiseSingle(build, combo){
+    return !!(build && combo && combo.type==='single' && hasEffect(build, combo.cards[0], 'DISGUISE'));
+  }
   function effectiveCombo(build, combo, ctx){
+    if(isDisguiseSingle(build, combo)){
+      const c = combo.cards[0], dr = disguiseRank(c.rank);
+      if(dr !== c.rank){
+        const ph = { rank:dr, suit:c.suit, disguised:true };          // 1つ上に化けた疑似札(同スート)
+        return { type:'single', len:1, key:ph, cards:[ph], disguised:true };
+      }
+    }
     if(isSplitSingle(build, combo) && !splitSuppressed(build, combo, ctx)){
       const c = combo.cards[0];
       const phantom = { rank:c.rank, suit:c.suit, phantom:true };   // 同スートの疑似コピー(プレーンデータ)
@@ -1506,6 +1552,7 @@ const RL = (function(){
       else if(eff==='SUIT_ORDER') r.suitTiebreak=true;
       else if(eff==='HERO') r.hero=true;               // 英雄: 配り直後に2を4枚持っていれば即1位
       else if(eff==='WEAK_START') r.weakStart=true;    // 弱者: ♠3保持で先手(最初は♠3を含めて出す)
+      else if(eff==='RESUME') r.resume=true;           // 再開: パスしてもトリックから降りない(誰かが出すたび復帰)
     }); });
     // マーク階段(suitRun): 付けたマークだけ階段に使える(per-suit)
     SUITS.forEach(s=>{ ((build.suitSlots && build.suitSlots[s])||[]).forEach(id=>{ const e=emblem(id); if(!e) return; effList(e).forEach(eff=>{
@@ -1666,11 +1713,12 @@ const RL = (function(){
       gameOver:false,
       log:[]
     };
-    // 英雄: 配り直後に2を4枚そろえていたら無条件で即1位(その手札は場に出ないまま終了)。
+    // 英雄: 配り直後に「2が4枚」または「ペア5階段/ペア6階段(連続する数字を各2枚以上=445566778899など)」を
+    //   そろえていたら無条件で即1位(その手札は場に出ないまま終了)。
     players.forEach((p,i)=>{
       if(p.rules && p.rules.hero && !p.finished){
         const twos = p.hand.filter(c=> c.rank==='2').length;
-        if(twos>=4){ p.finished=true; state.finishedOrder.push(i); p.place=state.finishedOrder.length; }
+        if(twos>=4 || maxPairRunLen(p.hand)>=5){ p.finished=true; state.finishedOrder.push(i); p.place=state.finishedOrder.length; }
       }
     });
     // 残り1人以下になったら終局(英雄で抜けすぎた極端な卓の保険)。
@@ -1805,6 +1853,12 @@ const RL = (function(){
     state.field.combo = fieldCombo2;
     state.field.card  = fieldCombo2.key;
     state.field.ownerIndex = playerIndex;
+    // 再開(RESUME): 新しい札が場に出た＝この瞬間、再開ルールを持つ“パス済み”の席をトリックに復帰させる
+    //   (誰かが出すたびに参加し直せる)。本人は出した側なので passed には居ない。
+    //   ※全員パス(誰も出さない)の連鎖では復帰は起きず、通常どおり場が流れて終わる＝無限ループにはならない。
+    if(Array.isArray(state.passed) && state.passed.length){
+      state.passed = state.passed.filter(i=> !(playerRules(state,i) && playerRules(state,i).resume));
+    }
     // 縛り(LOCK_SUIT_PLAYED, 指名): 出した札のマークで“無条件に”縛りを発生(場が空でも・場と違うマークでも必ず)。
     // 縛り(LOCK_SUIT, 縛り): 場と同じマークで重ねたときだけ発生(日本式大富豪ルール)。
     // 両方あれば無条件側を優先。
@@ -1880,7 +1934,8 @@ const RL = (function(){
     const fSkip  = effs.includes('SKIP');
     const fRev   = effs.includes('REVERSE_DIR');
     const fChoose= effs.includes('CHOOSE_NEXT') && !finishedNow;
-    if(fieldCombo2 !== combo)            events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
+    if(fieldCombo2.split)                events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
+    if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
     if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
     else if(cutWin)                      events.push({kind:'emb', emb:firstWith('CUT_TOP')});      // 3返しの場流し
     else if(banseiClear)                 events.push({kind:'emb', emb:firstWith('CLEAR_IF_MOST')}); // 晩成の場流し
@@ -2418,6 +2473,61 @@ const RL = (function(){
       const lm=legalMoves(wg, holder);
       ok('弱者: 最初の合法手は全て♠3を含む', lm.length>0 && lm.every(m=> m.cards.some(c=>c.rank==='3'&&c.suit==='S')));
     })();
+    // 46b 英雄ペア階段(v0.18): ペア5/6階段でも無条件勝利。maxPairRunLen の判定。
+    (function(){
+      const pr6=[{rank:'4',suit:'S'},{rank:'4',suit:'H'},{rank:'5',suit:'S'},{rank:'5',suit:'H'},{rank:'6',suit:'S'},{rank:'6',suit:'H'},{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'8',suit:'S'},{rank:'8',suit:'H'},{rank:'9',suit:'S'},{rank:'9',suit:'H'},{rank:'K',suit:'C'}];
+      ok('英雄: 445566778899(ペア6階段)を検知', maxPairRunLen(pr6)===6);
+      const pr5=[{rank:'5',suit:'S'},{rank:'5',suit:'H'},{rank:'6',suit:'S'},{rank:'6',suit:'H'},{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'8',suit:'S'},{rank:'8',suit:'H'},{rank:'9',suit:'S'},{rank:'9',suit:'H'}];
+      ok('英雄: ペア5階段を検知(>=5)', maxPairRunLen(pr5)===5);
+      const pr4=[{rank:'5',suit:'S'},{rank:'5',suit:'H'},{rank:'6',suit:'S'},{rank:'6',suit:'H'},{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'8',suit:'S'},{rank:'8',suit:'H'}];
+      ok('英雄: ペア4階段は無条件勝利にならない(<5)', maxPairRunLen(pr4)===4);
+      const noPr=[{rank:'5',suit:'S'},{rank:'6',suit:'S'},{rank:'7',suit:'S'},{rank:'8',suit:'S'},{rank:'9',suit:'S'}];   // 単騎階段(ペアでない)
+      ok('英雄: ペアでない階段は0', maxPairRunLen(noPr)===0);
+    })();
+    // 46c 偽装(v0.18): 単騎は+1ランクに化ける(2が上限)。化けた値で場を超える。実体は元札を捨てる。
+    (function(){
+      const db=buildFrom({rank:{'8':['aka11']}});
+      const e=effectiveCombo(db, singleCombo({rank:'8',suit:'S'}));
+      ok('偽装: 8♠→9♠に化ける(同スート)', e.type==='single' && e.disguised===true && e.key.rank==='9' && e.key.suit==='S');
+      const eA=effectiveCombo(buildFrom({rank:{'A':['aka11']}}), singleCombo({rank:'A',suit:'S'}));
+      ok('偽装: A♠→2♠(上限は最強の2)', eA.key.rank==='2' && eA.disguised===true);
+      const e2=effectiveCombo(buildFrom({rank:{'2':['aka11']}}), singleCombo({rank:'2',suit:'S'}));
+      ok('偽装: 2♠はこれ以上上がらない(化けない)', e2.key.rank==='2' && !e2.disguised);
+      // 同値8の場を 8♠(→9) で超えられる
+      const g=newGame(seat0(db), 230);
+      g.field.combo=singleCombo({rank:'8',suit:'H'}); g.field.card=g.field.combo.key; g.field.ownerIndex=1;
+      ok('偽装: 同値8の場を8♠(→9)で超えられる', comboBeats(g, db, singleCombo({rank:'8',suit:'S'}), g.players[0].rules, 13)===true);
+      // 実プレイ: 場には化けた9♠が乗り、手札からは実体8♠が減る
+      const g2=newGame(seat0(db), 231);
+      g2.players[0].hand=[{rank:'8',suit:'S'},{rank:'K',suit:'C'}]; g2.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g2.turn=0; g2.passed=[];
+      applyPlay(g2,0,{rank:'8',suit:'S'},{});
+      ok('偽装: 場は化けた9♠', g2.field.combo && g2.field.combo.key.rank==='9' && g2.field.combo.disguised===true);
+      ok('偽装: 手札からは実体8♠が減る', g2.players[0].hand.length===1 && g2.players[0].hand[0].rank==='K');
+    })();
+    // 46d 再開(v0.18): パスしてもトリックから降りず、誰かが出すたび復帰する。終端性(全員パスで場流し)も担保。
+    (function(){
+      const rb=buildFrom({rule:['ao07']});
+      const g=newGame([{name:'P0',isHuman:true,build:rb},{name:'P1',build:emptyBuild()},{name:'P2',build:emptyBuild()},{name:'P3',build:emptyBuild()}], 300);
+      ok('再開: ルールが本人に乗る', g.players[0].rules.resume===true);
+      g.field.combo=singleCombo({rank:'7',suit:'S'}); g.field.card=g.field.combo.key; g.field.ownerIndex=1; g.turn=0; g.passed=[];
+      applyPass(g,0);
+      ok('再開: パス直後はいったん passed に入る', g.passed.includes(0));
+      g.players[2].hand=[{rank:'8',suit:'H'},{rank:'K',suit:'C'}]; g.turn=2;
+      applyPlay(g,2,{rank:'8',suit:'H'},{});                                   // 誰かが新しく出す→復帰
+      ok('再開: 誰かが出すと passed から外れ復帰', !g.passed.includes(0));
+      // 対照: 再開なしは復帰しない
+      const g0=newGame(defs.map(x=>({...x})), 300);
+      g0.field.combo=singleCombo({rank:'7',suit:'S'}); g0.field.card=g0.field.combo.key; g0.field.ownerIndex=1; g0.turn=0; g0.passed=[];
+      applyPass(g0,0);
+      g0.players[2].hand=[{rank:'8',suit:'H'},{rank:'K',suit:'C'}]; g0.turn=2;
+      applyPlay(g0,2,{rank:'8',suit:'H'},{});
+      ok('再開なし: パス済みは復帰しない', g0.passed.includes(0));
+      // 終端性: 誰も出さずに全員パスなら場は流れて終わる(無限ループしない)
+      const gt=newGame([{name:'P0',isHuman:true,build:rb},{name:'P1',build:emptyBuild()},{name:'P2',build:emptyBuild()},{name:'P3',build:emptyBuild()}], 301);
+      gt.field.combo=singleCombo({rank:'2',suit:'S'}); gt.field.card=gt.field.combo.key; gt.field.ownerIndex=1; gt.turn=2; gt.passed=[];
+      applyPass(gt,2); applyPass(gt,3); applyPass(gt,0);
+      ok('再開: 全員パス(誰も出さない)なら場流しで終端', gt.field.card===null && gt.passed.length===0);
+    })();
 
     // 47 ボム階層(v0.15): 3ペア階段(Lv1) < 4カード(Lv2) < 4ペア階段(Lv3)。場の2の組はボムのレベルで切る。
     const bh=newGame(seat0(buildFrom({rule:['aka06']})), 211);
@@ -2497,7 +2607,7 @@ const RL = (function(){
     get RANKS(){ return RANKS; }, setRankOrder, strength,
     emptyBuild, normalizeBuild, placeOf, buildCost, slotCost, canScope, emblemSlotOf, emblemsForCard, effectsForCard, hasEffect,
     PRESETS, presetBuild, buildFrom,
-    classifyCombo, singleCombo, comboBeats, effectiveCombo, isBomb, bombPower, fieldCombo, handCombos, legalMoves, computeTableRules, playerRules,
+    classifyCombo, singleCombo, comboBeats, effectiveCombo, disguiseRank, maxPairRunLen, isBomb, bombPower, fieldCombo, handCombos, legalMoves, computeTableRules, playerRules,
     newGame, sortHand, legalCards, canPlay, applyPlay, applyPass, cpuDecide,
     activeIndices, trickAlive, selftest
   };
@@ -2544,11 +2654,12 @@ const AUDIO = (function(){
   const el = (tag, cls, html)=>{ const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; };
 
   const SAVE_KEY = 'rule_v1';
-  // クイック/オンの初期解放=スターター4種(ペア/トリプル/縛り/革命)。残りはエンブレム巡業のドラフトで永続解放する。
-  //   ＝「巡業で取得したエンブレムだけクイック/オンで使える」を成立させるための最小コレクション。
-  const BASE_UNLOCKED = ['set2','set3','aka04','aka05'];
-  // コレクション仕様の世代。これが変わると load() でコレクションを一度だけスターターへ戻す(旧=全解放バグの一掃)。
-  const COLLECTION_VER = 1;
+  // ★v0.17: クイック/オンの初期解放 と 巡業の初期所持 を同一セットへ統一(=巡業の初期エンブレムを「獲得済み」として扱う)。
+  //   残りはエンブレム巡業のドラフトで永続解放する＝「巡業で取得したエンブレムだけクイック/オンで使える」。
+  const BASE_UNLOCKED = ['aka01','ki01','ao01','aka04'];
+  // コレクション仕様の世代。これが変わると load() でコレクションを一度だけ基本セットへ戻す。
+  //   ver2: 初期解放セットを旧[set2,set3,aka04,aka05]→巡業初期[aka01,ki01,ao01,aka04]へ統一。
+  const COLLECTION_VER = 2;
 
   /* ---- 入力アクション定義（キーボード/ゲームパッド 共通の論理アクション）。
          実キー(e.key を小文字化)と実ボタン(標準配列のbutton index)をユーザーが割当可能。 ---- */
@@ -2668,7 +2779,7 @@ const AUDIO = (function(){
       combo_n:'{0}枚', combo_run:'階段{0}枚', combo_pairrun:'ペア階段{0}組', combo_generic:'役',
       field_empty:'場は空<br>好きな札を出せる',
       act_choose:'札をえらぶ', act_play:'✅ 出す（{0}）', act_play_no:'⛔ {0}は場に出せない', act_no_combo:'⛔ 役になっていない',
-      act_need_spade3:'⛔ 最初は♠3を含めて出す', split_tag:'（分裂）',
+      act_need_spade3:'⛔ 最初は♠3を含めて出す', split_tag:'（分裂）', disguise_tag:'（偽装→{0}）',
       act_clear_sel:'✕ 選択解除', act_pass:'✋ パス', turn_of:'{0} の番…',
       place_n:'{0}位', title_daifugo:'大富豪', title_fugo:'富豪', title_hinmin:'貧民', title_daihinmin:'大貧民',
       toast_flush:'場流し', toast_bad_play:'その手は出せない',
@@ -2682,6 +2793,16 @@ const AUDIO = (function(){
       next_see_result:'結果を見る', next_loot_win:'🏆 戦利品を選ぶ', next_loot:'戦利品を選ぶ', next_lifedown:'（残機-1）次の深度へ',
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
+      /* 巡業1位ボーナス(次戦のみコスト容量+25) */
+      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'次の対戦だけ コスト容量 +{0}',
+      /* ドラフトの既得カード → ランダム獲得枠 */
+      draft_random_code:'ランダム獲得', draft_random_nm:'ランダムなエンブレム',
+      draft_random_ds:'所持済みのカードの代わりに、ランダムなエンブレムを1つ付与（この巡業だけ・コスト無関係）',
+      draft_random_note:'巡業限定・一時付与',
+      toast_rand_full:'付与できる枠がもうありません',
+      /* 確認ダイアログ(新規巡業で中断データを上書きする前) */
+      confirm_newrun_title:'新しい巡業をはじめる？', confirm_cancel:'やめる', confirm_newrun_ok:'新しくはじめる',
+      confirm_newrun_body:'中断中の巡業（深度{0}・残機{1}）があります。<br>新しくはじめると、この中断データは<b style="color:#d34;">消えます</b>。<br><span style="font-size:25px;">※ 続きをやるなら「やめる」→「巡業再開」から</span>',
       rnd_tag:'ランダム',
       toast_rand_dup:'この枠にはランダムで付与済み（別の数字／マークには付けられます）',
       toast_rand_fixed:'🎲 巡業で獲得したランダム枠。この枠に固定で、はずせません',
@@ -2814,7 +2935,7 @@ const AUDIO = (function(){
       combo_n:'{0} lá', combo_run:'Sảnh {0} lá', combo_pairrun:'{0} đôi thông', combo_generic:'Bộ',
       field_empty:'Bãi trống<br>đánh lá tùy ý',
       act_choose:'Chọn lá', act_play:'✅ Đánh ({0})', act_play_no:'⛔ {0} không đánh được', act_no_combo:'⛔ Chưa thành bộ',
-      act_need_spade3:'⛔ Nước đầu phải đánh kèm ♠3', split_tag:' (Phân liệt)',
+      act_need_spade3:'⛔ Nước đầu phải đánh kèm ♠3', split_tag:' (Phân liệt)', disguise_tag:' (Ngụy trang→{0})',
       act_clear_sel:'✕ Bỏ chọn', act_pass:'✋ Bỏ lượt', turn_of:'Lượt của {0}…',
       place_n:'Hạng {0}', title_daifugo:'Đại Phú', title_fugo:'Phú', title_hinmin:'Bần', title_daihinmin:'Đại Bần',
       toast_flush:'Dọn bãi', toast_bad_play:'Nước này không đánh được',
@@ -2827,6 +2948,16 @@ const AUDIO = (function(){
       next_see_result:'Xem kết quả', next_loot_win:'🏆 Chọn chiến lợi phẩm', next_loot:'Chọn chiến lợi phẩm', next_lifedown:'(Mạng -1) Sang tầng kế',
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
+      /* Thưởng hạng 1 (chỉ trận kế: ngân sách +25) */
+      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Riêng trận kế: ngân sách +{0}',
+      /* Thẻ đã có trong draft → ô Nhận ngẫu nhiên */
+      draft_random_code:'Nhận ngẫu nhiên', draft_random_nm:'Biểu tượng ngẫu nhiên',
+      draft_random_ds:'Thay cho thẻ đã có, nhận 1 biểu tượng ngẫu nhiên (chỉ lượt lữ hành này · không tính chi phí)',
+      draft_random_note:'Chỉ lữ hành · gắn tạm thời',
+      toast_rand_full:'Không còn ô để gắn',
+      /* Hộp thoại xác nhận (trước khi ghi đè dữ liệu lữ hành đang tạm dừng) */
+      confirm_newrun_title:'Bắt đầu lữ hành mới?', confirm_cancel:'Hủy', confirm_newrun_ok:'Bắt đầu mới',
+      confirm_newrun_body:'Đang có lữ hành tạm dừng (Tầng {0} · Mạng {1}).<br>Nếu bắt đầu mới, dữ liệu này sẽ <b style="color:#d34;">bị xóa</b>.<br><span style="font-size:25px;">※ Muốn chơi tiếp thì chọn “Hủy” → “Tiếp tục”</span>',
       rnd_tag:'Ngẫu nhiên',
       toast_rand_dup:'Ô này đã có biểu tượng ngẫu nhiên (ô khác vẫn gắn được)',
       toast_rand_fixed:'🎲 Ô ngẫu nhiên nhận khi lữ hành. Cố định ở ô này, không gỡ được',
@@ -3275,6 +3406,7 @@ const AUDIO = (function(){
   /* ---------- 戻る/パス/ポーズの文脈動作 ---------- */
   function onBack(){
     AUDIO.back();
+    if($('#ovl-confirm')?.classList.contains('active')){ closeConfirm(); setTimeout(focusFirst,0); return; } // 確認ダイアログ=戻るでキャンセル
     if($('#ovl-capture')?.classList.contains('active')){ endCapture(); return; } // リバインド取り込みをキャンセル
     if($('#ovl-net')?.classList.contains('active')) return; // ネット通知は専用ボタンのみ
     if($('#ovl-choose').classList.contains('active')) return; // 指名は戻る不可
@@ -3345,7 +3477,7 @@ const AUDIO = (function(){
     const mkRow=(...btns)=>{ const r=el('div','title-row'); btns.forEach(b=>{ if(b) r.appendChild(b); }); m.appendChild(r); };
 
     // 1行目: エンブレム巡業 ／ 巡業再開（中断データが有れば緑で続き表示・無ければ淡色の無効）
-    const runBtn=mkBtn(T('menu_run'), ()=> startRun());
+    const runBtn=mkBtn(T('menu_run'), ()=> tryStartRun());
     let resumeBtn;
     if(store.savedRun){
       const d=store.savedRun.run.depth, lv=store.savedRun.run.lives;
@@ -3383,6 +3515,22 @@ const AUDIO = (function(){
     $('#title-st').style.color = st.passed===st.total ? '#9fd9a8' : '#ffb4a0';
   }
 
+  /* ----- 汎用 確認ダイアログ(誤操作防止) ----- */
+  let _confirmCb=null;
+  function showConfirm(title, body, okLabel, cancelLabel, onOk){
+    AUDIO.confirm();
+    $('#confirm-title').textContent=title;
+    $('#confirm-body').innerHTML=body;
+    $('#confirm-ok').textContent=okLabel;
+    $('#confirm-cancel').textContent=cancelLabel;
+    _confirmCb=onOk||null;
+    $('#ovl-confirm').classList.add('active');
+    setTimeout(()=>{ setFocus($('#confirm-cancel')); }, 0);   // 既定はキャンセル側に当てる＝Enter即決での誤承認を防ぐ
+  }
+  function closeConfirm(){ $('#ovl-confirm').classList.remove('active'); _confirmCb=null; }
+  $('#confirm-ok').onclick=()=>{ AUDIO.confirm(); const cb=_confirmCb; closeConfirm(); if(cb) cb(); };
+  $('#confirm-cancel').onclick=()=>{ AUDIO.back(); closeConfirm(); setTimeout(focusFirst,0); };
+
   /* ============================================================
      モード状態
      ============================================================ */
@@ -3416,13 +3564,25 @@ const AUDIO = (function(){
   //   プレイヤーは以降100で頭打ち、CPUは同じ式のまま100を超えて+5し続ける(深いほど不利になる仕様)。
   function runBudget(depth){ return Math.min(100, 50 + 5*depth); }   // 深度1=55, 2=60, …, 10=100, 以降100固定
   function runCpuBudget(depth){ return 50 + 5*depth; }               // CPUは上限なし(深度11=105, 12=110, …)
+  const RUN_WIN_BONUS = 25;   // ★v0.17: 1位通過 → 次の対戦だけコスト容量+25(100上限を超えてよい)
   function freshRun(){
     return {
-      depth:1, lives:3, budget:runBudget(1),       // 予算は常に深度から決まる(加算ボーナスは廃止)
-      owned:['aka01','ki01','ao01','aka04'],       // 巡業内の所持プール(ドラフトで増える)
+      depth:1, lives:3, budget:runBudget(1), nextBonus:0,   // 予算は深度から決まる／nextBonus=1位通過で次戦のみ加算される+25
+      owned:BASE_UNLOCKED.slice(),                 // 巡業の初期所持=基本セット(クイック/オンの初期解放と同一)。ドラフトで増える
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
-      randomBuild:RL.emptyBuild()                  // ★巡業限定のランダムエンブレム枠(1位クリアで成長・コスト/解放と無関係・次の巡業でリセット)
+      randomBuild:RL.emptyBuild()                  // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
     };
+  }
+  // タイトルの「巡業」ボタン入口。中断データがある時は確認をはさむ＝誤操作1発で消えるのを防ぐ。
+  //   OK=新規開始(中断破棄) / キャンセル=何もせずタイトルへ戻る(再開は専用の緑「巡業再開」ボタンから)。
+  function tryStartRun(){
+    if(store.savedRun){
+      const d=store.savedRun.run.depth, lv=store.savedRun.run.lives;
+      showConfirm(T('confirm_newrun_title'), T('confirm_newrun_body', d, lv), T('confirm_newrun_ok'), T('confirm_cancel'),
+        ()=> startRun());                   // OK のみ動作。キャンセルは閉じるだけ。
+    } else {
+      startRun();
+    }
   }
   function startRun(){
     MODE.kind='run'; MODE.run=freshRun();
@@ -3437,6 +3597,7 @@ const AUDIO = (function(){
     // 旧セーブ互換: ランダムエンブレム枠が無ければ空で補完(中断復帰で獲得済みを失わないよう正規化)。
     MODE.run.randomBuild = MODE.run.randomBuild ? RL.normalizeBuild(MODE.run.randomBuild) : RL.emptyBuild();
     MODE.run.budget = runBudget(MODE.run.depth);   // 旧セーブ互換: 予算は加算値を捨て、常に深度から再計算
+    MODE.run.nextBonus = MODE.run.nextBonus || 0;  // 旧セーブ互換: 1位ボーナス枠
     MODE.mutator=saved.mutator ? JSON.parse(JSON.stringify(saved.mutator)) : rollMutator(MODE.run.depth);
     openBuild(T('bt_run', MODE.run.depth));
   }
@@ -3898,7 +4059,8 @@ const AUDIO = (function(){
      ============================================================ */
   let buildState=null; // {build, owned, budget, selSlot:{type,key}}
   function currentBudget(){
-    const base = MODE.kind==='run' ? MODE.run.budget : RL.CONFIG.MAX_BUILD_COST;
+    // 巡業は深度予算＋1位ボーナス(+25・次戦のみ・100上限を超えてよい)。クイック/オンは固定100。
+    const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
     return Math.max(30, base + mutatorBudgetDelta());   // お題の予算増減を反映(下限30・100系)
   }
   function ownedList(){
@@ -4360,7 +4522,7 @@ const AUDIO = (function(){
   function openConstraintViolated(){ return G && G.openSpade3===meIdx() && !handSel.some(c=> c.rank==='3'&&c.suit==='S'); }
   function selLegal(){ const m=selCombo(); const mi=meIdx(); return !!m && !openConstraintViolated() && RL.comboBeats(G, G.players[mi].build, m, humanRules(), G.players[mi].hand.length); }
   // 表示用: 分裂は単騎出しでもペアとして場に乗るので、ラベルもペア表記にする。
-  function effComboLabel(combo){ const mi=meIdx(); const eff=RL.effectiveCombo(G.players[mi].build, combo, {state:G, handLen:G.players[mi].hand.length}); return comboLabel(eff)+(eff&&eff.split?T('split_tag'):''); }
+  function effComboLabel(combo){ const mi=meIdx(); const eff=RL.effectiveCombo(G.players[mi].build, combo, {state:G, handLen:G.players[mi].hand.length}); return comboLabel(eff)+(eff&&eff.split?T('split_tag'):'')+(eff&&eff.disguised?T('disguise_tag', eff.key.rank):''); }
   function comboLabel(combo){
     if(!combo) return '';
     if(combo.type==='single') return T('combo_single');
@@ -4501,7 +4663,7 @@ const AUDIO = (function(){
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
-    if(MODE.kind==='run') store.saveRun(MODE.run, MODE.mutator);   // 対戦開始時に中断用セーブ(1戦目も含めて確定ビルドを永続化)
+    if(MODE.kind==='run'){ MODE.run.nextBonus=0; store.saveRun(MODE.run, MODE.mutator); }   // 対戦開始で1位ボーナス(+25)を消費＋中断用セーブ(確定ビルドを永続化)
     busy=false; pendingChoose=null; endedShown=false;
     $('#match-title').textContent = MODE.kind==='run' ? T('mt_run', depth, MODE.run.lives) : T('mt_quick');
     show('s-match');
@@ -4830,17 +4992,17 @@ const AUDIO = (function(){
     if(MODE.kind==='run') endRunMatch(myPlace);
     else showResult();
   }
-  function showResult(nextLabel, onNext, rewardMsg, runDepth){
+  function showResult(nextLabel, onNext, reward, runDepth){
     const online = NET.active;
     // 巡業の結果タイトルは「今プレイした深度」を出す(前進処理を先に適用済みでも runDepth で固定できる)。
     const rd = (runDepth!=null) ? runDepth : (MODE.run ? MODE.run.depth : 1);
     $('#result-title').textContent = (!online && MODE.kind==='run') ? T('result_run_title', rd) : T('result_title');
     const me=G.players[meIdx()];
     $('#result-head').textContent = me.place===1 ? T('result_win') : T('result_head');
-    // 巡業の1位報酬(ランダムエンブレム獲得)を結果に出す。無ければ枠を消す。
+    // 巡業の1位報酬(=次戦コスト容量+25)を結果に出す。reward={head,line} or null。無ければ枠を消す。
     const rew=$('#result-reward');
     if(rew){
-      if(rewardMsg){ rew.innerHTML='<div class="rwd-h">'+T('reward_random_get')+'</div><div class="rwd-l">'+rewardMsg+'</div>'; rew.classList.add('show'); }
+      if(reward){ rew.innerHTML='<div class="rwd-h">'+reward.head+'</div><div class="rwd-l">'+reward.line+'</div>'; rew.classList.add('show'); }
       else { rew.innerHTML=''; rew.classList.remove('show'); }
     }
     const list=$('#result-list'); list.innerHTML='';
@@ -4871,25 +5033,27 @@ const AUDIO = (function(){
   function endRunMatch(place){
     const run=MODE.run;
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
-    // ★1位クリア → ランダムエンブレムを1個獲得(巡業限定のローグライク成長)。
-    let rewardMsg='';
-    if(place===1){ const g=grantRandomEmblem(run); if(g) rewardMsg=randomGrantLabel(g); }
+    // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
+    //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
+    // ★v0.18: 1位だけでなく3位にも+25。1位は前進(残機維持)・3位は残機-1という不利を、次戦の予算+25で補って4位と差をつける。
+    let reward=null;
+    if(place===1 || place===3){ run.nextBonus = RUN_WIN_BONUS; reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) }; }
     // ★v0.16: 深度は勝っても負けても何位でも毎戦+1(=予算も毎戦+5)。3位/4位は残機-1のみ。
     const advanced = place<=2;
     if(!advanced) run.lives--;
     if(run.lives<0){
       // 終了: 残機尽きた巡業は復帰させない(中断セーブを破棄)。
       store.clearRun();
-      showResult(T('next_see_result'), ()=> runOver(), rewardMsg, playedDepth);
+      showResult(T('next_see_result'), ()=> runOver(), reward, playedDepth);
       return;
     }
     // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
     run.depth++;
-    run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(加算ボーナス廃止)
+    run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(深度予算。1位ボーナス+25は nextBonus で別管理)
     MODE.mutator = rollMutator(run.depth);
     store.saveRun(run, MODE.mutator);
     const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : T('next_lifedown');
-    showResult(label, ()=> openDraft(), rewardMsg, playedDepth);
+    showResult(label, ()=> openDraft(), reward, playedDepth);
   }
   function runOver(){
     const run=MODE.run;
@@ -4910,36 +5074,49 @@ const AUDIO = (function(){
     const m=MODE.mutator;
     const mTxt = (m && m.effect!=='NONE') ? T('draft_mut', m.ico, mutName(m)) : '';
     $('#draft-depth').textContent=T('draft_depth', run.depth, mTxt);
-    // ★v0.16: 重複は引き直し＝候補は常に「未所持」から出す(1〜2種しか残っていなければその枚数だけ)。
-    //   全エンブレム所持済みのときだけ所持済みから出す(獲得しても変化なし)。予算ボーナス変換は廃止。
-    const pool=RL.EMBLEMS.map(e=>e.id);
-    const notOwned=pool.filter(id=>!run.owned.includes(id));
-    const src = notOwned.length ? notOwned : pool;
-    draftPicks = pick3(src);
+    // ★v0.17: 全エンブレムから3枚抽選。引いたカードが「その巡業で既に獲得済み(run.owned)」なら、
+    //   そのカードは『ランダム獲得』枠に変わる＝選ぶと巡業限定のランダムエンブレムを1個付与(run.randomBuild)。
+    //   未所持カードは従来通り、選ぶと永続獲得(run.owned + store.unlock)。
+    draftPicks = pick3(RL.EMBLEMS.map(e=>e.id));
     const wrap=$('#draft-cards'); wrap.innerHTML='';
     draftPicks.forEach(id=>{
-      const e=RL.emblem(id); const col=RL.COLORS[e.color];
+      const dup = run.owned.includes(id);          // 既得 → ランダム獲得カードへ差し替え
       const c=el('div','draftcard foc');
-      const dup = run.owned.includes(id);
-      c.innerHTML=
-        '<div class="code '+col.cls+'">'+e.ico+' '+embCode(e)+'</div>'+
-        '<div class="nm">'+embName(e)+'</div>'+
-        '<div class="ds">'+embDesc(e)+'</div>'+
-        '<div class="cost">'+T('draft_cost', e.cost, colCat(col), placeShort(RL.placeOf(id)), (dup?T('draft_owned'):''))+'</div>';
+      if(dup){
+        c.classList.add('rnd');                    // 元エンブレムの identity は伏せ、🎲「ランダム獲得」として提示
+        c.innerHTML=
+          '<div class="code rnd">🎲 '+T('draft_random_code')+'</div>'+
+          '<div class="nm">'+T('draft_random_nm')+'</div>'+
+          '<div class="ds">'+T('draft_random_ds')+'</div>'+
+          '<div class="cost">'+T('draft_random_note')+'</div>';
+      } else {
+        const e=RL.emblem(id); const col=RL.COLORS[e.color];
+        c.innerHTML=
+          '<div class="code '+col.cls+'">'+e.ico+' '+embCode(e)+'</div>'+
+          '<div class="nm">'+embName(e)+'</div>'+
+          '<div class="ds">'+embDesc(e)+'</div>'+
+          '<div class="cost">'+T('draft_cost', e.cost, colCat(col), placeShort(RL.placeOf(id)), '')+'</div>';
+      }
       c.onclick=()=>{ AUDIO.confirm(); takeDraft(id, dup); };
       wrap.appendChild(c);
     });
     show('s-draft');
   }
   function pick3(arr){
-    // 未所持プールからユニークに最大3枚。プールが3未満ならある分だけ出す(水増しの重複は出さない)。
+    // 全エンブレムからユニークに最大3枚。プールが3未満ならある分だけ出す(水増しの重複は出さない)。
     const a=arr.slice(); const out=[];
     while(out.length<3 && a.length){ const i=Math.floor(Math.random()*a.length); out.push(a.splice(i,1)[0]); }
     return out;
   }
   function takeDraft(id, dup){
     const run=MODE.run;
-    if(!dup){ run.owned.push(id); store.unlock(id); }  // 巡業の戦利品は永続解放→クイック/オンでも使える(全所持済み時のdupは変化なし)
+    if(dup){
+      // 既得カード → 巡業限定のランダムエンブレムを1個付与(run.randomBuild・コスト/永続解放と無関係)。
+      const g=grantRandomEmblem(run);
+      if(g) toast(randomGrantLabel(g), '#ffcf4d'); else toast(T('toast_rand_full'), '#ff9800');
+    } else {
+      run.owned.push(id); store.unlock(id);   // 未所持 → 巡業所持に追加＋永続解放(クイック/オンでも使える)
+    }
     store.saveRun(run, MODE.mutator);   // ドラフトの戦利品を中断セーブに反映
     openBuild(T('bt_run', run.depth));
   }
