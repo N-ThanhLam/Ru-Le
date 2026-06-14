@@ -1102,7 +1102,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.26</div>
+    <div class="ver">v0.27</div>
     <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
     <div class="ovl" id="ovl-confirm">
       <div class="card-modal" style="text-align:center; max-width:1100px;">
@@ -1361,7 +1361,17 @@
         <div id="set-rows"></div>
       </div>
     </div>
-    <!-- ライバルの名前の変更 -->
+  </section>
+
+  <!-- ===================== RIVALS (宿敵4人の名前) ===================== -->
+  <section id="s-rivals" class="screen">
+    <div class="topbar"><div class="btn small ghost foc" id="rivals-close" data-i18n="rivals_close">◀ もどる</div><div class="title" style="margin-left:18px;" data-i18n="rivals_topbar">ライバルの名前</div></div>
+    <div class="ovl ovl-page active" style="background:transparent;">
+      <div class="card-modal page" style="min-height:auto;">
+        <div id="rivals-rows"></div>
+      </div>
+    </div>
+    <!-- 各ライバルの名前変更 -->
     <div class="ovl" id="ovl-rival">
       <div class="card-modal" style="text-align:center;max-width:900px;">
         <h2 id="rival-edit-title"></h2>
@@ -3546,7 +3556,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', gfx:'lite', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
-    keymap:null, padmap:null, netKw:'', netName:'', rival:null,
+    keymap:null, padmap:null, netKw:'', netName:'', rival:null, rivals:null, rivalProf:null,
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -3561,12 +3571,14 @@ const AUDIO = (function(){
       this.gfx = (this.gfx==='hi'||this.gfx==='lite') ? this.gfx : 'lite';   // 画質: lite=描画優先(既定) / hi=高品質
       this.netKw = (typeof this.netKw==='string') ? this.netKw : '';
       this.netName = (typeof this.netName==='string') ? this.netName : '';
-      this.rival = (this.rival && typeof this.rival==='object') ? this.rival : null;   // 宿敵(適応AI)の学習データ
+      this.rival = (this.rival && typeof this.rival==='object') ? this.rival : null;   // 旧:単一宿敵(移行用に読むだけ・RIVAL.ensure で rivals へ継承後に破棄)
+      this.rivals = (Array.isArray(this.rivals) && this.rivals.length===4) ? this.rivals : null;   // 宿敵4人(名前/戦績hist)
+      this.rivalProf = (this.rivalProf && typeof this.rivalProf==='object') ? this.rivalProf : null; // あなたのビルド傾向(共有・学習型/ban が使う)
       this.save();   // 移行(コレクション初期化)や欠落フィールドの補完を確定させる
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -3660,6 +3672,7 @@ const AUDIO = (function(){
       rival_dom_aka:'場操作', rival_dom_ao:'ターン', rival_dom_midori:'役', rival_dom_ki:'手札', rival_dom_none:'様子見',
       rival_countered:'あなたの「{0}」偏重を見て対策してきた', rival_first:'まだあなたを観察している…', rival_record:'因縁  あなた {0}勝 {1}敗',
       rival_winrate:'勝率 {0}%（直近{1}戦）', rival_norec:'対戦成績  まだ記録なし',
+      rival_n:'宿敵 {0}', rest_rivals_head:'宿敵たち', rival_style_control:'場とターンを縛り、革命で支配する', rival_style_tempo:'連撃と手番操作で盤面を翻弄する', rival_style_speed:'ペアと排出で一気に上がる速攻', rival_style_vietnam:'自由階段とボムの物量で押し切る',
       forfeit_penalty:'中断ペナルティ：残機 −1', confirm_quit_run_title:'巡業を中断する？', confirm_quit_run_body:'この対戦をクリアせずに抜けると<br><b>残機を1つ失います</b>（残機 {0} → {1}）。', confirm_quit_run_ok:'中断する（残機-1）',
       /* メタ崩壊(v0.22) 宿敵の標的宣言(Meta-Ban) */
       ban_tag:'封じ', badge_ban:'封じ', act_banned:'宿敵に封じられている（この深度は装備できない）',
@@ -3738,7 +3751,7 @@ const AUDIO = (function(){
       set_sfx:'効果音', set_gfx:'画質', gfx_hi:'高品質', gfx_lite:'描画優先（標準）', set_rankmode:'強さルール', rankmode_2:'2 が最強（標準）', rankmode_a:'A が最強（変則）',
       set_budget:'対戦の予算', set_budget_val:'コスト {0}', set_unlocked:'解放エンブレム', set_unlocked_val:'{0} / {1}（巡業で増える）',
       set_best:'最高到達深度', set_best_val:'深度 {0}', set_toggle:'切替 ▶',
-      set_rival_name:'ライバルの名前', set_rival_ok:'けってい', set_edit:'変更 ▶',
+      set_rival_name:'ライバルの名前', set_rival_ok:'けってい', set_edit:'変更 ▶', set_rival_val:'{0}人', set_open:'ひらく ▶', rivals_topbar:'ライバルの名前', rivals_close:'◀ もどる',
       set_keys:'キー設定', set_keys_val:'キーボード／パッド', keys_open:'ひらく ▶',
       /* キーコンフィグ */
       keys_topbar:'キーコンフィグ', keys_close:'◀ もどる',
@@ -3852,6 +3865,7 @@ const AUDIO = (function(){
       rival_dom_aka:'Khống sân', rival_dom_ao:'Lượt', rival_dom_midori:'Bộ bài', rival_dom_ki:'Lá bài', rival_dom_none:'Quan sát',
       rival_countered:'Đã nhắm thiên hướng "{0}" của bạn để khắc chế', rival_first:'Vẫn đang quan sát bạn…', rival_record:'Duyên nợ  Bạn {0} thắng {1} thua',
       rival_winrate:'Tỉ lệ thắng {0}% ({1} trận gần nhất)', rival_norec:'Thành tích  Chưa có',
+      rival_n:'Đối thủ {0}', rest_rivals_head:'Các đối thủ', rival_style_control:'Khóa bãi và lượt, dùng Cách mạng để áp chế', rival_style_tempo:'Liên kích và thao túng lượt để làm loạn bãi', rival_style_speed:'Đôi và xả lá để về bài thật nhanh', rival_style_vietnam:'Áp đảo bằng sảnh tự do và bom',
       forfeit_penalty:'Phạt bỏ dở: Mạng −1', confirm_quit_run_title:'Bỏ dở lữ hành?', confirm_quit_run_body:'Rời đi khi chưa hoàn thành trận này sẽ<br><b>mất 1 mạng</b> (mạng {0} → {1}).', confirm_quit_run_ok:'Bỏ dở (Mạng -1)',
       /* Sụp đổ meta (v0.22) — Tuyên bố cấm của kỳ phùng (Meta-Ban) */
       ban_tag:'Bị cấm', badge_ban:'Cấm', act_banned:'Bị kỳ phùng cấm (tầng này không gắn được)',
@@ -3925,7 +3939,7 @@ const AUDIO = (function(){
       set_sfx:'Âm thanh', set_gfx:'Chất lượng', gfx_hi:'Cao cấp', gfx_lite:'Ưu tiên hiệu năng (chuẩn)', set_rankmode:'Luật mạnh yếu', rankmode_2:'Lá 2 (heo) mạnh nhất (chuẩn)', rankmode_a:'Lá A mạnh nhất (biến thể)',
       set_budget:'Ngân sách trận', set_budget_val:'Chi phí {0}', set_unlocked:'Biểu tượng mở khóa', set_unlocked_val:'{0} / {1} (tăng khi lữ hành)',
       set_best:'Tầng cao nhất', set_best_val:'Tầng {0}', set_toggle:'Đổi ▶',
-      set_rival_name:'Tên đối thủ', set_rival_ok:'Xác nhận', set_edit:'Sửa ▶',
+      set_rival_name:'Tên đối thủ', set_rival_ok:'Xác nhận', set_edit:'Sửa ▶', set_rival_val:'{0} người', set_open:'Mở ▶', rivals_topbar:'Tên đối thủ', rivals_close:'◀ Quay lại',
       set_keys:'Gán phím', set_keys_val:'Bàn phím / Tay cầm', keys_open:'Mở ▶',
       /* Gán phím */
       keys_topbar:'Gán Phím', keys_close:'◀ Quay lại',
@@ -4368,6 +4382,7 @@ const AUDIO = (function(){
       case 's-lobby': NET.leave(); buildTitle(); show('s-title'); break;
       case 's-help': closeHelp(); break;
       case 's-set': show('s-title'); break;
+      case 's-rivals': show('s-set'); break;
       case 's-keys': endCapture(); show('s-set'); break;
       case 's-balance': closeBalance(); break;
       // 進行ゲート: ESC/B でも“引き返せる”選択へ寄せて統一(クイック/オンラインは退場、巡業の結果/終了はタイトルへ、ドラフトは受け取らずに進む)。
@@ -4611,7 +4626,7 @@ const AUDIO = (function(){
       const ruleBadge = (node.mut && node.mut.effect!=='NONE')
         ? '<div class="nbadge">'+T('node_mut_badge', node.mut.ico, mutName(node.mut))+'</div>'
         : '<div class="nbadge raw">'+T('boss_raw_badge')+'</div>';
-      const nm = b ? (RIVAL.name()+' 〈'+bossTitle(b)+'〉') : T('node_boss');
+      const nm = b ? (bossRivalName(b)+' 〈'+bossTitle(b)+'〉') : T('node_boss');
       return '<div class="nic">👑</div><div class="nnm">'+nm+'</div><div class="nds">'+(b?bossTagline(b):T('node_boss_ds'))+'</div>'+ruleBadge;
     }
     let badge='';
@@ -4672,18 +4687,18 @@ const AUDIO = (function(){
     show('s-rest');
   }
   function restContinue(){ AUDIO.confirm(); afterDraftNode(); }
-  // 宿敵レポート(休憩で閲覧)＝公開情報(過去ビルド傾向 store.rival.prof)だけで構成。次の幕のボス予告も併記。
+  // 宿敵レポート(休憩で閲覧)＝公開情報だけで構成。宿敵4人の名前＋勝率＋次のボス予告。
   function rivalReportHTML(){
-    const r=RIVAL.ensure(), dom=RIVAL.dominantColor();
-    const obs=(r.n>1 && dom) ? T('rival_countered', T('rival_dom_'+dom)) : T('rival_first');
-    const tops=RIVAL.topIds(4).filter(id=>RL.emblem(id)).map(id=>embName(RL.emblem(id)));
-    const topLn=tops.length ? '<div class="rr-l">📖 '+T('rest_rival_tops', tops.join('・'))+'</div>' : '';
+    RIVAL.ensure();
+    const dom=RIVAL.dominantColor();
     const nb=bossForAct((MODE.run&&MODE.run.act)||1);
+    const nbIdx=bossRivalIndex(nb);
+    const list=store.rivals.map((r,i)=> '<div class="rr-l">'+(i===nbIdx?'👑':'🔥')+' '+r.name+'　'+rivalRecordStr(i)+'</div>').join('');
+    const obs=dom ? T('rival_countered', T('rival_dom_'+dom)) : T('rival_first');
     const ruleNm=(nb && mutById(nb.mut) && mutById(nb.mut).effect!=='NONE') ? mutName(mutById(nb.mut)) : T('boss_raw_badge');
-    const bossLn=nb ? '<div class="rr-l">👑 '+T('rest_next_boss', RIVAL.name(), bossTitle(nb), ruleNm)+'</div>' : '';
-    return '<div class="rr-h">🔥 '+T('rival_word')+' '+r.name+'</div>'
-      +'<div class="rr-rec">'+rivalRecordStr()+'</div>'
-      +'<div class="rr-l">'+obs+'</div>'+topLn+bossLn;
+    const bossLn=nb ? '<div class="rr-l">👑 '+T('rest_next_boss', bossRivalName(nb), bossTitle(nb), ruleNm)+'</div>' : '';
+    return '<div class="rr-h">🔥 '+T('rest_rivals_head')+'</div>'+list
+      +'<div class="rr-l">'+obs+'</div>'+bossLn;
   }
   // ノード(戦闘の結果ドラフト/市/休憩)を解決し終えたら現在地を進めてマップへ戻る。
   function afterDraftNode(){ advanceMap(); enterMap(); }
@@ -5289,7 +5304,7 @@ const AUDIO = (function(){
     const names=banNames();
     if(!names.length){ host.className='banbar'; host.innerHTML=''; return; }
     host.className='banbar show';
-    host.innerHTML='<span class="btag">🚫 '+T('ban_banner', RIVAL.name())+'</span><span class="bds">'+T('ban_banner_ds', names.join('・'))+'</span>';
+    host.innerHTML='<span class="btag">🚫 '+T('ban_banner', RIVAL.name(RIVAL.adaptiveIndex()))+'</span><span class="bds">'+T('ban_banner_ds', names.join('・'))+'</span>';
   }
   // おすすめ構成オーバーレイ：初心者がワンタップで完成形を入れられる近道。常時表示はせず、必要な時だけ開く。
   function openRecommend(){
@@ -5786,7 +5801,13 @@ const AUDIO = (function(){
        正調ミラー(jp×jp・vn×vn)も balance 測定も完全に不変。変えるのは「CPUがどのエンブレムを積むか」だけ。
      ============================================================ */
   const RIVAL_NAMES=['ナギ','カイ','レン','ソラ','ユウ','ジン','ミナ','ハル','ツバサ','アサヒ'];
-  const RIVAL_PERSONA_KEYS=['rival_p_counter','rival_p_mirror','rival_p_exp','rival_p_mix'];
+  // 宿敵4人の定義(BOSSES と同順＝rival[i] は BOSSES[i] のボス姿を担う)。3人は固定流儀・1人(末尾)は学習型(あなたを読む)。
+  const RIVAL_DEFS = [
+    { key:'r0', arche:'control', adaptive:false, priority:['aka05','aka03','aka01','aka12'] },  // 制圧/妨害型(逆さ玉座)
+    { key:'r1', arche:'tempo',   adaptive:false, priority:['ao02','ao04','ao01','aka01'] },     // 翻弄/手番型(重ね撃ちの舞)
+    { key:'r2', arche:'speed',   adaptive:false, priority:['set2','mi03','mi08','ki01'] },      // 速攻型(十手の刹那)
+    { key:'r3', arche:'vietnam', adaptive:true,  priority:[] },                                  // 学習型=あなたを読む(蕩尽の黄金)
+  ];
   function collectBuildIds(b){
     const out=[]; if(!b) return out;
     (b.ruleSlots||[]).forEach(id=>out.push(id));
@@ -5795,54 +5816,89 @@ const AUDIO = (function(){
     return out;
   }
   const RIVAL = {
-    ensure(){ if(!store.rival){ store.rival={ name:RIVAL_NAMES[(Math.random()*RIVAL_NAMES.length)|0], prof:{}, n:0, w:0, l:0 }; store.save(); } return store.rival; },
-    name(){ return this.ensure().name; },
-    // 人間が今戦で選んだビルド(=公開情報の傾向)を観測。直近を重く(減衰0.8)。
-    observe(build){ const r=this.ensure(); Object.keys(r.prof).forEach(k=> r.prof[k]*=0.8); collectBuildIds(build).forEach(id=> r.prof[id]=(r.prof[id]||0)+1); r.n=(r.n||0)+1; store.save(); },
-    // 因縁の戦績(宿敵から見た勝/負＝あなたとの直接対決)。直近100戦だけを履歴 hist に残す(1=あなたの勝ち/0=負け)。
-    record(humanPlace, rivalPlace){
-      const r=this.ensure(); let res=null;
-      if(rivalPlace<humanPlace){ r.w=(r.w||0)+1; res=0; }        // 宿敵が上位=あなたの負け
-      else if(rivalPlace>humanPlace){ r.l=(r.l||0)+1; res=1; }   // 宿敵が下位=あなたの勝ち
+    // 宿敵4人＋共有プロフィール(あなたのビルド傾向)を保証。旧・単一宿敵 store.rival は学習型スロットへ継承して破棄。
+    ensure(){
+      if(!Array.isArray(store.rivals) || store.rivals.length!==4){
+        const old = (store.rival && typeof store.rival==='object') ? store.rival : null;
+        const ad = RIVAL_DEFS.findIndex(d=>d.adaptive);   // 旧宿敵=学習型なので学習型スロットへ名前/戦績を継承
+        const adName = (old && old.name) ? old.name : null;
+        const pool = shuffleArr(RIVAL_NAMES.filter(n=> n!==adName));   // 継承名は他スロットの抽選から除外(名前被り防止)
+        let pi=0;
+        store.rivals = RIVAL_DEFS.map((d,i)=>({ key:d.key, name:(i===ad && adName) ? adName : pool[pi++], w:0, l:0, hist:[] }));
+        if(old && ad>=0){ const r=store.rivals[ad]; r.w=old.w||0; r.l=old.l||0; r.hist=Array.isArray(old.hist)?old.hist.slice():[]; }
+        if(old && old.prof && !store.rivalProf) store.rivalProf=Object.assign({}, old.prof);
+        store.rival=null;
+        if(!store.rivalProf) store.rivalProf={};
+        store.save();
+      }
+      if(!store.rivalProf) store.rivalProf={};
+      return store.rivals;
+    },
+    get(i){ return this.ensure()[i]; },
+    def(i){ return RIVAL_DEFS[i]; },
+    count(){ return RIVAL_DEFS.length; },
+    adaptiveIndex(){ return RIVAL_DEFS.findIndex(d=>d.adaptive); },
+    name(i){ return this.ensure()[i].name; },
+    setName(i, nm){ this.ensure(); const v=String(nm||'').trim().slice(0,12); if(v){ store.rivals[i].name=v; store.save(); } },
+    // 人間が今戦で選んだビルド(=公開情報の傾向)を観測。直近を重く(減衰0.8)。学習型と meta-ban が使う(共有)。
+    observe(build){ this.ensure(); const p=store.rivalProf; Object.keys(p).forEach(k=> p[k]*=0.8); collectBuildIds(build).forEach(id=> p[id]=(p[id]||0)+1); store.save(); },
+    // 因縁の戦績(宿敵 i から見た勝/負)。直近100戦だけ履歴 hist に残す(1=あなたの勝ち/0=負け)。
+    record(i, humanPlace, rivalPlace){
+      const r=this.get(i); let res=null;
+      if(rivalPlace<humanPlace){ r.w=(r.w||0)+1; res=0; }
+      else if(rivalPlace>humanPlace){ r.l=(r.l||0)+1; res=1; }
       if(res!=null){ r.hist=Array.isArray(r.hist)?r.hist:[]; r.hist.push(res); if(r.hist.length>100) r.hist=r.hist.slice(-100); }
       store.save();
     },
-    // 直近100戦の勝率。hist が無い旧セーブは累計 w/l から算出。{pct,n} を返す(n=対象戦数)。
-    winRate(){
-      const r=this.ensure(), h=Array.isArray(r.hist)?r.hist:null;
+    // 宿敵 i の直近100戦勝率。{pct,n}。
+    winRate(i){
+      const r=this.get(i), h=Array.isArray(r.hist)?r.hist:null;
       let wins, n;
       if(h && h.length){ wins=h.reduce((a,b)=>a+b,0); n=h.length; }
       else { wins=r.l||0; n=(r.l||0)+(r.w||0); }
       return { pct: n? Math.round(100*wins/n):0, n };
     },
-    dominantColor(){ const r=this.ensure(), bucket={}; Object.keys(r.prof).forEach(id=>{ const e=RL.emblem(id); if(e) bucket[e.color]=(bucket[e.color]||0)+r.prof[id]; }); let best=null,bv=0; Object.keys(bucket).forEach(c=>{ if(bucket[c]>bv){bv=bucket[c];best=c;} }); return bv>0?best:null; },
-    topIds(n){ const r=this.ensure(); return Object.keys(r.prof).sort((a,b)=>r.prof[b]-r.prof[a]).slice(0,n||8); }
+    // 全宿敵の合算戦績(meta-ban の mercy 判定用)。
+    aggRecord(){ this.ensure(); let w=0,l=0; store.rivals.forEach(r=>{ w+=r.w||0; l+=r.l||0; }); return { w, l }; },
+    dominantColor(){ this.ensure(); const p=store.rivalProf, bucket={}; Object.keys(p).forEach(id=>{ const e=RL.emblem(id); if(e) bucket[e.color]=(bucket[e.color]||0)+p[id]; }); let best=null,bv=0; Object.keys(bucket).forEach(c=>{ if(bucket[c]>bv){bv=bucket[c];best=c;} }); return bv>0?best:null; },
+    topIds(n){ this.ensure(); const p=store.rivalProf; return Object.keys(p).sort((a,b)=>p[b]-p[a]).slice(0,n||8); }
   };
-  // 宿敵戦績の表示文字列＝勝率のみ(直近100戦)。未対戦は専用文言。
-  function rivalRecordStr(){ const wr=RIVAL.winRate(); return wr.n ? T('rival_winrate', wr.pct, wr.n) : T('rival_norec'); }
-  // 今戦の宿敵プラン: 対戦ごとに人格をローテ(カウンター/ミラー/実験/混合)。あなたの優勢な色を読み、刺さるアーキタイプ＋反撃を選ぶ。
-  function rivalPlan(){
-    const r=RIVAL.ensure();
-    const dom=RIVAL.dominantColor();
-    // ★v0.24 ボス戦は人格ローテではなく、そのボス固有の看板デッキ(固定アーキタイプ＋看板エンブレム)を組む＝毎回ちがう敵として立ちはだかる。
-    const bossNode = (MODE.kind==='run' && MODE.curNode && MODE.curNode.type==='boss') ? bossForNode(MODE.curNode) : null;
+  // 宿敵 i の戦績表示＝勝率のみ(直近100戦)。未対戦は専用文言。
+  function rivalRecordStr(i){ const wr=RIVAL.winRate(i); return wr.n ? T('rival_winrate', wr.pct, wr.n) : T('rival_norec'); }
+  // ボス BOSSES[bi] を担う宿敵の index / 名前。
+  function bossRivalIndex(b){ return b ? BOSSES.findIndex(x=>x.id===b.id) : -1; }
+  function bossRivalName(b){ const i=bossRivalIndex(b); return i>=0 ? RIVAL.name(i) : T('node_boss'); }
+  // 宿敵 i の今戦プラン。bossNode を渡すとボス姿(固定看板デッキ)。学習型はあなたの傾向を読む。残りは固定流儀。
+  function rivalPlan(i, bossNode){
+    const def=RIVAL.def(i);
     if(bossNode){
-      const pool = (CPU_ARCHE[bossNode.arche]||CPU_ARCHE.control).slice();
-      return { persona:0, boss:bossNode.id, dom, pool, priority:(bossNode.priority||[]).filter(id=>RL.emblem(id)) };
+      const pool=(CPU_ARCHE[bossNode.arche]||CPU_ARCHE.control).slice();
+      return { boss:bossNode.id, pool, priority:(bossNode.priority||[]).filter(id=>RL.emblem(id)) };
     }
-    const persona=(r.n||0)%4;
-    const counterArche={ aka:'control', midori:'vietnam', ki:'control', ao:'speed' };
-    let pool, priority=[];
-    if(persona===2){ pool=CPU_ARCHE[['speed','control','tempo','vietnam'][(Math.random()*4|0)]].slice(); }                 // 実験: 気まぐれ(弱点を残す揺らぎ)
-    else if(persona===1){ const top=RIVAL.topIds(8).filter(id=>RL.emblem(id)); pool=(top.length>=4?top:CPU_ARCHE.tempo).slice(); } // ミラー: あなたの常用を真似る
-    else { pool=CPU_ARCHE[counterArche[dom]||'control'].slice(); priority=['aka12']; if(persona===3 && dom==='midori') priority.push('aka06'); } // カウンター(0)/混合(3): 刺す＋反撃で奪い返す
-    return { persona, dom, pool, priority:priority.filter(id=>RL.emblem(id)) };
+    if(def.adaptive){
+      const dom=RIVAL.dominantColor();
+      const counterArche={ aka:'control', midori:'vietnam', ki:'control', ao:'speed' };
+      const top=RIVAL.topIds(8).filter(id=>RL.emblem(id));
+      let pool, priority=['aka12'];
+      if(top.length>=4 && Math.random()<0.5){ pool=top.slice(); priority=[]; }   // ミラー: あなたの常用を真似る
+      else pool=CPU_ARCHE[counterArche[dom]||'control'].slice();                  // カウンター: 優勢色に刺す+反撃
+      return { adaptive:true, dom, pool, priority:priority.filter(id=>RL.emblem(id)) };
+    }
+    return { arche:def.arche, pool:CPU_ARCHE[def.arche].slice(), priority:(def.priority||[]).filter(id=>RL.emblem(id)) };
   }
-  function rivalBuild(depth){
-    const plan=rivalPlan();
-    MODE.rivalInfo={ persona:plan.persona, dom:plan.dom, boss:plan.boss||null };   // 結果画面の「種明かし」用に今戦の対策内容(ボス戦なら看板)を控える
-    const budget = MODE.kind==='run' ? nodeRivalBudget(depth) : (78+Math.floor(Math.random()*16));   // ★v0.23 強敵/ボスノードは宿敵を上振れ
-    return assembleCpuBuild(plan.pool, budget, plan.priority);
+  // 宿敵 i のビルドを組む。{build, plan} を返す(plan は結果画面の種明かし用)。
+  function rivalBuild(i, depth, bossNode){
+    const plan=rivalPlan(i, bossNode);
+    const budget = MODE.kind==='run' ? nodeRivalBudget(depth) : (78+Math.floor(Math.random()*16));
+    return { build:assembleCpuBuild(plan.pool, budget, plan.priority), plan };
+  }
+  // 結果画面/休憩での宿敵の「流儀」一行(種明かし)。学習型は対策内容、固定型は流儀。
+  function rivalStyleLine(idx, bossId){
+    const b = bossId ? bossById(bossId) : null;
+    if(b) return bossTagline(b);
+    const def=RIVAL.def(idx);
+    if(def.adaptive){ const dom=RIVAL.dominantColor(); return dom ? T('rival_countered', T('rival_dom_'+dom)) : T('rival_first'); }
+    return T('rival_style_'+def.arche);
   }
 
   /* ============================================================
@@ -5854,8 +5910,9 @@ const AUDIO = (function(){
   const BAN_WIN_BONUS = 15;   // 封じ下で1位通過 → 通常の RUN_WIN_BONUS に上乗せ(宿敵の読みを外した報酬)
   function decideBan(run, depth){
     if(depth<=1) return { ids:[], depth };                       // 序盤(データ蓄積前)はban無し
-    const r=store.rival; if(!r) return { ids:[], depth };
-    const w=r.w||0, l=r.l||0;                                    // l=あなたの勝ち / w=あなたの負け
+    RIVAL.ensure();
+    const agg=RIVAL.aggRecord();                                 // 全宿敵合算: l=あなたの勝ち / w=あなたの負け
+    const w=agg.w, l=agg.l;
     if(w - l >= 2) return { ids:[], depth };                     // あなたが負け越し → mercy(封じ無し・難易度自己調整)
     const owned = run.owned || [];
     if(owned.length < 6) return { ids:[], depth };               // 所持が少ないうちは封じない(組み替え余地を確保)
@@ -5967,16 +6024,35 @@ const AUDIO = (function(){
     const depth = MODE.kind==='run'?MODE.run.depth:1;
     // CPU は名前と build をペアで持ち、席順をシャッフル(対戦の並びを毎回ランダムに)。あなたは席0のまま(UIの自分判定を保つ)。
     // CPU3体のうち1体は「宿敵」=あなたのビルド傾向(公開情報)を学習して対策ビルドを組む適応AI。残り2体は通常アーキタイプ。
-    const cpuDefs=[];
-    const rivalNm=RIVAL.name();
+    RIVAL.ensure();
     const _bossNow = (MODE.kind==='run' && MODE.curNode && MODE.curNode.type==='boss') ? bossForNode(MODE.curNode) : null;
-    const rivalLabel = _bossNow ? ('👑'+rivalNm) : ('🔥'+rivalNm);   // ★v0.24 ボス戦は宿敵が王冠を被って立ちはだかる
-    for(let i=0;i<3;i++){
-      if(i===0) cpuDefs.push({ name:rivalLabel, isHuman:false, build: rivalBuild(depth), _rival:true });
-      else      cpuDefs.push({ name:cpuNames[i], isHuman:false, build: MODE.kind==='run'? cpuBuild(depth,i) : cpuBuildQuick(i) });
+    // ★v0.26 宿敵は4人。基本は各々25%で参戦(0人〜CPU席いっぱいまで)。ボス戦はその幕のボス宿敵を必ず1人＋他は各25%。
+    //   CPU席は3。参戦が3を超えたらボスを保持して3人に切り詰める。
+    const bossIdx = _bossNow ? bossRivalIndex(_bossNow) : -1;
+    let rivalIdxs = [];
+    if(bossIdx>=0) rivalIdxs.push(bossIdx);
+    for(let i=0;i<RIVAL.count();i++){ if(i!==bossIdx && Math.random()<0.25) rivalIdxs.push(i); }
+    if(rivalIdxs.length>3){
+      const head = bossIdx>=0 ? [bossIdx] : [];
+      const rest = shuffleArr(rivalIdxs.filter(x=> head.indexOf(x)<0));
+      rivalIdxs = head.concat(rest).slice(0,3);
+    }
+    // 宿敵CPU定義(ボス姿はその看板デッキ)＋空き席を通常CPUで埋める。
+    const cpuDefs=[];
+    rivalIdxs.forEach(ri=>{
+      const isBoss = !!(_bossNow && BOSSES[ri] && BOSSES[ri].id===_bossNow.id);
+      const rb = rivalBuild(ri, depth, isBoss?_bossNow:null);
+      cpuDefs.push({ name:(isBoss?'👑':'🔥')+RIVAL.name(ri), isHuman:false, build:rb.build, _rivalIdx:ri, _boss:isBoss?_bossNow.id:null });
+    });
+    let gi=0;
+    while(cpuDefs.length<3){
+      const idx=gi++;
+      cpuDefs.push({ name:cpuNames[idx%cpuNames.length], isHuman:false, build: MODE.kind==='run'? cpuBuild(depth,idx) : cpuBuildQuick(idx) });
     }
     for(let i=cpuDefs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=cpuDefs[i]; cpuDefs[i]=cpuDefs[j]; cpuDefs[j]=t; }
-    MODE.rivalSeat = 1 + cpuDefs.findIndex(d=>d._rival);   // 宿敵の最終席(人間=席0の後ろにシャッフル配置)
+    // 参戦宿敵の最終席を控える(戦績記録・結果の種明かし用)。人間=席0。
+    MODE.rivalSeats = [];
+    cpuDefs.forEach((d,k)=>{ if(d._rivalIdx!=null) MODE.rivalSeats.push({ seat:1+k, idx:d._rivalIdx, boss:d._boss }); });
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
@@ -6393,11 +6469,11 @@ const AUDIO = (function(){
     const me=G.players[meIdx()];
     const myPlace=me.place || 4;
     if(NET.active){ showResult(); return; }            // オンラインは結果のみ(宿敵なし)
-    // 宿敵モデル更新: あなたが今戦で選んだビルド(=公開情報の過去傾向)を観測＋因縁の戦績を記録(次戦の対策に反映)。
-    if(MODE.rivalSeat>0 && G.players[MODE.rivalSeat]){
-      RIVAL.observe(MODE.kind==='run' ? MODE.run.build : MODE.quickBuild);
-      RIVAL.record(myPlace, G.players[MODE.rivalSeat].place||4);
-    }
+    // 宿敵モデル更新: 参戦した各宿敵の因縁の戦績を記録＋(誰か居れば)あなたのビルド傾向を観測(学習型/ban が使う)。
+    const seats = MODE.rivalSeats || [];
+    let anyRival=false;
+    seats.forEach(rs=>{ const p=G.players[rs.seat]; if(!p) return; anyRival=true; RIVAL.record(rs.idx, myPlace, p.place||4); });
+    if(anyRival) RIVAL.observe(MODE.kind==='run' ? MODE.run.build : MODE.quickBuild);
     if(MODE.kind==='run') endRunMatch(myPlace);
     else showResult();
   }
@@ -6418,17 +6494,20 @@ const AUDIO = (function(){
     //   公開情報(過去ビルド傾向)だけで対策した、と明示してチート感を消す。
     const riv=$('#result-rival');
     if(riv){
-      if(!online && MODE.rivalSeat>0 && store.rival){
-        const r=store.rival, info=MODE.rivalInfo||{};
-        const bossB = info.boss ? bossById(info.boss) : null;   // ★v0.24 ボス戦は人格名ではなく「看板(異名＋看板の狙い)」を開示
-        const head = bossB
-          ? '<div class="rv-h">👑 '+r.name+' <span class="rv-p">'+bossTitle(bossB)+'</span></div>'
-          : '<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+' <span class="rv-p">'+T(RIVAL_PERSONA_KEYS[info.persona||0])+'</span></div>';
-        const line = bossB ? bossTagline(bossB)
-                           : ((r.n>1 && info.dom) ? T('rival_countered', T('rival_dom_'+info.dom)) : T('rival_first'));
+      const seats = MODE.rivalSeats || [];
+      if(!online && seats.length){
+        // 参戦した宿敵それぞれを種明かし(ボスは異名＋看板の狙い／固定型は流儀／学習型は対策内容)＋因縁の勝率。
+        let html='';
+        seats.forEach(rs=>{
+          const r=RIVAL.get(rs.idx);
+          const bossB = rs.boss ? bossById(rs.boss) : null;
+          const head = bossB
+            ? '<div class="rv-h">👑 '+r.name+' <span class="rv-p">'+bossTitle(bossB)+'</span></div>'
+            : '<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+'</div>';
+          html += head+'<div class="rv-l">'+rivalStyleLine(rs.idx, rs.boss)+'</div>'+'<div class="rv-rec">'+rivalRecordStr(rs.idx)+'</div>';
+        });
         const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-l">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
-        riv.innerHTML=head+'<div class="rv-l">'+line+'</div>'+banLn
-          +'<div class="rv-rec">'+rivalRecordStr()+'</div>';
+        riv.innerHTML=html+banLn;
         riv.classList.add('show');
       } else { riv.innerHTML=''; riv.classList.remove('show'); }
     }
@@ -6556,12 +6635,13 @@ const AUDIO = (function(){
     const acts=Math.max(0, (run.act||1)-1);
     const ownedGain=Math.max(0, (run.owned?run.owned.length:0) - BASE_UNLOCKED.length);
     const rndN=collectBuildIds(run.randomBuild).length;
-    const r=store.rival;
+    RIVAL.ensure();
+    const rivalStats=store.rivals.map((r,i)=>'<span>'+r.name+' '+rivalRecordStr(i)+'</span>').join('');
     const stats='<div class="dg-stats">'
       +'<span>'+T('digest_acts', acts)+'</span>'
       +'<span>'+T('digest_bosses', bosses)+'</span>'
       +'<span>'+T('digest_emblems', ownedGain, rndN)+'</span>'
-      +(r?'<span>'+rivalRecordStr()+'</span>':'')
+      +rivalStats
       +'</div>';
     return '<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path">'+path+'</div>'+stats;
   }
@@ -6732,7 +6812,7 @@ const AUDIO = (function(){
       { nm:T('set_gfx'), val:()=> store.gfx==='hi'?T('gfx_hi'):T('gfx_lite'), act:()=>{ store.gfx = store.gfx==='hi'?'lite':'hi'; applyGfx(); store.save(); AUDIO.confirm(); } },
       { nm:T('set_rankmode'), val:()=> store.rankMode==='2high'?T('rankmode_2'):T('rankmode_a'), act:()=>{ store.rankMode = store.rankMode==='2high'?'Ahigh':'2high'; RL.setRankOrder(store.rankMode); store.save(); AUDIO.confirm(); } },
       { nm:T('set_keys'), val:()=> T('set_keys_val'), act:()=>{ AUDIO.confirm(); show('s-keys'); }, btn:T('keys_open') },
-      { nm:T('set_rival_name'), val:()=> RIVAL.name(), act:()=> openRivalEdit(), btn:T('set_edit') },
+      { nm:T('set_rival_name'), val:()=> T('set_rival_val', RIVAL.count()), act:()=>{ AUDIO.confirm(); show('s-rivals'); }, btn:T('set_open') },
       { nm:T('set_unlocked'), val:()=> T('set_unlocked_val', store.unlocked.length, RL.EMBLEMS.length), act:null },
       { nm:T('set_best'), val:()=> T('set_best_val', store.bestDepth), act:null },
     ];
@@ -6743,25 +6823,37 @@ const AUDIO = (function(){
       wrap.appendChild(row);
     });
   }
-  // ライバルの名前を変更(設定画面のモーダル)。入力欄＝直接タイプ、Enter/けってい=確定、Esc/もどる=キャンセル。
-  function openRivalEdit(){
-    AUDIO.confirm();
-    const inp=$('#rival-name-input'); inp.value=RIVAL.name();
-    $('#rival-edit-title').textContent=T('set_rival_name');
+  // 宿敵4人の名前一覧(管理画面)。各行タップで編集モーダル。
+  function renderRivals(){
+    RIVAL.ensure();
+    const wrap=$('#rivals-rows'); if(!wrap) return; wrap.innerHTML='';
+    store.rivals.forEach((r,i)=>{
+      const row=el('div','setrow foc');
+      row.innerHTML='<div class="nm">'+T('rival_n', i+1)+'</div><div class="val">'+r.name+'</div><div class="btn small primary">'+T('set_edit')+'</div>';
+      row.onclick=()=>{ openRivalEdit(i); };
+      wrap.appendChild(row);
+    });
+  }
+  // ライバル i の名前を変更(モーダル)。入力欄＝直接タイプ、Enter/けってい=確定、Esc/もどる=キャンセル。
+  let rivalEditIdx=0;
+  function openRivalEdit(i){
+    rivalEditIdx=i; AUDIO.confirm();
+    const inp=$('#rival-name-input'); inp.value=RIVAL.name(i);
+    $('#rival-edit-title').textContent=T('rival_n', i+1);
     $('#rival-cancel').textContent=T('confirm_cancel');
     $('#rival-ok').textContent=T('set_rival_ok');
     $('#ovl-rival').classList.add('active');
     setFocus($('#rival-ok'));   // Enter(入力欄)→blur→activate がけってい側を押す
     setTimeout(()=>{ inp.focus(); inp.select&&inp.select(); },0);
   }
-  function closeRivalEdit(){ $('#ovl-rival').classList.remove('active'); setTimeout(()=>{ renderSet(); focusFirst(); },0); }
+  function closeRivalEdit(){ $('#ovl-rival').classList.remove('active'); setTimeout(()=>{ renderRivals(); focusFirst(); },0); }
   function commitRivalName(){
-    const v=($('#rival-name-input').value||'').trim().slice(0,12);
-    if(v){ const r=RIVAL.ensure(); r.name=v; store.save(); AUDIO.emb(); }
+    RIVAL.setName(rivalEditIdx, $('#rival-name-input').value); AUDIO.emb();
     closeRivalEdit();
   }
   $('#rival-ok').onclick=()=> commitRivalName();
   $('#rival-cancel').onclick=()=>{ AUDIO.back(); closeRivalEdit(); };
+  $('#rivals-close').onclick=()=>{ AUDIO.back(); show('s-set'); };
 
   /* ============================================================
      キーコンフィグ（キーボード/ゲームパッドのリバインド）
@@ -6836,7 +6928,7 @@ const AUDIO = (function(){
   $('#set-close').onclick=()=>{ AUDIO.back(); show('s-title'); };
   // 設定画面表示時にレンダリング
   const _show=show;
-  function showWrapped(id){ if(id==='s-set') renderSet(); if(id==='s-keys') renderKeys(); _show(id); }
+  function showWrapped(id){ if(id==='s-set') renderSet(); if(id==='s-rivals') renderRivals(); if(id==='s-keys') renderKeys(); _show(id); }
   // show を差し替え
   // (関数巻き上げ対策: 直接再代入)
   // eslint-disable-next-line
