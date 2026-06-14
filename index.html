@@ -1102,7 +1102,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.25</div>
+    <div class="ver">v0.26</div>
     <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
     <div class="ovl" id="ovl-confirm">
       <div class="card-modal" style="text-align:center; max-width:1100px;">
@@ -1218,6 +1218,17 @@
           <div class="btn foc" id="pause-resume" data-i18n="pause_resume">つづける</div>
           <div class="btn foc" id="pause-help" data-i18n="pause_help">あそびかた</div>
           <div class="btn ghost foc" id="pause-quit" data-i18n="pause_quit">タイトルへもどる</div>
+        </div>
+      </div>
+    </div>
+    <!-- 巡業の中断確認(未クリアで抜ける=残機-1) -->
+    <div class="ovl" id="ovl-quit">
+      <div class="card-modal" style="text-align:center;max-width:1000px;">
+        <h2 id="quit-title"></h2>
+        <div id="quit-body" style="font-size:30px;font-weight:800;margin:14px 0 26px;line-height:1.5;"></div>
+        <div class="rowbtns">
+          <div class="btn ghost foc" id="quit-cancel"></div>
+          <div class="btn primary foc" id="quit-ok"></div>
         </div>
       </div>
     </div>
@@ -1348,6 +1359,18 @@
     <div class="ovl ovl-page active" style="background:transparent;">
       <div class="card-modal page" style="min-height:auto;">
         <div id="set-rows"></div>
+      </div>
+    </div>
+    <!-- ライバルの名前の変更 -->
+    <div class="ovl" id="ovl-rival">
+      <div class="card-modal" style="text-align:center;max-width:900px;">
+        <h2 id="rival-edit-title"></h2>
+        <input id="rival-name-input" type="text" maxlength="12" autocomplete="off"
+               style="font-size:32px;font-weight:800;text-align:center;width:80%;max-width:560px;padding:12px 16px;margin:18px 0 26px;border-radius:14px;border:2px solid #8aa;background:#0e1430;color:#fff;">
+        <div class="rowbtns">
+          <div class="btn ghost foc" id="rival-cancel"></div>
+          <div class="btn primary foc" id="rival-ok"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -1590,7 +1613,7 @@ const RL = (function(){
     // ───────── 赤 (aka) — 場操作 ─────────
     { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:27, suitCost:45, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:11, suitCost:32, ico:'🪽', effect:'WILD',         place:'card', desc:'場の役と同じ種類・同じ枚数で出すとき、数字（強弱）だけ無視して重ねて出せる。出す札すべてに越境が必要（例：2に越境3／77に越境ペア33／JQKAに全部越境の5678）。縛り・階段の形は通常どおり守る（縛りは貫通しない）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Khi đánh bộ cùng loại và cùng số lá với bãi, được đè bằng cách bỏ qua riêng phần số (mạnh/yếu). Mọi lá đánh ra đều phải có Vượt Biên (vd: heo ← 3 vượt biên; đôi 77 ← đôi 33 vượt biên; JQKA ← 5678 toàn vượt biên). Vẫn phải theo khóa chất và hình sảnh (không xuyên khóa chất).' },
-    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:42, ico:'🔃', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
+    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:42, ico:'↕️', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
     { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:3, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     { id:'aka05',code:'赤05', color:'aka',    name:'革命',     cost:4, ico:'🚩', effect:'REVOLUTION', place:'whole', desc:'同じ数字を4枚出すと強弱が逆転し、次の革命まで続く（革命があれば4枚出しも可）。自分だけが起こせる。', nameVi:'Cách Mạng', abbrVi:'Cm', codeVi:'Đ05', descVi:'Đánh 4 lá cùng số sẽ đảo ngược mạnh/yếu, kéo dài đến lần Cách mạng kế tiếp (có Cách mạng thì được đánh tứ quý). Chỉ mình mới phát động được.' },
     { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。さらに、ボムで場を切るたび、そこまで積み上がった“罰カード”を切った相手（直前の人）へ押し付ける（2単騎・弱ボム＝1枚／22・強ボム＝2枚ぶんが積み上がる）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình. Ngoài ra, mỗi lần chặt bằng bom, dồn hết "lá phạt" đã tích lên người vừa bị chặt (người liền trước) — heo lẻ / bom yếu = 1 lá, đôi heo / bom mạnh = 2 lá tích dồn.' },
@@ -1614,13 +1637,13 @@ const RL = (function(){
     { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:22, suitCost:32, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
-    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:1, ico:'🔁', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
+    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:1, ico:'🪃', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
     // ───────── 緑 (midori) — 役追加 ─────────
     //   2/3/4カード可(set2-4)・革命/ボム/スート順などは place:'whole'(自分だけに効く全体ルール枠=ruleSlots)。
     { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:43, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
     { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:8, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
     { id:'set4', code:'役4', color:'midori', name:'4カード可', cost:1, ico:'4️⃣', effect:'SET4', place:'whole', desc:'同じ数字を4枚でまとめて出せる（革命・ボムを持っていれば自動で可）。', nameVi:'Cho Tứ Quý', abbrVi:'Tứ', codeVi:'B4', descVi:'Được đánh 4 lá cùng số (tứ quý) cùng lúc (có Cách mạng / Chặt Heo thì tự động được).' },
-    { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:15, suitCost:27, ico:'🪜', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
+    { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:15, suitCost:27, ico:'🔢', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
     { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:21, suitCost:51, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
     { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:37, suitCost:45, ico:'☄️', effect:'CARRY_RUN',      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2).' },
     //   自由階段・同種階段(mi05/mi06, place:'suitRun')=装備マークだけで階段に使えるマーク階段専用枠。4マークに積めば素コスト×4。
@@ -2437,6 +2460,7 @@ const RL = (function(){
       if(others.length===0 && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
     }
     state.turn = next;
+    if(state.players[next]) state.players[next].freeActed = false;   // ★新しい手番に入る席=無料アクション(発動/焚く)の枠をリセット
     state.passCount = passedSet(state).length;   // 後方互換(表示用)。判定は passed/trickAlive に一本化。
     // 気(チャージ): 反撃 or 溜め撃ち(activated)を持つ席だけ「出した枚数ぶん」貯まる(上限=chargeCap)。パスでは貯まらない＝溜め込み消極プレイにならない。
     //   気アビリティを持たない席は加算されない＝charge は 0 のまま＝正調ミラー(jp/vn)の挙動はバイト単位で不変。
@@ -2459,9 +2483,11 @@ const RL = (function(){
       // 場流し: 持ち主(健在なら)からリードし直す。持ち主が上がり済みなら次の健在席。
       let lead = ownerActive ? owner : nextActiveFrom(state, (owner==null?playerIndex:owner), 1);
       clearField(state); state.passed=[]; state.passCount=0; state.turn=lead;
+      if(state.players[lead]) state.players[lead].freeActed = false;   // ★新リードの席=無料アクション枠リセット
       events.push({kind:'flush', lead});
     } else {
       state.turn = nextTurnFrom(state, playerIndex, 1);
+      if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
       state.passCount = passedSet(state).length;
     }
     return { events };
@@ -2507,6 +2533,7 @@ const RL = (function(){
   function canActivate(state, i, eid){
     const p = state.players[i];
     if(!p || p.finished || state.gameOver) return false;
+    if(p.freeActed) return false;                                 // ★無料アクションは1手番に1回まで(焚く↔発動の無限連鎖=手札全消し を封じる)
     const e = emblem(eid);
     if(!e || !e.activated) return false;
     if(emblemSlotOf(p.build, eid)==null) return false;            // 装備していない
@@ -2525,6 +2552,7 @@ const RL = (function(){
     if(!canActivate(state, i, eid)) return { events };            // 念のため(非合法は無視)
     const e = emblem(eid), p = state.players[i];
     p.charge = Math.max(0, (p.charge||0) - (e.chargeCost||0));
+    p.freeActed = true;                                          // ★この手番の無料アクションを消費(発動/焚くは合わせて1回まで)
     events.push({kind:'activate', index:i, emb:eid});
     const eff = effList(e)[0];
     if(eff==='ACT_CLEAR'){
@@ -2552,6 +2580,7 @@ const RL = (function(){
     const p = state.players[i]; const r = playerRules(state, i);
     if(!p || p.finished || state.gameOver) return false;
     if(!r || !r.usesCharge) return false;                         // 気アビリティを持たない席は焚けない(=ミラー不変)
+    if(p.freeActed) return false;                                 // ★無料アクションは1手番に1回まで(焚く↔発動の無限連鎖を封じる)
     if((p.hand.length||0) < 2) return false;                      // 最後の1枚は残す
     return (p.charge||0) < (r.chargeCap||0);                      // 満タンでは焚けない(無駄打ち防止)
   }
@@ -2565,6 +2594,7 @@ const RL = (function(){
     if(idx<0) return { events };
     p.hand.splice(idx,1);
     p.charge = Math.min(r.chargeCap||0, (p.charge||0) + (CONFIG.BURN_GAIN||2));   // 弱札1枚を燃料に＝気の前借り
+    p.freeActed = true;                                          // ★この手番の無料アクションを消費(発動/焚くは合わせて1回まで)
     events.push({kind:'burn', index:i, n:1});
     return { events };
   }
@@ -3629,6 +3659,8 @@ const AUDIO = (function(){
       rival_word:'宿敵', rival_p_counter:'カウンター', rival_p_mirror:'ミラー', rival_p_exp:'実験', rival_p_mix:'混合',
       rival_dom_aka:'場操作', rival_dom_ao:'ターン', rival_dom_midori:'役', rival_dom_ki:'手札', rival_dom_none:'様子見',
       rival_countered:'あなたの「{0}」偏重を見て対策してきた', rival_first:'まだあなたを観察している…', rival_record:'因縁  あなた {0}勝 {1}敗',
+      rival_winrate:'勝率 {0}%（直近{1}戦）', rival_norec:'対戦成績  まだ記録なし',
+      forfeit_penalty:'中断ペナルティ：残機 −1', confirm_quit_run_title:'巡業を中断する？', confirm_quit_run_body:'この対戦をクリアせずに抜けると<br><b>残機を1つ失います</b>（残機 {0} → {1}）。', confirm_quit_run_ok:'中断する（残機-1）',
       /* メタ崩壊(v0.22) 宿敵の標的宣言(Meta-Ban) */
       ban_tag:'封じ', badge_ban:'封じ', act_banned:'宿敵に封じられている（この深度は装備できない）',
       ban_banner:'{0} があなたの手を読んだ！', ban_banner_ds:'この深度は「{0}」を封じられた。別の手で攻略しよう。',
@@ -3706,6 +3738,7 @@ const AUDIO = (function(){
       set_sfx:'効果音', set_gfx:'画質', gfx_hi:'高品質', gfx_lite:'描画優先（標準）', set_rankmode:'強さルール', rankmode_2:'2 が最強（標準）', rankmode_a:'A が最強（変則）',
       set_budget:'対戦の予算', set_budget_val:'コスト {0}', set_unlocked:'解放エンブレム', set_unlocked_val:'{0} / {1}（巡業で増える）',
       set_best:'最高到達深度', set_best_val:'深度 {0}', set_toggle:'切替 ▶',
+      set_rival_name:'ライバルの名前', set_rival_ok:'けってい', set_edit:'変更 ▶',
       set_keys:'キー設定', set_keys_val:'キーボード／パッド', keys_open:'ひらく ▶',
       /* キーコンフィグ */
       keys_topbar:'キーコンフィグ', keys_close:'◀ もどる',
@@ -3818,6 +3851,8 @@ const AUDIO = (function(){
       rival_word:'Kỳ phùng', rival_p_counter:'Khắc chế', rival_p_mirror:'Phản chiếu', rival_p_exp:'Thử nghiệm', rival_p_mix:'Pha trộn',
       rival_dom_aka:'Khống sân', rival_dom_ao:'Lượt', rival_dom_midori:'Bộ bài', rival_dom_ki:'Lá bài', rival_dom_none:'Quan sát',
       rival_countered:'Đã nhắm thiên hướng "{0}" của bạn để khắc chế', rival_first:'Vẫn đang quan sát bạn…', rival_record:'Duyên nợ  Bạn {0} thắng {1} thua',
+      rival_winrate:'Tỉ lệ thắng {0}% ({1} trận gần nhất)', rival_norec:'Thành tích  Chưa có',
+      forfeit_penalty:'Phạt bỏ dở: Mạng −1', confirm_quit_run_title:'Bỏ dở lữ hành?', confirm_quit_run_body:'Rời đi khi chưa hoàn thành trận này sẽ<br><b>mất 1 mạng</b> (mạng {0} → {1}).', confirm_quit_run_ok:'Bỏ dở (Mạng -1)',
       /* Sụp đổ meta (v0.22) — Tuyên bố cấm của kỳ phùng (Meta-Ban) */
       ban_tag:'Bị cấm', badge_ban:'Cấm', act_banned:'Bị kỳ phùng cấm (tầng này không gắn được)',
       ban_banner:'{0} đã đọc được bài của bạn!', ban_banner_ds:'Tầng này bị cấm "{0}". Hãy phá bằng cách khác.',
@@ -3890,6 +3925,7 @@ const AUDIO = (function(){
       set_sfx:'Âm thanh', set_gfx:'Chất lượng', gfx_hi:'Cao cấp', gfx_lite:'Ưu tiên hiệu năng (chuẩn)', set_rankmode:'Luật mạnh yếu', rankmode_2:'Lá 2 (heo) mạnh nhất (chuẩn)', rankmode_a:'Lá A mạnh nhất (biến thể)',
       set_budget:'Ngân sách trận', set_budget_val:'Chi phí {0}', set_unlocked:'Biểu tượng mở khóa', set_unlocked_val:'{0} / {1} (tăng khi lữ hành)',
       set_best:'Tầng cao nhất', set_best_val:'Tầng {0}', set_toggle:'Đổi ▶',
+      set_rival_name:'Tên đối thủ', set_rival_ok:'Xác nhận', set_edit:'Sửa ▶',
       set_keys:'Gán phím', set_keys_val:'Bàn phím / Tay cầm', keys_open:'Mở ▶',
       /* Gán phím */
       keys_topbar:'Gán Phím', keys_close:'◀ Quay lại',
@@ -4172,7 +4208,7 @@ const AUDIO = (function(){
   // 対戦画面でフォーカスを奪うモーダルが開いているか(開いている間はパス等の盤面操作を止める)
   function anyMatchOvlActive(){
     if(currentScreen==='s-inspect') return true;
-    return ['#ovl-pause','#ovl-choose','#ovl-net'].some(s=> $(s)?.classList.contains('active'));
+    return ['#ovl-pause','#ovl-choose','#ovl-net','#ovl-quit'].some(s=> $(s)?.classList.contains('active'));
   }
 
   /* ---------- 入力アクション・ディスパッチ（キーボード/パッド共通） ---------- */
@@ -4309,6 +4345,8 @@ const AUDIO = (function(){
   function onBack(){
     AUDIO.back();
     if($('#ovl-confirm')?.classList.contains('active')){ closeConfirm(); setTimeout(focusFirst,0); return; } // 確認ダイアログ=戻るでキャンセル
+    if($('#ovl-quit')?.classList.contains('active')){ closeQuitConfirm(); openPause(); return; } // 巡業中断確認=戻るでキャンセル(ポーズへ)
+    if($('#ovl-rival')?.classList.contains('active')){ closeRivalEdit(); return; } // ライバル名編集=戻るでキャンセル
     if($('#ovl-capture')?.classList.contains('active')){ endCapture(); return; } // リバインド取り込みをキャンセル
     if($('#ovl-net')?.classList.contains('active')) return; // ネット通知は専用ボタンのみ
     if($('#ovl-choose').classList.contains('active')) return; // 指名は戻る不可
@@ -4527,6 +4565,17 @@ const AUDIO = (function(){
     if(r<0.90) return 'loot';
     return 'rest';
   }
+  // 1つの分岐行ぶんの「互いに異なる」ノード種別を k 個選ぶ。
+  //   ★同じ行に同種ノードが並ぶと「内容が被って選ぶ意味がない」分岐になるのを防ぐ(必ず別物から選ばせる)。
+  function pickRowTypes(rowIdx, k){
+    const types=[]; let guard=0;
+    while(types.length<k && guard<80){ const t=pickNodeType(rowIdx); if(!types.includes(t)) types.push(t); guard++; }
+    if(types.length<k){   // 念のため(乱数が偏った場合)未使用種別で埋める。row0 は序盤らしい種別に限定。
+      const pool = rowIdx===0 ? ['battle','mutator','loot'] : ['battle','elite','mutator','loot','rest'];
+      for(const t of pool){ if(!types.includes(t)){ types.push(t); if(types.length>=k) break; } }
+    }
+    return types;
+  }
   function ensureNodeType(rows, type){   // 各幕に loot/rest を最低1つ保証(無ければ battle 枝を1つ差し替え)
     if(rows.some(rw=>rw.opts.some(n=>n.type===type))) return;
     for(const rw of rows){ const i=rw.opts.findIndex(n=>n.type==='battle'); if(i>=0){ rw.opts[i]=genRunNode(type); return; } }
@@ -4536,7 +4585,7 @@ const AUDIO = (function(){
     const rows=[]; const choiceRows=3;
     for(let i=0;i<choiceRows;i++){
       const k=(i===0)?2:(2+(Math.random()<0.5?1:0));   // 2〜3択(認知コストS/M)
-      const opts=[]; for(let j=0;j<k;j++) opts.push(genRunNode(pickNodeType(i)));
+      const opts=pickRowTypes(i, k).map(t=> genRunNode(t));   // ★行内は必ず別種別(被り無し=必ず選ぶ意味がある)
       rows.push({ opts, chosen:null });
     }
     ensureNodeType(rows,'loot'); ensureNodeType(rows,'rest');
@@ -4633,7 +4682,7 @@ const AUDIO = (function(){
     const ruleNm=(nb && mutById(nb.mut) && mutById(nb.mut).effect!=='NONE') ? mutName(mutById(nb.mut)) : T('boss_raw_badge');
     const bossLn=nb ? '<div class="rr-l">👑 '+T('rest_next_boss', RIVAL.name(), bossTitle(nb), ruleNm)+'</div>' : '';
     return '<div class="rr-h">🔥 '+T('rival_word')+' '+r.name+'</div>'
-      +'<div class="rr-rec">'+T('rival_record', r.l||0, r.w||0)+'</div>'
+      +'<div class="rr-rec">'+rivalRecordStr()+'</div>'
       +'<div class="rr-l">'+obs+'</div>'+topLn+bossLn;
   }
   // ノード(戦闘の結果ドラフト/市/休憩)を解決し終えたら現在地を進めてマップへ戻る。
@@ -4664,7 +4713,8 @@ const AUDIO = (function(){
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
       ban:{ ids:[], depth:1 },                     // ★v0.22 メタ崩壊: この深度で宿敵が封じた常用エンブレム(深度進行で更新)
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
-      log:[]                                        // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
+      log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
+      inMatch:false                                 // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
     };
   }
   // タイトルの「巡業」ボタン入口。中断データがある時は確認をはさむ＝誤操作1発で消えるのを防ぐ。
@@ -4697,9 +4747,21 @@ const AUDIO = (function(){
     MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致は決め直す
     MODE.run.act = MODE.run.act || 1;   // 旧セーブ互換
     MODE.run.log = Array.isArray(MODE.run.log) ? MODE.run.log : [];   // 旧セーブ互換: 物語ログ枠
+    recordBestDepth(MODE.run.depth);   // 再開時にも到達深度を記録(旧セーブ救済)
     if(!MODE.run.map || !Array.isArray(MODE.run.map.rows) || !MODE.run.map.rows.length){ MODE.run.map = genAct(MODE.run.act, MODE.run.depth); }   // 旧セーブ互換: マップ無→現深度から生成
     MODE.curNode=null;
     MODE.mutator=saved.mutator ? JSON.parse(JSON.stringify(saved.mutator)) : mutById('m_none');
+    // ★中断ペナルティ: 対戦を完了(クリア)せずに抜けたまま再開した場合は残機-1。
+    //   セーブが対戦前へ巻き戻る(=ノーリスクで何度も挑み直せる)不正を封じる。タブ閉じ/クラッシュ含む全離脱に効く。
+    if(MODE.run.inMatch){
+      MODE.run.inMatch=false;
+      MODE.run.lives--;
+      if(MODE.run.lives<0){ runOver(); return; }   // 最後の残機を払えず尽きた → 巡業終了(ダイジェスト/最高到達深度を確定)
+      store.saveRun(MODE.run, MODE.mutator);
+      enterMap();
+      toast(T('forfeit_penalty'), '#e53935');
+      return;
+    }
     enterMap();   // ★巡業は常にマップから再開(道の選択をやり直す＝堅牢／半端な編成は run.build に残る)
   }
   function startQuick(){
@@ -5737,11 +5799,27 @@ const AUDIO = (function(){
     name(){ return this.ensure().name; },
     // 人間が今戦で選んだビルド(=公開情報の傾向)を観測。直近を重く(減衰0.8)。
     observe(build){ const r=this.ensure(); Object.keys(r.prof).forEach(k=> r.prof[k]*=0.8); collectBuildIds(build).forEach(id=> r.prof[id]=(r.prof[id]||0)+1); r.n=(r.n||0)+1; store.save(); },
-    // 因縁の戦績(宿敵から見た勝/負＝あなたとの直接対決)。
-    record(humanPlace, rivalPlace){ const r=this.ensure(); if(rivalPlace<humanPlace) r.w=(r.w||0)+1; else if(rivalPlace>humanPlace) r.l=(r.l||0)+1; store.save(); },
+    // 因縁の戦績(宿敵から見た勝/負＝あなたとの直接対決)。直近100戦だけを履歴 hist に残す(1=あなたの勝ち/0=負け)。
+    record(humanPlace, rivalPlace){
+      const r=this.ensure(); let res=null;
+      if(rivalPlace<humanPlace){ r.w=(r.w||0)+1; res=0; }        // 宿敵が上位=あなたの負け
+      else if(rivalPlace>humanPlace){ r.l=(r.l||0)+1; res=1; }   // 宿敵が下位=あなたの勝ち
+      if(res!=null){ r.hist=Array.isArray(r.hist)?r.hist:[]; r.hist.push(res); if(r.hist.length>100) r.hist=r.hist.slice(-100); }
+      store.save();
+    },
+    // 直近100戦の勝率。hist が無い旧セーブは累計 w/l から算出。{pct,n} を返す(n=対象戦数)。
+    winRate(){
+      const r=this.ensure(), h=Array.isArray(r.hist)?r.hist:null;
+      let wins, n;
+      if(h && h.length){ wins=h.reduce((a,b)=>a+b,0); n=h.length; }
+      else { wins=r.l||0; n=(r.l||0)+(r.w||0); }
+      return { pct: n? Math.round(100*wins/n):0, n };
+    },
     dominantColor(){ const r=this.ensure(), bucket={}; Object.keys(r.prof).forEach(id=>{ const e=RL.emblem(id); if(e) bucket[e.color]=(bucket[e.color]||0)+r.prof[id]; }); let best=null,bv=0; Object.keys(bucket).forEach(c=>{ if(bucket[c]>bv){bv=bucket[c];best=c;} }); return bv>0?best:null; },
     topIds(n){ const r=this.ensure(); return Object.keys(r.prof).sort((a,b)=>r.prof[b]-r.prof[a]).slice(0,n||8); }
   };
+  // 宿敵戦績の表示文字列＝勝率のみ(直近100戦)。未対戦は専用文言。
+  function rivalRecordStr(){ const wr=RIVAL.winRate(); return wr.n ? T('rival_winrate', wr.pct, wr.n) : T('rival_norec'); }
   // 今戦の宿敵プラン: 対戦ごとに人格をローテ(カウンター/ミラー/実験/混合)。あなたの優勢な色を読み、刺さるアーキタイプ＋反撃を選ぶ。
   function rivalPlan(){
     const r=RIVAL.ensure();
@@ -5902,7 +5980,7 @@ const AUDIO = (function(){
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
-    if(MODE.kind==='run'){ MODE.run.nextBonus=0; store.saveRun(MODE.run, MODE.mutator); }   // 対戦開始で1位ボーナス(+25)を消費＋中断用セーブ(確定ビルドを永続化)
+    if(MODE.kind==='run'){ MODE.run.nextBonus=0; MODE.run.inMatch=true; store.saveRun(MODE.run, MODE.mutator); }   // 対戦開始で1位ボーナス(+25)を消費＋inMatch=true(未完で抜けると残機-1)＋中断用セーブ(確定ビルドを永続化)
     busy=false; pendingChoose=null; endedShown=false;
     $('#match-title').textContent = MODE.kind==='run' ? T('mt_run', depth, MODE.run.lives) : T('mt_quick');
     show('s-match');
@@ -6219,6 +6297,8 @@ const AUDIO = (function(){
   }
   function cpuStep(){
     if(!G || G.gameOver){ return; }
+    if(currentScreen!=='s-match'){ busy=false; return; }            // ★対戦を抜けた=自動進行を止める(内部で対戦が続いて音が鳴り続ける/勝手にリザルトへ飛ぶのを防ぐ)
+    if(anyMatchOvlActive()){ setTimeout(cpuStep, 250); return; }     // ★ポーズ/中断確認などのモーダル中はCPUを進めない(閉じたら再開)
     const idx=G.turn; const p=G.players[idx];
     if(p.isHuman){ busy=false; afterStep(); return; }
     // 気(チャージ)経済: 本手の前に無料アクション(発動/焚く)を1回だけ。手番は同席のまま → 同invocation内で続けて本手を打つ(ループ無し)。
@@ -6308,6 +6388,7 @@ const AUDIO = (function(){
   /* ----- 終局 ----- */
   let endedShown=false;
   function endMatch(){
+    if(!G || currentScreen!=='s-match') return;   // ★対戦を抜けた後に遅延コールバックで結果画面へ飛ばされるのを防ぐ
     if(endedShown) return; endedShown=true;
     const me=G.players[meIdx()];
     const myPlace=me.place || 4;
@@ -6347,7 +6428,7 @@ const AUDIO = (function(){
                            : ((r.n>1 && info.dom) ? T('rival_countered', T('rival_dom_'+info.dom)) : T('rival_first'));
         const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-l">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
         riv.innerHTML=head+'<div class="rv-l">'+line+'</div>'+banLn
-          +'<div class="rv-rec">'+T('rival_record', r.l||0, r.w||0)+'</div>';
+          +'<div class="rv-rec">'+rivalRecordStr()+'</div>';
         riv.classList.add('show');
       } else { riv.innerHTML=''; riv.classList.remove('show'); }
     }
@@ -6395,6 +6476,7 @@ const AUDIO = (function(){
   /* ----- 巡業の勝敗処理 ----- */
   function endRunMatch(place){
     const run=MODE.run;
+    run.inMatch=false;   // ★対戦を最後まで完了=クリア扱い(以降の中断ペナルティ対象外)。両分岐の saveRun で永続化される
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
     MODE.lastOutcome={ place, depth:playedDepth };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
@@ -6431,6 +6513,7 @@ const AUDIO = (function(){
     }
     // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
     run.depth++;
+    recordBestDepth(run.depth);   // ★到達深度を即記録(死亡を待たず最高到達深度が機能するように)
     run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(深度予算。1位ボーナス+25は nextBonus で別管理)
     run.ban = decideBan(run, run.depth);   // ★v0.22 次深度の封じを宿敵が決め直す(観測が増えるほど鋭く)
     // ★v0.23 お題は次ノードが各自で予告保持するので、ここでの per-depth ロールは廃止(MODE.mutator はノード入場時に設定)。
@@ -6438,11 +6521,14 @@ const AUDIO = (function(){
     const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : T('next_lifedown');
     showResult(label, ()=> openDraft(), reward, playedDepth);   // すすむ→ドラフト→(takeDraft/skip)→advanceMap→マップ
   }
+  // 最高到達深度を記録(深度が進むたびに更新＝死亡時だけでなく中断/再開でも反映される)。
+  function recordBestDepth(d){ if(d>(store.bestDepth||0)){ store.bestDepth=d; store.save(); return true; } return false; }
   function runOver(){
+    stopMatchLoop();   // ★巡業終了=進行中の対戦ループを止める(残機尽き/中断のどちらの経路でも内部進行を残さない)
     const run=MODE.run;
     const reached=run.depth;
     let rec='';
-    if(reached>store.bestDepth){ store.bestDepth=reached; store.save(); rec=T('runover_best'); }
+    if(recordBestDepth(reached)) rec=T('runover_best');
     store.clearRun();   // 巡業終了時に保存データを消去
     $('#runover-head').textContent=T('runover_head');
     $('#runover-body').innerHTML=T('runover_body', reached, rec, store.bestDepth);
@@ -6475,7 +6561,7 @@ const AUDIO = (function(){
       +'<span>'+T('digest_acts', acts)+'</span>'
       +'<span>'+T('digest_bosses', bosses)+'</span>'
       +'<span>'+T('digest_emblems', ownedGain, rndN)+'</span>'
-      +(r?'<span>'+T('rival_record', r.l||0, r.w||0)+'</span>':'')
+      +(r?'<span>'+rivalRecordStr()+'</span>':'')
       +'</div>';
     return '<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path">'+path+'</div>'+stats;
   }
@@ -6547,7 +6633,32 @@ const AUDIO = (function(){
   function closePause(){ $('#ovl-pause').classList.remove('active'); setTimeout(focusOnHandOrPass,0); }
   $('#pause-resume').onclick=()=>{ AUDIO.back(); closePause(); };
   $('#pause-help').onclick=()=>{ openHelp('s-match'); };
-  $('#pause-quit').onclick=()=>{ AUDIO.back(); closePause(); if(NET.active) NET.leave(); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
+  // 進行中の対戦を内部的に確実に終わらせる(離脱時)。Gを破棄＝cpuStep/endMatch の遅延コールバックは全て空振りする＝音も止まる。
+  function stopMatchLoop(){ G=null; busy=false; endedShown=true; }
+  function quitToTitle(){ stopMatchLoop(); if(NET.active) NET.leave(); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); }
+  $('#pause-quit').onclick=()=>{
+    // 巡業の対戦中(未クリア)に抜けるのは中断＝残機-1。確認モーダルで明示してから処理する。
+    if(MODE.kind==='run' && MODE.run && MODE.run.inMatch){ AUDIO.back(); closePause(); openQuitConfirm(); return; }
+    AUDIO.back(); closePause(); quitToTitle();
+  };
+  function openQuitConfirm(){
+    AUDIO.confirm();
+    $('#quit-title').textContent=T('confirm_quit_run_title');
+    $('#quit-body').innerHTML=T('confirm_quit_run_body', MODE.run.lives, MODE.run.lives-1);
+    $('#quit-cancel').textContent=T('confirm_cancel');
+    $('#quit-ok').textContent=T('confirm_quit_run_ok');
+    $('#ovl-quit').classList.add('active');
+    setTimeout(()=>{ setFocus($('#quit-cancel')); },0);   // 既定はキャンセル側(誤って残機を失わないよう)
+  }
+  function closeQuitConfirm(){ $('#ovl-quit').classList.remove('active'); }
+  $('#quit-cancel').onclick=()=>{ AUDIO.back(); closeQuitConfirm(); openPause(); };
+  $('#quit-ok').onclick=()=>{
+    AUDIO.back(); closeQuitConfirm();
+    const run=MODE.run; run.inMatch=false; run.lives--;
+    if(run.lives<0){ runOver(); return; }   // 最後の残機を払えず尽きた → 巡業終了(ダイジェスト/最高到達深度を確定)
+    store.saveRun(run, MODE.mutator);
+    quitToTitle();
+  };
   $('#match-menu').onclick=()=> openPause();
 
   /* ============================================================
@@ -6621,7 +6732,7 @@ const AUDIO = (function(){
       { nm:T('set_gfx'), val:()=> store.gfx==='hi'?T('gfx_hi'):T('gfx_lite'), act:()=>{ store.gfx = store.gfx==='hi'?'lite':'hi'; applyGfx(); store.save(); AUDIO.confirm(); } },
       { nm:T('set_rankmode'), val:()=> store.rankMode==='2high'?T('rankmode_2'):T('rankmode_a'), act:()=>{ store.rankMode = store.rankMode==='2high'?'Ahigh':'2high'; RL.setRankOrder(store.rankMode); store.save(); AUDIO.confirm(); } },
       { nm:T('set_keys'), val:()=> T('set_keys_val'), act:()=>{ AUDIO.confirm(); show('s-keys'); }, btn:T('keys_open') },
-      { nm:T('set_budget'), val:()=> T('set_budget_val', RL.CONFIG.MAX_BUILD_COST), act:null },
+      { nm:T('set_rival_name'), val:()=> RIVAL.name(), act:()=> openRivalEdit(), btn:T('set_edit') },
       { nm:T('set_unlocked'), val:()=> T('set_unlocked_val', store.unlocked.length, RL.EMBLEMS.length), act:null },
       { nm:T('set_best'), val:()=> T('set_best_val', store.bestDepth), act:null },
     ];
@@ -6632,6 +6743,25 @@ const AUDIO = (function(){
       wrap.appendChild(row);
     });
   }
+  // ライバルの名前を変更(設定画面のモーダル)。入力欄＝直接タイプ、Enter/けってい=確定、Esc/もどる=キャンセル。
+  function openRivalEdit(){
+    AUDIO.confirm();
+    const inp=$('#rival-name-input'); inp.value=RIVAL.name();
+    $('#rival-edit-title').textContent=T('set_rival_name');
+    $('#rival-cancel').textContent=T('confirm_cancel');
+    $('#rival-ok').textContent=T('set_rival_ok');
+    $('#ovl-rival').classList.add('active');
+    setFocus($('#rival-ok'));   // Enter(入力欄)→blur→activate がけってい側を押す
+    setTimeout(()=>{ inp.focus(); inp.select&&inp.select(); },0);
+  }
+  function closeRivalEdit(){ $('#ovl-rival').classList.remove('active'); setTimeout(()=>{ renderSet(); focusFirst(); },0); }
+  function commitRivalName(){
+    const v=($('#rival-name-input').value||'').trim().slice(0,12);
+    if(v){ const r=RIVAL.ensure(); r.name=v; store.save(); AUDIO.emb(); }
+    closeRivalEdit();
+  }
+  $('#rival-ok').onclick=()=> commitRivalName();
+  $('#rival-cancel').onclick=()=>{ AUDIO.back(); closeRivalEdit(); };
 
   /* ============================================================
      キーコンフィグ（キーボード/ゲームパッドのリバインド）
