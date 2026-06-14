@@ -760,6 +760,22 @@
   /* 対戦中のみ再描画(数が少なく軽量): 相手の残枚数ピル/ビルドチップに内側リムだけ薄く。 */
   .gfx-hi .opp .cnt{ box-shadow:inset 0 2px 0 rgba(255,255,255,.22), 0 4px 14px rgba(0,0,0,.4); }
 
+  /* ── 巡業マップ(道/ノード/エッジ)の質感(gfx-hi限定・静的) ── カードに浮き・接地影、エッジに金の光。 */
+  .gfx-hi .mapnode{ box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 18px rgba(60,68,120,.12), 0 6px 0 rgba(40,46,90,.16), 0 14px 28px rgba(0,0,0,.34); }
+  .gfx-hi .mapnode .nic{ filter:drop-shadow(0 3px 4px rgba(0,0,0,.22)); }
+  .gfx-hi .mapnode.boss{ background:linear-gradient(160deg,#fffbe9 0%,#ffe9a0 55%,#f4c64a 100%); box-shadow:inset 0 2px 0 rgba(255,255,255,1), inset 0 -14px 22px rgba(180,130,20,.28), 0 0 0 2px rgba(224,169,28,.5), 0 8px 0 rgba(150,110,20,.4), 0 18px 36px rgba(0,0,0,.42); }
+  .gfx-hi .mapnode .nbadge{ box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 2px 5px rgba(0,0,0,.18); }
+  .gfx-hi .mapcol-hd{ text-shadow:0 2px 4px rgba(0,0,0,.45); }
+  .gfx-hi .mapcol.cur .mapcol-hd{ text-shadow:0 0 12px rgba(255,213,74,.7), 0 2px 4px rgba(0,0,0,.4); }
+  .gfx-hi .map-hint{ text-shadow:0 2px 6px rgba(0,0,0,.5); }
+  .gfx-hi .mapcol:not(:last-child)::after{ color:#ffd25a; text-shadow:0 0 14px rgba(255,200,70,.75), 0 2px 3px rgba(0,0,0,.45); }
+  .gfx-hi .mapnode.foc.focused{ box-shadow:0 0 0 6px #ffd54a, 0 0 30px rgba(255,213,74,.6), 0 14px 30px rgba(0,0,0,.42); }
+  /* 休憩カード/レポート・ダイジェストのノードチップに静的な艶。 */
+  .gfx-hi .rest-card{ box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 18px 44px rgba(0,0,0,.46); }
+  .gfx-hi .rest-report{ box-shadow:inset 0 2px 6px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.06); }
+  .gfx-hi .run-digest .dg-node{ box-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 3px 7px rgba(0,0,0,.22); }
+  .gfx-hi .run-digest .dg-node.boss{ box-shadow:inset 0 1px 0 rgba(255,255,255,1), 0 0 0 1px rgba(224,169,28,.5), 0 4px 9px rgba(0,0,0,.3); }
+
   /* ── 発動演出(ON時のみ・約500〜560msで自己消滅・transform/opacityのみ) ── */
   /* ゴールドの二重リングが外へ弾ける。 */
   .gfx-hi .embring{ position:absolute; left:50%; top:64px; width:120px; height:120px; margin:-60px 0 0 -60px;
@@ -864,10 +880,34 @@
   .mapnode.loot{ border-color:#66bb6a; background:linear-gradient(160deg,#fff,#e8f8ea); }
   .mapnode.rest{ border-color:#26a69a; background:linear-gradient(160deg,#fff,#e3f7f4); }
   .mapnode.boss{ border-color:#d8a200; background:linear-gradient(160deg,#fff8e1,#ffe39a); border-width:6px; }
+  .mapnode.boss .nnm{ font-size:25px; line-height:1.15; }   /* 「宿敵名 〈異名〉」が収まるよう少し縮小 */
+  .mapnode .nbadge.raw{ color:#7a5a00; background:#ffe9a8; }   /* 看板ルール無しボスの「物量」バッジ */
   .mapnode.future{ opacity:.48; filter:saturate(.55); }
   .mapnode.chosen{ opacity:.9; box-shadow:0 0 0 4px rgba(126,217,87,.45) inset; }
   .mapnode.chosen .nnm::after{ content:' ✓'; color:#2e9b4f; }
   .mapnode.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; box-shadow:0 10px 28px rgba(0,0,0,.35); }
+
+  /* ---- 休憩(宿敵レポート) ---- */
+  .rest-card{ width:min(1100px,92%); background:linear-gradient(160deg,#fff,#eef4ff); border:5px solid #26a69a; border-radius:24px; padding:30px 40px 34px; text-align:center; box-shadow:0 18px 40px rgba(0,0,0,.4); }
+  .rest-card .rest-ico{ font-size:64px; line-height:1; }
+  .rest-card .rest-heal{ font-size:34px; font-weight:900; color:#1c7a6a; margin:8px 0 18px; }
+  .rest-report{ background:#2a3055; border:3px solid #3c447a; border-radius:16px; padding:18px 24px; margin:0 auto 22px; max-width:860px; text-align:left; }
+  .rest-report .rr-h{ font-size:30px; font-weight:900; color:#ffd0c8; }
+  .rest-report .rr-rec{ font-size:26px; font-weight:800; color:#ffb4a0; margin:2px 0 10px; }
+  .rest-report .rr-l{ font-size:25px; color:#dfe5ff; line-height:1.4; margin:6px 0; }
+
+  /* ---- 走り終わりダイジェスト(物語ログ) ---- */
+  .run-digest{ margin:6px auto 22px; max-width:1440px; text-align:left; }
+  .run-digest .dg-h{ font-size:30px; font-weight:900; color:#cdd6ff; margin-bottom:10px; text-align:center; }
+  .run-digest .dg-path{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-start; max-height:280px; overflow-y:auto; padding:4px; }
+  .run-digest .dg-act{ width:100%; font-size:24px; font-weight:900; color:#9fb0e8; margin:8px 0 2px; }
+  .run-digest .dg-node{ font-size:24px; font-weight:800; color:#22305a; background:#dde6ff; border:2px solid #aab6e0; border-radius:10px; padding:6px 12px; white-space:nowrap; }
+  .run-digest .dg-node.boss{ background:linear-gradient(160deg,#fff5d8,#ffe39a); border-color:#d8a200; color:#5a4200; }
+  .run-digest .dg-node.elite{ background:#ffe0dc; border-color:#ef5350; }
+  .run-digest .dg-node.win{ box-shadow:0 0 0 3px rgba(126,217,87,.5); }
+  .run-digest .dg-pl{ font-weight:900; color:#b25a00; }
+  .run-digest .dg-pl.win{ color:#2e9b4f; }
+  .run-digest .dg-stats{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:center; margin-top:16px; font-size:27px; font-weight:800; color:#e7ecff; }
 
   /* ヘルプ/設定ページ */
   .page{ min-width:1200px; min-height:520px; }
@@ -1062,7 +1102,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.23</div>
+    <div class="ver">v0.25</div>
     <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
     <div class="ovl" id="ovl-confirm">
       <div class="card-modal" style="text-align:center; max-width:1100px;">
@@ -1223,13 +1263,27 @@
     </div>
   </section>
 
+  <!-- ===================== REST (休憩・宿敵レポート) ===================== -->
+  <section id="s-rest" class="screen">
+    <div class="topbar"><div class="title" data-i18n="rest_title">休憩</div></div>
+    <div class="wrap" style="align-items:center; justify-content:center;">
+      <div class="rest-card">
+        <div class="rest-ico">🛏️</div>
+        <div id="rest-heal" class="rest-heal"></div>
+        <div class="rest-report" id="rest-report"></div>
+        <div class="rowbtns" style="justify-content:center;"><div class="btn primary foc" id="rest-ok" data-i18n="rest_continue">マップへすすむ ▶</div></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ===================== RUN OVER ===================== -->
   <section id="s-runover" class="screen">
     <div class="topbar"><div class="title" data-i18n="runover_head">巡業しゅうりょう</div></div>
     <div class="ovl ovl-page active" style="background:transparent;">
-      <div class="card-modal" style="text-align:center;">
+      <div class="card-modal" style="text-align:center; max-width:1560px;">
         <h2 id="runover-head">到達深度</h2>
-        <div id="runover-body" style="font-size:40px; font-weight:900; margin:20px 0;"></div>
+        <div id="runover-body" style="font-size:40px; font-weight:900; margin:16px 0;"></div>
+        <div id="runover-digest" class="run-digest"></div>
         <div class="rowbtns"><div class="btn primary foc" id="runover-ok" data-i18n="runover_ok">タイトルへ</div></div>
       </div>
     </div>
@@ -3602,6 +3656,9 @@ const AUDIO = (function(){
       /* 巡業しゅうりょう */
       runover_best:' 🎉 自己ベスト更新！', runover_head:'巡業しゅうりょう', runover_ok:'タイトルへ',
       runover_body:'到達深度 <span style="color:#ffcf4d;">{0}</span>{1}<br><span style="font-size:30px;">最高記録：深度 {2}</span>',
+      /* 走り終わりダイジェスト */
+      digest_head:'🗺 通った道', digest_act:'― 幕 {0} ―', digest_none:'まだ道を歩んでいない',
+      digest_acts:'クリアした幕 {0}', digest_bosses:'撃破したボス {0}体', digest_emblems:'集めたエンブレム {0}（ランダム {1}）',
       /* ドラフト */
       draft_topbar:'エンブレム獲得 — 1つ選ぶ', draft_head:'戦利品を1つ選ぶ', draft_skip:'受け取らずに進む',
       draft_depth:'次は 深度 {0}{1}', draft_mut:'　／　お題 {0} {1}', draft_cost:'コスト {0} ／ {1} ／ {2}{3}',
@@ -3618,7 +3675,14 @@ const AUDIO = (function(){
       node_rest:'休憩', node_rest_ds:'残機を1回復',
       node_boss:'ボス', node_boss_ds:'宿敵の看板ルール＋強化。撃破で幕クリア・大報酬',
       node_mut_badge:'お題 {0} {1}',
+      boss_raw_badge:'看板 物量',
+      b_throne_ti:'逆さ玉座',   b_throne_ds:'天地無用の支配者。革命と逆位で盤面ごと引っくり返す。',
+      b_dancer_ti:'重ね撃ちの舞', b_dancer_ds:'相席歓迎の舞姫。連撃と指名で手番を奪い続ける。',
+      b_assassin_ti:'十手の刹那', b_assassin_ds:'短期決戦の刺客。10枚を一気に捌き切る速攻。',
+      b_tycoon_ti:'蕩尽の黄金',  b_tycoon_ds:'看板ルール無し。物量とボムで正面から圧し潰す。',
       rest_healed:'🛏 休憩：残機 +1（残機 {0}）', rest_full:'🛏 ひと息ついた（残機は満タン）',
+      rest_title:'休憩', rest_continue:'マップへすすむ ▶',
+      rest_rival_tops:'宿敵が見たあなたの常用：{0}', rest_next_boss:'この幕のボス＝{0}〈{1}〉／看板：{2}',
       reward_elite_head:'🔥 強敵を撃破！', reward_elite_line:'ランダムエンブレム +{0}',
       reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'ランダムエンブレム +{0} ／ 次戦コスト +25',
       /* ヘルプ */
@@ -3780,6 +3844,8 @@ const AUDIO = (function(){
       style_pick:'Chọn phong cách (chưa mở khóa vẫn được)', style_jp:'Kiểu Nhật', style_vn:'Kiểu Việt', style_note:'※ Nạp 1 chạm · vẫn tự cấu hình được',
       runover_best:' 🎉 Kỷ lục mới!', runover_head:'Kết thúc Lữ hành', runover_ok:'Về Menu',
       runover_body:'Tầng đạt được <span style="color:#ffcf4d;">{0}</span>{1}<br><span style="font-size:30px;">Kỷ lục: Tầng {2}</span>',
+      digest_head:'🗺 Đường đã qua', digest_act:'― Màn {0} ―', digest_none:'Chưa đi đường nào',
+      digest_acts:'Màn đã qua {0}', digest_bosses:'Hạ {0} Boss', digest_emblems:'Biểu tượng thu được {0} (ngẫu nhiên {1})',
       draft_topbar:'Nhận Biểu Tượng — Chọn 1', draft_head:'Chọn 1 chiến lợi phẩm', draft_skip:'Bỏ qua, đi tiếp',
       draft_depth:'Kế tiếp: Tầng {0}{1}', draft_mut:'　/　Đề bài {0} {1}', draft_cost:'Chi phí {0} / {1} / {2}{3}',
       place_whole_short:'Luật bộ', place_suitRun_short:'Sảnh chất', place_card_short:'Số/Chất',
@@ -3795,7 +3861,14 @@ const AUDIO = (function(){
       node_rest:'Nghỉ', node_rest_ds:'Hồi 1 mạng',
       node_boss:'Boss', node_boss_ds:'Luật đặc trưng của địch thủ + mạnh hơn. Hạ được = qua màn, thưởng lớn',
       node_mut_badge:'Đề bài {0} {1}',
+      boss_raw_badge:'Đặc trưng: Áp đảo',
+      b_throne_ti:'Ngai Đảo',        b_throne_ds:'Bá chủ Đảo Lộn. Cách mạng và đảo vị lật cả bàn cờ.',
+      b_dancer_ti:'Vũ Điệu Chồng',   b_dancer_ds:'Vũ cơ Cùng Mạnh. Liên kích và chỉ định liên tục cướp lượt.',
+      b_assassin_ti:'Sát Na Thập Thủ', b_assassin_ds:'Thích khách Tốc Chiến. Dứt sạch 10 lá trong chớp mắt.',
+      b_tycoon_ti:'Hoàng Kim Tận',   b_tycoon_ds:'Không luật đặc trưng. Lấy số đông và bom đè thẳng mặt.',
       rest_healed:'🛏 Nghỉ: Mạng +1 (Mạng {0})', rest_full:'🛏 Nghỉ ngơi (mạng đã đầy)',
+      rest_title:'Nghỉ ngơi', rest_continue:'Tới bản đồ ▶',
+      rest_rival_tops:'Địch thủ thấy bạn hay dùng: {0}', rest_next_boss:'Boss màn này = {0}〈{1}〉/ Đặc trưng: {2}',
       reward_elite_head:'🔥 Hạ cường địch!', reward_elite_line:'Biểu tượng ngẫu nhiên +{0}',
       reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Biểu tượng ngẫu nhiên +{0} / Ngân sách trận kế +25',
       help_topbar:'Cách Chơi', help_close:'◀ Quay lại', help_prev:'◀ Trước', help_next:'Sau ▶',
@@ -4267,6 +4340,7 @@ const AUDIO = (function(){
         break;
       case 's-draft':   if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); } break;
       case 's-map':     if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); } MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;   // ★v0.23 マップで戻る=中断してタイトル
+      case 's-rest':    restContinue(); break;   // ★v0.25 休憩は引き返せない＝Esc も「すすむ」に寄せる
       case 's-runover': MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;
       case 's-title': break;
       default: break;
@@ -4412,11 +4486,36 @@ const AUDIO = (function(){
     if(excludeBudget) v=v.filter(m=>m.effect!=='RICH'&&m.effect!=='POOR');
     return v.length ? v[Math.floor(Math.random()*v.length)] : null;
   }
-  function bossMutator(){ const ids=['m_rev','m_tie','m_short']; return mutById(ids[Math.floor(Math.random()*ids.length)]); }
-  function genRunNode(type){
+  /* ---- v0.24 ボスロスター: 幕ごとに「看板を背負った宿敵の姿」。固定の看板ルール＋固定の戦術＋固有の異名で、
+     ボス戦が毎回ちがう体験になる(以前は強人格＋ランダムお題1個だけで没個性だった)。全て SHELL・プレーンデータ
+     (node.boss=id を保存してシリアライズ)。エンジン非介入。★escalation は宿敵の予算/歯ごたえのみで、プレイヤーの
+     晩成パワーには触れない＝無双スノーボールを潰さない([[project_ru_le_muso_process]])。 */
+  const BOSSES = [
+    { id:'b_throne',   mut:'m_rev',   arche:'control', priority:['aka05','aka03','aka01'] },  // 逆さ玉座: 天地無用×革命/逆位の支配
+    { id:'b_dancer',   mut:'m_tie',   arche:'tempo',   priority:['aka01','ao02','ao04','ao01'] },  // 重ね撃ちの舞: 相席歓迎×テンポ(連火を前置き＝テンポ系は単体が弱く _sim で雑魚以下だったため看板「重ね撃ち」を保ち底上げ)
+    { id:'b_assassin', mut:'m_short', arche:'speed',   priority:['set2','mi03','mi08'] },     // 十手の刹那: 短期決戦×速攻ペア/分裂
+    { id:'b_tycoon',   mut:'m_none',  arche:'vietnam', priority:['aka06','mi05','set4'] },     // 蕩尽の黄金: 看板ルール無し×物量とボムで正面突破
+  ];
+  function bossForAct(act){ const n=BOSSES.length; return BOSSES[((((act||1)-1)%n)+n)%n]; }
+  function bossById(id){ return BOSSES.find(b=>b.id===id) || null; }
+  function bossForNode(node){ return (node && node.boss) ? (bossById(node.boss)||bossForAct((MODE.run&&MODE.run.act)||1)) : null; }
+  function bossTitle(b){ return b ? T(b.id+'_ti') : ''; }
+  function bossTagline(b){ return b ? T(b.id+'_ds') : ''; }
+  // ボスロスターが参照する mut/アーキタイプ/エンブレムが全て実在するかを検証(壊れた id を入れた時に気づくため)。
+  function checkBosses(){
+    const bad=[];
+    BOSSES.forEach(b=>{
+      if(!mutById(b.mut)) bad.push(b.id+': 不明な mut '+b.mut);
+      if(!CPU_ARCHE[b.arche]) bad.push(b.id+': 不明な arche '+b.arche);
+      (b.priority||[]).forEach(id=>{ if(!RL.emblem(id)) bad.push(b.id+': 不明な priority '+id); });
+    });
+    if(bad.length) console.warn('BOSS ROSTER INVALID', bad); else console.log('%cRu-Le boss roster: '+BOSSES.length+' OK', 'color:#fc6;font-weight:bold');
+    return bad.length===0;
+  }
+  function genRunNode(type, act){
     const node={ type, mut:null };
-    if(type==='mutator') node.mut = randMutVariant(false);   // 予告お題(編成前に見える＝ランダムを選択に)
-    else if(type==='boss') node.mut = bossMutator();          // ボスの看板ルール(予告)
+    if(type==='mutator') node.mut = randMutVariant(false);    // 予告お題(編成前に見える＝ランダムを選択に)
+    else if(type==='boss'){ const b=bossForAct(act); node.boss=b.id; node.mut=mutById(b.mut); }   // ボスの看板=幕固定の看板ルール＋固有id
     return node;                                              // battle/elite/loot/rest は mut=null(素の卓)
   }
   function pickNodeType(rowIdx){
@@ -4441,22 +4540,33 @@ const AUDIO = (function(){
       rows.push({ opts, chosen:null });
     }
     ensureNodeType(rows,'loot'); ensureNodeType(rows,'rest');
-    rows.push({ opts:[ genRunNode('boss') ], chosen:null });   // 最終行=ボス(必ず1体)
+    rows.push({ opts:[ genRunNode('boss', act) ], chosen:null });   // 最終行=ボス(必ず1体・幕ごとに看板が変わる)
     return { rows, cur:0, act };
   }
   // 強敵/ボスは宿敵の予算を上振れ(歯ごたえ)。幕が進むほど僅かに上昇(無双の上限キャップではない)。
   function nodeRivalBudget(depth){
     let b=runCpuBudget(depth);
-    const n=MODE.curNode;
-    if(n){ if(n.type==='elite') b+=15; else if(n.type==='boss') b += 25 + Math.max(0,(((MODE.run&&MODE.run.act)||1)-1))*6; }
+    const n=MODE.curNode, act=Math.max(0,(((MODE.run&&MODE.run.act)||1)-1));
+    // ★v0.25 _sim 校正: 予算は「効きはじめる膝」が +60 付近(下では雑魚と差がつかず spike≈0)。
+    //   そこで elite=+40+幕×6 / boss=+60+幕×8 に引き上げ＝幕1から本物のボス(勝率>0.25)・幕で歯ごたえ上昇。
+    //   ★歯ごたえは宿敵の予算のみ＝プレイヤーの晩成パワー/報酬は不介入(無双スノーボール不変)。
+    if(n){ if(n.type==='elite') b += 40 + act*6; else if(n.type==='boss') b += 60 + act*8; }
     return b;
   }
   /* ----- マップ描画 ----- */
   function nodeCardHTML(node){
     const t=node.type;
     const ico = t==='battle'?'⚔️' : t==='elite'?'🔥' : t==='mutator'?(node.mut?node.mut.ico:'🎲') : t==='loot'?'🎁' : t==='rest'?'🛏️' : '👑';
+    if(t==='boss'){   // ★v0.24 ボスは「宿敵名 〈異名〉」＋看板ルール(ルール無しボスは"物量"を明示)で個性化
+      const b=bossForNode(node);
+      const ruleBadge = (node.mut && node.mut.effect!=='NONE')
+        ? '<div class="nbadge">'+T('node_mut_badge', node.mut.ico, mutName(node.mut))+'</div>'
+        : '<div class="nbadge raw">'+T('boss_raw_badge')+'</div>';
+      const nm = b ? (RIVAL.name()+' 〈'+bossTitle(b)+'〉') : T('node_boss');
+      return '<div class="nic">👑</div><div class="nnm">'+nm+'</div><div class="nds">'+(b?bossTagline(b):T('node_boss_ds'))+'</div>'+ruleBadge;
+    }
     let badge='';
-    if((t==='mutator'||t==='boss') && node.mut && node.mut.effect!=='NONE'){
+    if(t==='mutator' && node.mut && node.mut.effect!=='NONE'){
       badge='<div class="nbadge">'+T('node_mut_badge', node.mut.ico, mutName(node.mut))+'</div>';
     }
     return '<div class="nic">'+ico+'</div><div class="nnm">'+T('node_'+t)+'</div><div class="nds">'+T('node_'+t+'_ds')+'</div>'+badge;
@@ -4500,15 +4610,47 @@ const AUDIO = (function(){
   }
   function enterRest(){
     const run=MODE.run;
-    if(run.lives<3){ run.lives++; toast(T('rest_healed', run.lives), '#7ed957'); }
-    else toast(T('rest_full'), '#7fd6c8');
+    let msg;
+    if(run.lives<3){ run.lives++; msg=T('rest_healed', run.lives); AUDIO.confirm(); }
+    else msg=T('rest_full');
     store.saveRun(run, MODE.mutator);
-    afterDraftNode();
+    showRest(msg);   // ★v0.25 休憩は即進行せず、回復＋宿敵レポートを見せてから「すすむ」
+  }
+  // ★v0.25 休憩ノード: 残機回復に加え、宿敵レポート(公開情報のみ)と次のボス予告を閲覧できる。
+  function showRest(healMsg){
+    $('#rest-heal').textContent=healMsg;
+    $('#rest-report').innerHTML=rivalReportHTML();
+    show('s-rest');
+  }
+  function restContinue(){ AUDIO.confirm(); afterDraftNode(); }
+  // 宿敵レポート(休憩で閲覧)＝公開情報(過去ビルド傾向 store.rival.prof)だけで構成。次の幕のボス予告も併記。
+  function rivalReportHTML(){
+    const r=RIVAL.ensure(), dom=RIVAL.dominantColor();
+    const obs=(r.n>1 && dom) ? T('rival_countered', T('rival_dom_'+dom)) : T('rival_first');
+    const tops=RIVAL.topIds(4).filter(id=>RL.emblem(id)).map(id=>embName(RL.emblem(id)));
+    const topLn=tops.length ? '<div class="rr-l">📖 '+T('rest_rival_tops', tops.join('・'))+'</div>' : '';
+    const nb=bossForAct((MODE.run&&MODE.run.act)||1);
+    const ruleNm=(nb && mutById(nb.mut) && mutById(nb.mut).effect!=='NONE') ? mutName(mutById(nb.mut)) : T('boss_raw_badge');
+    const bossLn=nb ? '<div class="rr-l">👑 '+T('rest_next_boss', RIVAL.name(), bossTitle(nb), ruleNm)+'</div>' : '';
+    return '<div class="rr-h">🔥 '+T('rival_word')+' '+r.name+'</div>'
+      +'<div class="rr-rec">'+T('rival_record', r.l||0, r.w||0)+'</div>'
+      +'<div class="rr-l">'+obs+'</div>'+topLn+bossLn;
   }
   // ノード(戦闘の結果ドラフト/市/休憩)を解決し終えたら現在地を進めてマップへ戻る。
   function afterDraftNode(){ advanceMap(); enterMap(); }
+  // ★v0.25 通過したノードを物語ログに記録(走り終わりのダイジェスト用)。outcome={place,depth} は戦闘のみ。
+  function logNode(run, outcome){
+    const n=MODE.curNode; if(!n) return;
+    run.log = run.log || [];
+    const e={ act:run.act, type:n.type, depth:(outcome&&outcome.depth)||run.depth };
+    if(n.type==='boss') e.boss=n.boss;
+    if(n.mut && n.mut.effect!=='NONE') e.mut=n.mut.id;
+    if(outcome && outcome.place) e.place=outcome.place;
+    run.log.push(e);
+  }
   function advanceMap(){
     const run=MODE.run, m=run.map; if(!m) return;
+    logNode(run, MODE.lastOutcome); MODE.lastOutcome=null;   // ★v0.25 進む直前に通過ノードを記録
     m.cur++;
     if(m.cur >= m.rows.length){ run.act++; run.map=genAct(run.act, run.depth); }   // 幕クリア → 次の幕(難度は深度で自然上昇)
     store.saveRun(run, MODE.mutator);
@@ -4521,7 +4663,8 @@ const AUDIO = (function(){
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
       ban:{ ids:[], depth:1 },                     // ★v0.22 メタ崩壊: この深度で宿敵が封じた常用エンブレム(深度進行で更新)
-      act:1, map:genAct(1, 1)                       // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
+      act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
+      log:[]                                        // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
     };
   }
   // タイトルの「巡業」ボタン入口。中断データがある時は確認をはさむ＝誤操作1発で消えるのを防ぐ。
@@ -4553,6 +4696,7 @@ const AUDIO = (function(){
     MODE.run.nextBonus = MODE.run.nextBonus || 0;  // 旧セーブ互換: 1位ボーナス枠
     MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致は決め直す
     MODE.run.act = MODE.run.act || 1;   // 旧セーブ互換
+    MODE.run.log = Array.isArray(MODE.run.log) ? MODE.run.log : [];   // 旧セーブ互換: 物語ログ枠
     if(!MODE.run.map || !Array.isArray(MODE.run.map.rows) || !MODE.run.map.rows.length){ MODE.run.map = genAct(MODE.run.act, MODE.run.depth); }   // 旧セーブ互換: マップ無→現深度から生成
     MODE.curNode=null;
     MODE.mutator=saved.mutator ? JSON.parse(JSON.stringify(saved.mutator)) : mutById('m_none');
@@ -5601,8 +5745,14 @@ const AUDIO = (function(){
   // 今戦の宿敵プラン: 対戦ごとに人格をローテ(カウンター/ミラー/実験/混合)。あなたの優勢な色を読み、刺さるアーキタイプ＋反撃を選ぶ。
   function rivalPlan(){
     const r=RIVAL.ensure();
-    const persona=(r.n||0)%4;
     const dom=RIVAL.dominantColor();
+    // ★v0.24 ボス戦は人格ローテではなく、そのボス固有の看板デッキ(固定アーキタイプ＋看板エンブレム)を組む＝毎回ちがう敵として立ちはだかる。
+    const bossNode = (MODE.kind==='run' && MODE.curNode && MODE.curNode.type==='boss') ? bossForNode(MODE.curNode) : null;
+    if(bossNode){
+      const pool = (CPU_ARCHE[bossNode.arche]||CPU_ARCHE.control).slice();
+      return { persona:0, boss:bossNode.id, dom, pool, priority:(bossNode.priority||[]).filter(id=>RL.emblem(id)) };
+    }
+    const persona=(r.n||0)%4;
     const counterArche={ aka:'control', midori:'vietnam', ki:'control', ao:'speed' };
     let pool, priority=[];
     if(persona===2){ pool=CPU_ARCHE[['speed','control','tempo','vietnam'][(Math.random()*4|0)]].slice(); }                 // 実験: 気まぐれ(弱点を残す揺らぎ)
@@ -5612,7 +5762,7 @@ const AUDIO = (function(){
   }
   function rivalBuild(depth){
     const plan=rivalPlan();
-    MODE.rivalInfo={ persona:plan.persona, dom:plan.dom };   // 結果画面の「種明かし」用に今戦の対策内容を控える
+    MODE.rivalInfo={ persona:plan.persona, dom:plan.dom, boss:plan.boss||null };   // 結果画面の「種明かし」用に今戦の対策内容(ボス戦なら看板)を控える
     const budget = MODE.kind==='run' ? nodeRivalBudget(depth) : (78+Math.floor(Math.random()*16));   // ★v0.23 強敵/ボスノードは宿敵を上振れ
     return assembleCpuBuild(plan.pool, budget, plan.priority);
   }
@@ -5741,8 +5891,10 @@ const AUDIO = (function(){
     // CPU3体のうち1体は「宿敵」=あなたのビルド傾向(公開情報)を学習して対策ビルドを組む適応AI。残り2体は通常アーキタイプ。
     const cpuDefs=[];
     const rivalNm=RIVAL.name();
+    const _bossNow = (MODE.kind==='run' && MODE.curNode && MODE.curNode.type==='boss') ? bossForNode(MODE.curNode) : null;
+    const rivalLabel = _bossNow ? ('👑'+rivalNm) : ('🔥'+rivalNm);   // ★v0.24 ボス戦は宿敵が王冠を被って立ちはだかる
     for(let i=0;i<3;i++){
-      if(i===0) cpuDefs.push({ name:'🔥'+rivalNm, isHuman:false, build: rivalBuild(depth), _rival:true });
+      if(i===0) cpuDefs.push({ name:rivalLabel, isHuman:false, build: rivalBuild(depth), _rival:true });
       else      cpuDefs.push({ name:cpuNames[i], isHuman:false, build: MODE.kind==='run'? cpuBuild(depth,i) : cpuBuildQuick(i) });
     }
     for(let i=cpuDefs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=cpuDefs[i]; cpuDefs[i]=cpuDefs[j]; cpuDefs[j]=t; }
@@ -6175,11 +6327,14 @@ const AUDIO = (function(){
     if(riv){
       if(!online && MODE.rivalSeat>0 && store.rival){
         const r=store.rival, info=MODE.rivalInfo||{};
-        const personaNm=T(RIVAL_PERSONA_KEYS[info.persona||0]);
-        const line=(r.n>1 && info.dom) ? T('rival_countered', T('rival_dom_'+info.dom)) : T('rival_first');
+        const bossB = info.boss ? bossById(info.boss) : null;   // ★v0.24 ボス戦は人格名ではなく「看板(異名＋看板の狙い)」を開示
+        const head = bossB
+          ? '<div class="rv-h">👑 '+r.name+' <span class="rv-p">'+bossTitle(bossB)+'</span></div>'
+          : '<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+' <span class="rv-p">'+T(RIVAL_PERSONA_KEYS[info.persona||0])+'</span></div>';
+        const line = bossB ? bossTagline(bossB)
+                           : ((r.n>1 && info.dom) ? T('rival_countered', T('rival_dom_'+info.dom)) : T('rival_first'));
         const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-l">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
-        riv.innerHTML='<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+' <span class="rv-p">'+personaNm+'</span></div>'
-          +'<div class="rv-l">'+line+'</div>'+banLn
+        riv.innerHTML=head+'<div class="rv-l">'+line+'</div>'+banLn
           +'<div class="rv-rec">'+T('rival_record', r.l||0, r.w||0)+'</div>';
         riv.classList.add('show');
       } else { riv.innerHTML=''; riv.classList.remove('show'); }
@@ -6229,6 +6384,7 @@ const AUDIO = (function(){
   function endRunMatch(place){
     const run=MODE.run;
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
+    MODE.lastOutcome={ place, depth:playedDepth };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
     //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
     // ★v0.18: 1位だけでなく3位にも+25。1位は前進(残機維持)・3位は残機-1という不利を、次戦の予算+25で補って4位と差をつける。
@@ -6256,6 +6412,7 @@ const AUDIO = (function(){
     if(!advanced) run.lives--;
     if(run.lives<0){
       // 終了: 残機尽きた巡業は復帰させない(中断セーブを破棄)。
+      logNode(run, MODE.lastOutcome); MODE.lastOutcome=null;   // ★v0.25 最後の一戦も物語ログへ(この経路は advanceMap を通らない)
       store.clearRun();
       showResult(T('next_see_result'), ()=> runOver(), reward, playedDepth);
       return;
@@ -6277,9 +6434,41 @@ const AUDIO = (function(){
     store.clearRun();   // 巡業終了時に保存データを消去
     $('#runover-head').textContent=T('runover_head');
     $('#runover-body').innerHTML=T('runover_body', reached, rec, store.bestDepth);
+    $('#runover-digest').innerHTML=runDigestHTML(run);   // ★v0.25 通った道のダイジェスト/物語ログ
     show('s-runover');
   }
+  // ★v0.25 走り終わりダイジェスト: 通った道(物語ログ)＋集計(撃破ボス/集めたエンブレム/宿敵戦績)を描く。
+  const NODE_ICO={ battle:'⚔️', elite:'🔥', mutator:'🎲', loot:'🎁', rest:'🛏️', boss:'👑' };
+  function runDigestHTML(run){
+    const log=run.log||[];
+    // 道のり: ノードを順にチップ化(幕の頭で区切り)。戦闘は順位、ボスは異名を付す。
+    let path='', curAct=0;
+    log.forEach(e=>{
+      if(e.act!==curAct){ curAct=e.act; path+='<div class="dg-act">'+T('digest_act', curAct)+'</div>'; }
+      const ico=NODE_ICO[e.type]||'•';
+      const won=e.place===1;
+      let label=ico;
+      if(e.type==='boss'){ const b=bossById(e.boss); label+=' '+(b?bossTitle(b):T('node_boss')); }
+      if(e.place){ label+=' <span class="dg-pl'+(won?' win':'')+'">'+placeLabel(e.place)+'</span>'; }
+      path+='<span class="dg-node '+e.type+(won?' win':'')+'">'+label+'</span>';
+    });
+    if(!path) path='<div class="dg-act">'+T('digest_none')+'</div>';
+    // 集計
+    const bosses=log.filter(e=>e.type==='boss' && e.place===1).length;
+    const acts=Math.max(0, (run.act||1)-1);
+    const ownedGain=Math.max(0, (run.owned?run.owned.length:0) - BASE_UNLOCKED.length);
+    const rndN=collectBuildIds(run.randomBuild).length;
+    const r=store.rival;
+    const stats='<div class="dg-stats">'
+      +'<span>'+T('digest_acts', acts)+'</span>'
+      +'<span>'+T('digest_bosses', bosses)+'</span>'
+      +'<span>'+T('digest_emblems', ownedGain, rndN)+'</span>'
+      +(r?'<span>'+T('rival_record', r.l||0, r.w||0)+'</span>':'')
+      +'</div>';
+    return '<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path">'+path+'</div>'+stats;
+  }
   $('#runover-ok').onclick=()=>{ AUDIO.confirm(); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
+  $('#rest-ok').onclick=()=> restContinue();   // ★v0.25 休憩→マップへ進む
 
   /* ----- ドラフト(戦利品) ----- */
   let draftPicks=[];
@@ -7039,6 +7228,7 @@ const AUDIO = (function(){
     console.log('%cRu-Le selftest: '+st.passed+'/'+st.total, 'color:#6f6;font-weight:bold');
     st.results.forEach(r=> console.log((r.pass?'  ✓ ':'  ✗ ')+r.name));
     if(st.passed!==st.total) console.warn('SELFTEST FAILED', st.results.filter(r=>!r.pass));
+    checkBosses();   // ★v0.24 SHELLロスター整合性チェック(エンジン非介入のため RL.selftest とは別。壊れていれば console に警告)
     // 保存された言語設定を反映(静的HTML差し替え＋vi用クラス)。動的描画は各 render が LANG を参照。
     document.documentElement.lang = LANG;
     document.title = T('doc_title');
