@@ -266,7 +266,7 @@
   /* 宿敵レポート(種明かし) */
   #result-rival{ display:none; }
   #result-rival.show{ display:block; margin:12px auto 4px; padding:14px 24px; max-width:760px;
-    border:4px solid #ff7a6b; border-radius:18px; background:rgba(229,57,53,.12); text-align:center; }
+    border:4px solid #ff7a6b; border-radius:18px; background:#4a1714; text-align:center; }
   #result-rival .rv-h{ font-size:30px; font-weight:900; color:#fff; }
   #result-rival .rv-h .rv-p{ font-size:24px; font-weight:800; color:#ffd0c8; margin-left:8px; }
   #result-rival .rv-l{ font-size:28px; font-weight:800; color:#ffe7e2; margin-top:6px; }
@@ -6056,7 +6056,7 @@ const AUDIO = (function(){
       if(legal){ play.onclick=()=> playSelection(); }
       a.appendChild(play);
       if(handSel.length){ const clr=el('div','btn ghost foc',T('act_clear_sel')); clr.onclick=()=>{ handSel=[]; renderHand(); renderActions(); setTimeout(focusFirstHand,0); }; a.appendChild(clr); }
-      const pass=el('div','btn ghost foc', T('act_pass')); pass.onclick=()=> doPass(); a.appendChild(pass);
+      const pass=el('div','btn ghost foc', T('act_pass')); pass.id='match-pass'; pass.onclick=()=> doPass(); a.appendChild(pass);
       // リアクション(後出し): チャージが満ちていれば「⚡後出し」を出す。返せない場でも切れる第3の選択肢。
       if(RL.canReact(G, meIdx())){ const rc=el('div','btn react foc', T('act_react')); rc.onclick=()=> doReact(); a.appendChild(rc); }
       // 溜め撃ち(発動): いま気で撃てる装備エンブレムをボタン化(気が閾値以上のときだけ提示＝普段は「出す/パス」で完結)。
@@ -6201,9 +6201,21 @@ const AUDIO = (function(){
   }
   function focusOnHandOrPass(){
     const f=focusables();
-    // 出せる札があればその先頭、無ければパス
-    const firstCard=f.find(e=>e.classList.contains('pcard'));
-    setFocus(firstCard || f[0] || null);
+    // 出せる札のうち「最弱」を初期カーソルに(革命/天地無用の反転を考慮した実効強さで判定)。
+    //   例: 場が6のとき 3456789 を持っていれば 7 にカーソルが乗る。出せる札が無ければパスに合わせる。
+    const inv = !!G.revolution !== !!(G.mutator && G.mutator.effect==='REVERSE');
+    const maxS = RL.RANKS.length-1;
+    const eff = (r)=> inv ? (maxS - RL.strength(r)) : RL.strength(r);
+    const playable=f.filter(e=> e.classList.contains('pcard') && e.classList.contains('playable'));
+    if(playable.length){
+      playable.sort((a,b)=>{
+        const d=eff(a.dataset.rank)-eff(b.dataset.rank);
+        return d!==0 ? d : RL.suitStrength(a.dataset.suit)-RL.suitStrength(b.dataset.suit);
+      });
+      setFocus(playable[0]); return;
+    }
+    const pass=f.find(e=>e.id==='match-pass');
+    setFocus(pass || f[0] || null);
   }
   function cpuStep(){
     if(!G || G.gameOver){ return; }
