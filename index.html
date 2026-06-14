@@ -896,6 +896,23 @@
   .rest-report .rr-rec{ font-size:26px; font-weight:800; color:#ffb4a0; margin:2px 0 10px; }
   .rest-report .rr-l{ font-size:25px; color:#dfe5ff; line-height:1.4; margin:6px 0; }
 
+  /* ---- ★v0.28 誓約(Pact / Heat)画面 ---- */
+  .pactgrid{ display:flex; flex-wrap:wrap; gap:20px; align-items:stretch; justify-content:center; max-width:1500px; }
+  .pactile{ width:328px; background:#fff; border:5px solid #c0466a; border-radius:18px; padding:16px 16px 14px; display:flex; flex-direction:column; gap:7px; align-items:center; text-align:center; position:relative; background:linear-gradient(160deg,#fff,#ffe7ee); }
+  .pactile .pt-ico{ font-size:42px; line-height:1; }
+  .pactile .pt-nm{ font-size:30px; font-weight:900; color:var(--ink); }
+  .pactile .pt-ds{ font-size:21px; color:#444; line-height:1.25; min-height:80px; }
+  .pactile .pt-heat{ font-size:24px; font-weight:900; color:#c0466a; }
+  .pactile .pt-on{ position:absolute; top:8px; right:12px; font-size:30px; }
+  .pactile.on{ border-color:#e0331f; background:linear-gradient(160deg,#fff5cc,#ffd7a0); box-shadow:0 0 0 4px rgba(224,51,31,.35) inset; }
+  .pactile.locked{ opacity:.92; }
+  .pactile.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; box-shadow:0 10px 28px rgba(0,0,0,.35); }
+  .gfx-hi .pactile{ box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 18px rgba(120,40,70,.12), 0 6px 0 rgba(120,40,70,.16), 0 14px 28px rgba(0,0,0,.34); }
+  .gfx-hi .pactile.on{ box-shadow:inset 0 2px 0 rgba(255,255,255,1), inset 0 -12px 20px rgba(180,90,20,.28), 0 0 0 4px rgba(224,51,31,.45), 0 8px 0 rgba(150,60,20,.4), 0 16px 32px rgba(0,0,0,.4); }
+  .pact-foot{ display:flex; flex-direction:column; align-items:center; gap:16px; margin-top:26px; }
+  .pact-reward{ font-size:27px; font-weight:800; color:#ffd76a; text-align:center; min-height:34px; }
+  .runover-heat{ font-size:30px; font-weight:900; color:#ff9a6a; margin-top:10px; }
+
   /* ---- 走り終わりダイジェスト(物語ログ) ---- */
   .run-digest{ margin:6px auto 22px; max-width:1440px; text-align:left; }
   .run-digest .dg-h{ font-size:30px; font-weight:900; color:#cdd6ff; margin-bottom:10px; text-align:center; }
@@ -1102,7 +1119,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.27</div>
+    <div class="ver">v0.28</div>
     <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
     <div class="ovl" id="ovl-confirm">
       <div class="card-modal" style="text-align:center; max-width:1100px;">
@@ -1283,6 +1300,24 @@
         <div id="rest-heal" class="rest-heal"></div>
         <div class="rest-report" id="rest-report"></div>
         <div class="rowbtns" style="justify-content:center;"><div class="btn primary foc" id="rest-ok" data-i18n="rest_continue">マップへすすむ ▶</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PACT (誓約 / Heat) ===================== -->
+  <section id="s-pact" class="screen">
+    <div class="topbar">
+      <div class="btn small ghost foc" id="pact-back" data-i18n="pact_back">◀ もどる</div>
+      <div class="title" style="margin-left:18px;" data-i18n="pact_topbar">誓約</div>
+      <div class="spacer"></div>
+      <div class="title" id="pact-heat"></div>
+    </div>
+    <div class="wrap" style="align-items:center;">
+      <div class="map-hint" id="pact-hint" data-i18n="pact_hint">誓約を積むほど難度が上がり、その分ごほうび（ランダムエンブレム）が増える。積まなくてもよい。</div>
+      <div class="pactgrid" id="pact-list"></div>
+      <div class="pact-foot">
+        <div class="pact-reward" id="pact-reward"></div>
+        <div class="btn primary foc" id="pact-go" data-i18n="pact_start">この誓約で巡業へ ▶</div>
       </div>
     </div>
   </section>
@@ -1627,6 +1662,9 @@ const RL = (function(){
     { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:3, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     { id:'aka05',code:'赤05', color:'aka',    name:'革命',     cost:4, ico:'🚩', effect:'REVOLUTION', place:'whole', desc:'同じ数字を4枚出すと強弱が逆転し、次の革命まで続く（革命があれば4枚出しも可）。自分だけが起こせる。', nameVi:'Cách Mạng', abbrVi:'Cm', codeVi:'Đ05', descVi:'Đánh 4 lá cùng số sẽ đảo ngược mạnh/yếu, kéo dài đến lần Cách mạng kế tiếp (có Cách mạng thì được đánh tứ quý). Chỉ mình mới phát động được.' },
     { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。さらに、ボムで場を切るたび、そこまで積み上がった“罰カード”を切った相手（直前の人）へ押し付ける（2単騎・弱ボム＝1枚／22・強ボム＝2枚ぶんが積み上がる）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình. Ngoài ra, mỗi lần chặt bằng bom, dồn hết "lá phạt" đã tích lên người vừa bị chặt (người liền trước) — heo lẻ / bom yếu = 1 lá, đôi heo / bom mạnh = 2 lá tích dồn.' },
+    //   弱ボム(aka06b): ボム(aka06)と同コストの“再現専用・隠し”エンブレム。罰カード押し付けを持たない＝本来のティエンレン忠実版。
+    //   通常プレイでは非表示(hidden:true でドラフト/編成/Sim から除外)。オンラインで「ベトナム式」を選ぶと aka06→aka06b に差し替えて装填される。
+    { id:'aka06b',code:'赤06b',color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB_PURE',  place:'whole', hidden:true, desc:'4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる（本来のティエンレン＝罰カードの押し付けは無し）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" để chặt con heo (lá 2) trên bãi — đúng luật Tiến Lên gốc (không dồn lá phạt).' },
     //   3返し(aka07): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「3」で場の2を切り返す。
     //   マーク枠にしか置けないので使われるコストは suitCost のみ(rank の cost は持たない)。
     { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:2, suitCost:2, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
@@ -1889,6 +1927,7 @@ const RL = (function(){
   //   ボム戦争の各役がこの値を pot に足し、ボムで切るたび pot ぶんの最弱札が“直前の人”へ渡る。
   function bombPotValue(state, combo, rules){
     if(!combo) return 0;
+    if(!rules || !rules.bombPot) return 0;   // 弱ボム/罰カード無しルールでは pot を積まない＝本来のティエンレン
     if(isTopSet(state, combo) && !isBomb(combo, rules)) return Math.min(2, combo.cards.length); // 単騎2=1 / 22=2
     if(isBomb(combo, rules)) return bombLevel(combo) >= 2 ? 2 : 1;                               // 弱ボム=1 / 強ボム=2
     return 0;
@@ -2013,7 +2052,8 @@ const RL = (function(){
       else if(eff==='SET3') r.set3=true;
       else if(eff==='SET4') r.set4=true;
       else if(eff==='REVOLUTION'){ r.revolution=true; r.set4=true; }            // 革命を積めば4枚出しも可
-      else if(eff==='BOMB'){ r.bomb=true; r.pairRuns=true; r.set4=true; }        // ボムは4枚役＋ペア階段を解禁
+      else if(eff==='BOMB'){ r.bomb=true; r.pairRuns=true; r.set4=true; r.bombPot=true; }   // ボムは4枚役＋ペア階段を解禁＋罰カード押し付け(ゲーム独自)
+      else if(eff==='BOMB_PURE'){ r.bomb=true; r.pairRuns=true; r.set4=true; }   // 弱ボム: ボムと同じ役解禁だが罰カード押し付け無し＝本来のティエンレン忠実版(再現専用)
       else if(eff==='SUIT_ORDER') r.suitTiebreak=true;
       else if(eff==='HERO') r.hero=true;               // 英雄: 配り直後に2を4枚持っていれば即1位
       else if(eff==='WEAK_START') r.weakStart=true;    // 弱者: ♠3保持で先手(最初は♠3を含めて出す)
@@ -2414,7 +2454,7 @@ const RL = (function(){
 
     // 4.1) ボム押し付け実行: 自分のボムでボム戦争を継続(切った)なら、そこまでの pot ぶんの最弱札を“直前の人”(切った役の持ち主)へ渡す。
     //   自分が上がった手では渡さない(上がりは札を出して行う)。最後の1枚は残す。受け手が自分/上がり済みなら渡さない。
-    if(myBombsOver && prevBombPot>0 && !finishedNow && prevOwnerIdx!=null && prevOwnerIdx!==playerIndex && !state.players[prevOwnerIdx].finished){
+    if(rules.bombPot && myBombsOver && prevBombPot>0 && !finishedNow && prevOwnerIdx!=null && prevOwnerIdx!==playerIndex && !state.players[prevOwnerIdx].finished){
       const n = Math.min(prevBombPot, Math.max(0, p.hand.length - 1));
       if(n>0){
         const give = p.hand.slice().sort((a,b)=> strength(a.rank)-strength(b.rank)).slice(0, n);
@@ -3424,6 +3464,19 @@ const RL = (function(){
         applyPlay(g,0,[{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'7',suit:'D'},{rank:'7',suit:'C'}],{});
         ok('ボム押し付け: 上がり手では押し付けない', g.players[0].finished===true && g.players[1].hand.length===p1b);
       })();
+      // 弱ボム(aka06b): 本来のティエンレン＝ボムで2は切れるが、罰カードの押し付けは起きない(再現専用・オンラインのベトナム式で使う)。
+      (function(){
+        const g=newGame(defs.map(x=>({...x})),11);
+        const bb=emptyBuild(); bb.ruleSlots=['aka06b']; g.players[0].build=bb; g.players[0].rules=computeTableRules([bb],{twoStrong:true});
+        g.players[0].hand=[{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'7',suit:'D'},{rank:'7',suit:'C'},{rank:'3',suit:'S'},{rank:'K',suit:'D'}];
+        g.players[1].hand=[{rank:'5',suit:'S'},{rank:'6',suit:'H'}];
+        g.field.combo=singleCombo({rank:'2',suit:'S'}); g.field.card=g.field.combo.key; g.field.ownerIndex=1; g.field.bombPot=1; g.turn=0;
+        const quad=[{rank:'7',suit:'S'},{rank:'7',suit:'H'},{rank:'7',suit:'D'},{rank:'7',suit:'C'}];
+        ok('弱ボム: クアッドで場の最強単騎(2)を切れる', comboBeats(g, bb, classifyCombo(quad, g.players[0].rules), g.players[0].rules)===true);
+        const p1b=g.players[1].hand.length;
+        applyPlay(g,0,quad,{});
+        ok('弱ボム: 切っても罰カードは押し付けない(pot があっても渡さない)', g.players[1].hand.length===p1b);
+      })();
       // 共鳴/逆襲は正調プリセット(jp/vn/balance/speed)に非装備＝正調卓の挙動を汚さない。
       ok('共鳴/逆襲は正調プリセットに非装備', (function(){ const ids=[]; ['jp','vn','balance','speed'].forEach(id=>{ const b=presetBuild(id); for(const r in b.rankSlots) b.rankSlots[r].forEach(x=>ids.push(x)); for(const s in b.suitSlots) b.suitSlots[s].forEach(x=>ids.push(x)); (b.ruleSlots||[]).forEach(x=>ids.push(x)); }); return !ids.includes('mi09') && !ids.includes('aka13'); })());
       // 双刃(mi01)は削除済＝定義が存在しない。
@@ -3556,7 +3609,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', gfx:'lite', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
-    keymap:null, padmap:null, netKw:'', netName:'', rival:null, rivals:null, rivalProf:null,
+    keymap:null, padmap:null, netKw:'', netName:'', rival:null, rivals:null, rivalProf:null, heatBest:{},
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -3574,11 +3627,12 @@ const AUDIO = (function(){
       this.rival = (this.rival && typeof this.rival==='object') ? this.rival : null;   // 旧:単一宿敵(移行用に読むだけ・RIVAL.ensure で rivals へ継承後に破棄)
       this.rivals = (Array.isArray(this.rivals) && this.rivals.length===4) ? this.rivals : null;   // 宿敵4人(名前/戦績hist)
       this.rivalProf = (this.rivalProf && typeof this.rivalProf==='object') ? this.rivalProf : null; // あなたのビルド傾向(共有・学習型/ban が使う)
+      this.heatBest = (this.heatBest && typeof this.heatBest==='object') ? this.heatBest : {};   // ★v0.28 Heat段位→最高到達深度(名誉記録)
       this.save();   // 移行(コレクション初期化)や欠落フィールドの補完を確定させる
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -3791,6 +3845,23 @@ const AUDIO = (function(){
       net_host_lost_body:'ホストとの接続が切れました。<br>つなぎ直しています…', net_leave:'退室する',
       net_cant_reconnect:'再接続できません', net_host_notfound:'ホストが見つかりませんでした。<br>時間をおいて入り直してください。',
       net_kw_required:'合言葉を入れてください',
+      /* ★v0.28 誓約(Pact / Heat) */
+      pact_topbar:'誓約', pact_back:'◀ もどる',
+      pact_hint:'誓約を積むほど難度が上がり、その分ごほうび（ランダムエンブレム）が増える。積まなくてもよい。',
+      pact_heat:'🔥 段位 {0}',
+      pact_reward_prev:'段位 {0} ／ 1位ごとに ランダムエンブレム +{1}（連勝でさらに増）',
+      pact_best:'（段位{0}の最高到達 深度{1}）',
+      pact_start:'この誓約で巡業へ ▶', pact_start0:'誓約なしで巡業へ ▶', pact_add:'この誓約で次の幕へ ▶',
+      pact_locked:'すでに誓った誓約は外せません',
+      reward_heat_head:'🔥 誓約のごほうび', reward_heat_line:'段位{0}＋昂り{1} → ランダムエンブレム +{2}',
+      runover_heat:'🔥 段位{0} で 深度{1} まで到達',
+      pact_p_rev_ti:'天地無用',   pact_p_rev_ds:'毎戦ずっと逆位（弱い札しか出せない）。',
+      pact_p_budget_ti:'緊縮',     pact_p_budget_ds:'編成コストが 12 減る。',
+      pact_p_life_ti:'薄氷',       pact_p_life_ds:'開始の残機が 1 減る（巡業開始時のみ）。',
+      pact_p_rival_ti:'宿敵常駐',  pact_p_rival_ds:'宿敵が毎戦かならず参戦する。',
+      pact_p_ban_ti:'常時封じ',    pact_p_ban_ds:'宿敵が毎深度、あなたの常用エンブレムを容赦なく封じる。',
+      pact_p_draft_ti:'選択減',    pact_p_draft_ds:'ドラフトの選択肢が 3→2 に減る。',
+      pact_p_boss_ti:'強豪',       pact_p_boss_ds:'強敵・ボスの宿敵予算が 1.5 倍になる。',
     },
     vi:{
       doc_title:'Ru-Le Luật',
@@ -3978,6 +4049,23 @@ const AUDIO = (function(){
       net_host_lost_body:'Mất kết nối với chủ phòng.<br>Đang kết nối lại…', net_leave:'Rời phòng',
       net_cant_reconnect:'Không kết nối lại được', net_host_notfound:'Không tìm thấy chủ phòng.<br>Hãy thử vào lại sau.',
       net_kw_required:'Hãy nhập mật khẩu',
+      /* ★v0.28 Lời Thề (Pact / Heat) */
+      pact_topbar:'Lời Thề', pact_back:'◀ Quay lại',
+      pact_hint:'Càng thề nhiều, độ khó càng cao và phần thưởng (huy hiệu ngẫu nhiên) càng nhiều. Không thề cũng được.',
+      pact_heat:'🔥 Cấp {0}',
+      pact_reward_prev:'Cấp {0} ／ mỗi lần Nhất +{1} huy hiệu ngẫu nhiên (thắng liên tiếp còn tăng)',
+      pact_best:'(Cấp {0}: sâu nhất tầng {1})',
+      pact_start:'Lên đường với lời thề ▶', pact_start0:'Lên đường không thề ▶', pact_add:'Vào màn sau với lời thề ▶',
+      pact_locked:'Lời thề đã lập không thể bỏ',
+      reward_heat_head:'🔥 Thưởng lời thề', reward_heat_line:'Cấp {0}＋khí thế {1} → +{2} huy hiệu ngẫu nhiên',
+      runover_heat:'🔥 Cấp {0}: đạt đến tầng {1}',
+      pact_p_rev_ti:'Đảo Lộn',     pact_p_rev_ds:'Luôn đảo vị mỗi trận (chỉ đánh được lá yếu hơn).',
+      pact_p_budget_ti:'Thắt Lưng', pact_p_budget_ds:'Ngân sách cấu hình giảm 12.',
+      pact_p_life_ti:'Băng Mỏng',  pact_p_life_ds:'Số mạng khởi đầu giảm 1 (chỉ lúc bắt đầu).',
+      pact_p_rival_ti:'Kẻ Thù Thường Trực', pact_p_rival_ds:'Kẻ thù luôn tham chiến mỗi trận.',
+      pact_p_ban_ti:'Cấm Vĩnh Viễn', pact_p_ban_ds:'Mỗi tầng kẻ thù cấm thẳng tay huy hiệu bạn hay dùng.',
+      pact_p_draft_ti:'Bớt Lựa Chọn', pact_p_draft_ds:'Lựa chọn khi bốc thưởng giảm 3→2.',
+      pact_p_boss_ti:'Cường Địch', pact_p_boss_ds:'Ngân sách kẻ tinh nhuệ/trùm tăng 1.5 lần.',
     }
   };
   function T(key){
@@ -4394,6 +4482,7 @@ const AUDIO = (function(){
       case 's-draft':   if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); } break;
       case 's-map':     if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); } MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;   // ★v0.23 マップで戻る=中断してタイトル
       case 's-rest':    restContinue(); break;   // ★v0.25 休憩は引き返せない＝Esc も「すすむ」に寄せる
+      case 's-pact':    pactBack(); break;       // ★v0.28 誓約: 開始時=取りやめてタイトル / ボス後=現状で確定して進む
       case 's-runover': MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;
       case 's-title': break;
       default: break;
@@ -4565,6 +4654,40 @@ const AUDIO = (function(){
     if(bad.length) console.warn('BOSS ROSTER INVALID', bad); else console.log('%cRu-Le boss roster: '+BOSSES.length+' OK', 'color:#fc6;font-weight:bold');
     return bad.length===0;
   }
+
+  /* ============================================================
+     v0.28 誓約(Pact / Heat)─ 巡業のみ・SHELL層・エンジン非介入・全てプレーンデータ(run.pact に保持しシリアライズ)。
+     ・任意のペナルティ(誓約)を積むほど段位(Heat)が上がり、Heat×連勝(昂り)に比例して報酬=ランダムエンブレム付与が増える。
+     ・★無双スノーボールは潰さない([[project_ru_le_muso_process]])＝誓約は報酬を"足す"だけ。基本報酬/予算上限/晩成パワーには触れない。難度はペナルティ側のみ。
+     ・★正調ミラー不変([[project_ru_le_balance]])＝誓約は run モード専用。クイック/オンライン/jp/vn には一切干渉しない(MODE.run が無ければ全 helper が無効)。
+     ・mutator-backed は1種(p_rev=天地無用)のみ＝エンジンの MODE.mutator は1枠なので競合させない。残りは run パラメータ変更。
+     ============================================================ */
+  const PACTS = [
+    { id:'p_rev',    heat:2, kind:'mut', mut:'m_rev', ico:'🙃' },   // 天地無用を毎戦適用(素卓のみ・ボス/お題ノードは各自の看板を優先)
+    { id:'p_budget', heat:1, kind:'budget', d:-12,    ico:'🪙' },   // 編成予算 -12
+    { id:'p_life',   heat:1, kind:'life',             ico:'💔' },   // 開始残機 -1(巡業開始時のみ)
+    { id:'p_rival',  heat:1, kind:'rival',            ico:'🔥' },   // 宿敵が毎戦かならず参戦(席が埋まるまで)
+    { id:'p_ban',    heat:2, kind:'ban',              ico:'🚫' },   // 封じ常時(mercy 無し・鋭く2種)
+    { id:'p_draft',  heat:1, kind:'draft',            ico:'✂️' },   // ドラフトの選択肢 3→2
+    { id:'p_boss',   heat:2, kind:'boss',             ico:'👑' },   // 強敵/ボスの宿敵予算を1.5倍
+  ];
+  const HEAT_REWARD_CAP = 3;   // ★v0.28 Heat×昂りの1戦あたり追加ランダムエンブレム上限(暴走防止・体感は走り込み後に微調整)
+  function pactById(id){ return PACTS.find(p=>p.id===id) || null; }
+  function runPacts(){ const r=MODE.run; if(!r || !r.pact) return []; return (r.pact.ids||[]).map(pactById).filter(Boolean); }
+  function pactHeat(){ return runPacts().reduce((s,p)=>s+p.heat,0); }
+  function hasPact(kind){ return runPacts().some(p=>p.kind===kind); }
+  function pactBudgetDelta(){ return runPacts().filter(p=>p.kind==='budget').reduce((s,p)=>s+(p.d||0),0); }
+  function pactMut(){ const p=runPacts().find(p=>p.kind==='mut'); return p ? mutById(p.mut) : null; }
+  // run.pact から Heat を算出(MODE 非依存・resume/記録用)。
+  function heatOf(run){ return run && run.pact ? (run.pact.ids||[]).map(pactById).filter(Boolean).reduce((s,p)=>s+p.heat,0) : 0; }
+  // boss 戦後の"追い焚き"で提示する誓約(p_life は開始時のみ＝途中追加で残機が即減るのを避けるため除外)。
+  function pactsForMode(mode){ return mode==='boss' ? PACTS.filter(p=>p.kind!=='life') : PACTS; }
+  function checkPacts(){
+    const bad=[];
+    PACTS.forEach(p=>{ if(p.kind==='mut' && !mutById(p.mut)) bad.push(p.id+': 不明な mut '+p.mut); });
+    if(bad.length) console.warn('PACT ROSTER INVALID', bad); else console.log('%cRu-Le pact roster: '+PACTS.length+' OK', 'color:#f88;font-weight:bold');
+    return bad.length===0;
+  }
   function genRunNode(type, act){
     const node={ type, mut:null };
     if(type==='mutator') node.mut = randMutVariant(false);    // 予告お題(編成前に見える＝ランダムを選択に)
@@ -4614,7 +4737,8 @@ const AUDIO = (function(){
     // ★v0.25 _sim 校正: 予算は「効きはじめる膝」が +60 付近(下では雑魚と差がつかず spike≈0)。
     //   そこで elite=+40+幕×6 / boss=+60+幕×8 に引き上げ＝幕1から本物のボス(勝率>0.25)・幕で歯ごたえ上昇。
     //   ★歯ごたえは宿敵の予算のみ＝プレイヤーの晩成パワー/報酬は不介入(無双スノーボール不変)。
-    if(n){ if(n.type==='elite') b += 40 + act*6; else if(n.type==='boss') b += 60 + act*8; }
+    const mul = hasPact('boss') ? 1.5 : 1;   // ★v0.28 誓約(p_boss): 強敵/ボスの宿敵予算を1.5倍(自分から難度を上げる)
+    if(n){ if(n.type==='elite') b += Math.round((40 + act*6)*mul); else if(n.type==='boss') b += Math.round((60 + act*8)*mul); }
     return b;
   }
   /* ----- マップ描画 ----- */
@@ -4657,6 +4781,69 @@ const AUDIO = (function(){
     show('s-map');
   }
   function enterMap(){ renderMap(); }
+
+  /* ----- ★v0.28 誓約(Pact / Heat)選択画面 ----- */
+  let pactMode='start';      // 'start'=巡業開始前 / 'boss'=ボス撃破後の追い焚き
+  let pactBaseIds=[];        // boss モードで既に誓っている id(解除不可＝段位は登るのみ)
+  function pactIco(p){ return p.ico || '🔥'; }
+  function pactScreen(mode){
+    pactMode = mode || 'start';
+    const run=MODE.run; if(!run) return;
+    run.pact = run.pact || { ids:[], heat:0 };
+    pactBaseIds = (pactMode==='boss') ? (run.pact.ids||[]).slice() : [];
+    renderPactList();
+    show('s-pact');
+    setTimeout(focusFirst, 0);
+  }
+  function renderPactList(){
+    const run=MODE.run, sel=new Set(run.pact.ids||[]);
+    const wrap=$('#pact-list'); wrap.innerHTML='';
+    pactsForMode(pactMode).forEach(p=>{
+      const on=sel.has(p.id), locked=(pactMode==='boss' && pactBaseIds.includes(p.id));
+      const c=el('div','pactile foc'+(on?' on':'')+(locked?' locked':''));
+      c.innerHTML='<div class="pt-ico">'+pactIco(p)+'</div>'
+        +'<div class="pt-nm">'+T('pact_'+p.id+'_ti')+'</div>'
+        +'<div class="pt-ds">'+T('pact_'+p.id+'_ds')+'</div>'
+        +'<div class="pt-heat">🔥+'+p.heat+'</div>'
+        +(on?'<div class="pt-on">'+(locked?'🔒':'✓')+'</div>':'');
+      c.onclick=()=>{ AUDIO.confirm(); togglePact(p.id); };
+      wrap.appendChild(c);
+    });
+    updatePactHead();
+  }
+  function togglePact(id){
+    const run=MODE.run, ids=run.pact.ids||(run.pact.ids=[]);
+    if(pactMode==='boss' && pactBaseIds.includes(id)){ toast(T('pact_locked'), '#ff9800'); return; }   // 既に誓った分は外せない
+    const i=ids.indexOf(id);
+    if(i>=0) ids.splice(i,1); else ids.push(id);
+    run.pact.heat = pactHeat();
+    renderPactList();
+  }
+  function updatePactHead(){
+    const h=pactHeat();
+    $('#pact-heat').textContent = T('pact_heat', h);
+    const extra = Math.min(HEAT_REWARD_CAP, Math.floor(h/2));   // 報酬プレビュー(昂り抜きの基礎ぶん)
+    const best = store.heatBest && store.heatBest[String(h)];
+    const bestTxt = (h>0 && best) ? ' '+T('pact_best', h, best) : '';
+    $('#pact-reward').innerHTML = T('pact_reward_prev', h, extra) + bestTxt;
+    $('#pact-go').textContent = (pactMode==='boss') ? T('pact_add') : ((run0().pact.ids||[]).length ? T('pact_start') : T('pact_start0'));
+  }
+  function run0(){ return MODE.run || {pact:{ids:[]}}; }
+  function pactConfirm(){
+    const run=MODE.run; if(!run) return;
+    run.pact.heat = pactHeat();
+    if(pactMode!=='boss'){   // 開始時のみ: 開始残機を誓約から確定(基準3 − p_life)。途中追加では残機を弄らない
+      run.lives = Math.max(1, 3 - ((run.pact.ids||[]).includes('p_life') ? 1 : 0));
+    }
+    store.saveRun(run, MODE.mutator);
+    AUDIO.confirm();
+    if(pactMode==='boss') enterMap();   // 追い焚き後は新しい幕のマップへ
+    else enterMap();                    // 開始時はマップへ
+  }
+  function pactBack(){
+    if(pactMode==='boss'){ pactConfirm(); return; }   // ボス後は引き返せない＝現在の誓約で確定して進む
+    AUDIO.back(); store.clearRun(); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title');   // 開始時の戻る=巡業を取りやめてタイトルへ
+  }
   function pickMapNode(ri,ci){
     const run=MODE.run, m=run.map; if(!m || ri!==m.cur) return;
     m.rows[ri].chosen=ci;
@@ -4669,7 +4856,7 @@ const AUDIO = (function(){
     const run=MODE.run;
     if(node.type==='loot'){ MODE.mutator=mutById('m_none'); openDraft(); return; }   // 戦わずドラフト
     if(node.type==='rest'){ enterRest(); return; }
-    MODE.mutator = node.mut || mutById('m_none');   // 戦闘: 素(NONE) or 予告お題
+    MODE.mutator = node.mut || pactMut() || mutById('m_none');   // 戦闘: 素なら誓約(天地無用常時)を注入／ボス・お題ノードは各自の看板を優先
     openBuild(T('bt_run', run.depth));
   }
   function enterRest(){
@@ -4701,7 +4888,12 @@ const AUDIO = (function(){
       +'<div class="rr-l">'+obs+'</div>'+bossLn;
   }
   // ノード(戦闘の結果ドラフト/市/休憩)を解決し終えたら現在地を進めてマップへ戻る。
-  function afterDraftNode(){ advanceMap(); enterMap(); }
+  function afterDraftNode(){
+    const justBoss = !!(MODE.curNode && MODE.curNode.type==='boss');   // ボスを撃破した直後か(advanceMap で次の幕へ進む前に判定)
+    advanceMap();
+    if(justBoss){ pactScreen('boss'); return; }   // ★v0.28 ボス撃破後＝新しい幕に入る前に誓約を1段"追い焚き"できる(任意)
+    enterMap();
+  }
   // ★v0.25 通過したノードを物語ログに記録(走り終わりのダイジェスト用)。outcome={place,depth} は戦闘のみ。
   function logNode(run, outcome){
     const n=MODE.curNode; if(!n) return;
@@ -4729,7 +4921,9 @@ const AUDIO = (function(){
       ban:{ ids:[], depth:1 },                     // ★v0.22 メタ崩壊: この深度で宿敵が封じた常用エンブレム(深度進行で更新)
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
       log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
-      inMatch:false                                 // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
+      inMatch:false,                                // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
+      pact:{ ids:[], heat:0 },                      // ★v0.28 誓約(Heat): 積んだペナルティ id 群と算出 Heat。巡業開始時/ボス撃破時に積める。報酬を増やす(難度↑のご褒美)
+      momentum:0                                    // ★v0.28 連勝の昂り: 連続1位ストリーク(非1位で0)。Heat と合わせてランダム報酬を増やす
     };
   }
   // タイトルの「巡業」ボタン入口。中断データがある時は確認をはさむ＝誤操作1発で消えるのを防ぐ。
@@ -4749,7 +4943,7 @@ const AUDIO = (function(){
     MODE.curNode=null;
     MODE.run.ban = decideBan(MODE.run, MODE.run.depth);   // 深度1は基本ban無し
     store.saveRun(MODE.run, null);   // 開始直後(まだ1戦目前)でも再開できるよう即保存
-    enterMap();   // ★巡業マップから開始(道を選んでから戦う)
+    pactScreen('start');   // ★v0.28 まず誓約(任意)を選んでから巡業マップへ(積めば段位↑＝報酬↑)
   }
   function resumeRun(){
     const saved=store.savedRun; if(!saved) return;
@@ -4762,6 +4956,10 @@ const AUDIO = (function(){
     MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致は決め直す
     MODE.run.act = MODE.run.act || 1;   // 旧セーブ互換
     MODE.run.log = Array.isArray(MODE.run.log) ? MODE.run.log : [];   // 旧セーブ互換: 物語ログ枠
+    MODE.run.pact = (MODE.run.pact && Array.isArray(MODE.run.pact.ids)) ? MODE.run.pact : { ids:[], heat:0 };   // ★v0.28 旧セーブ互換: 誓約枠
+    MODE.run.pact.ids = MODE.run.pact.ids.filter(pactById);   // 不明な誓約 id を掃除
+    MODE.run.pact.heat = heatOf(MODE.run);                     // Heat を再算出(定義変更に追従)
+    MODE.run.momentum = MODE.run.momentum || 0;               // ★v0.28 旧セーブ互換: 昂り
     recordBestDepth(MODE.run.depth);   // 再開時にも到達深度を記録(旧セーブ救済)
     if(!MODE.run.map || !Array.isArray(MODE.run.map.rows) || !MODE.run.map.rows.length){ MODE.run.map = genAct(MODE.run.act, MODE.run.depth); }   // 旧セーブ互換: マップ無→現深度から生成
     MODE.curNode=null;
@@ -5239,7 +5437,7 @@ const AUDIO = (function(){
   function currentBudget(){
     // 巡業は深度予算＋1位ボーナス(+25・次戦のみ・100上限を超えてよい)。クイック/オンは固定100。
     const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
-    return Math.max(30, base + mutatorBudgetDelta());   // お題の予算増減を反映(下限30・100系)
+    return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta());   // お題＋誓約(p_budget)の予算増減を反映(下限30・100系)
   }
   function ownedList(){
     const ids = MODE.kind==='run' ? MODE.run.owned.slice() : store.unlocked.slice();
@@ -5332,9 +5530,17 @@ const AUDIO = (function(){
   }
   // ロビーでのスタイル装填(オンライン専用)。プリセットを所持フィルタ無しで丸ごと myBuild に反映＝未解放でも対戦できる。
   //   afterBuild がロビー再描画＋ホスト/ゲストへの同期(ready送信)まで行う。
+  // ボム(aka06) → 弱ボム(aka06b) へ差し替え（ruleSlots 内）。本来のティエンレン再現用・オンラインのベトナム式装填でのみ使う。
+  function swapToAuthenticBomb(build){
+    if(build && Array.isArray(build.ruleSlots)) build.ruleSlots = build.ruleSlots.map(x=> x==='aka06' ? 'aka06b' : x);
+    return build;
+  }
   function lobbyLoadStyle(id){
     if(!NET.active) return;
     const pb=RL.presetBuild(id);
+    // ★オンラインのベトナム式は「本来のティエンレン」忠実版＝ボム(aka06・罰カード押し付け)を弱ボム(aka06b・押し付け無し)に差し替える。
+    //   弱ボムは隠しエンブレムなので、所持フィルタの無いオンライン装填(この経路)でのみ載る＝通常プレイでは出ない。
+    if(id==='vn') swapToAuthenticBomb(pb);
     const pp=RL.PRESETS.find(p=>p.id===id);
     AUDIO.confirm();
     NET.afterBuild(pb);
@@ -5911,14 +6117,15 @@ const AUDIO = (function(){
   function decideBan(run, depth){
     if(depth<=1) return { ids:[], depth };                       // 序盤(データ蓄積前)はban無し
     RIVAL.ensure();
+    const pban = !!(run.pact && (run.pact.ids||[]).includes('p_ban'));   // ★v0.28 誓約(p_ban): mercy 無し・常時・鋭く2種
     const agg=RIVAL.aggRecord();                                 // 全宿敵合算: l=あなたの勝ち / w=あなたの負け
     const w=agg.w, l=agg.l;
-    if(w - l >= 2) return { ids:[], depth };                     // あなたが負け越し → mercy(封じ無し・難易度自己調整)
+    if(!pban && w - l >= 2) return { ids:[], depth };            // あなたが負け越し → mercy(封じ無し・難易度自己調整)。誓約中は容赦なし
     const owned = run.owned || [];
     if(owned.length < 6) return { ids:[], depth };               // 所持が少ないうちは封じない(組み替え余地を確保)
     const top = RIVAL.topIds(8).filter(id=> owned.includes(id) && RL.emblem(id));
     if(!top.length) return { ids:[], depth };
-    const n = (l - w >= 2) ? 2 : 1;                              // あなたが勝ち越し → 鋭く2種読む(エスカレーション)
+    const n = (pban || l - w >= 2) ? 2 : 1;                      // あなたが勝ち越し/誓約中 → 鋭く2種読む(エスカレーション)
     const ids = top.slice(0, Math.max(1, Math.min(n, owned.length-4)));   // 念のため最低4枠は残す
     return { ids, depth };
   }
@@ -6031,7 +6238,8 @@ const AUDIO = (function(){
     const bossIdx = _bossNow ? bossRivalIndex(_bossNow) : -1;
     let rivalIdxs = [];
     if(bossIdx>=0) rivalIdxs.push(bossIdx);
-    for(let i=0;i<RIVAL.count();i++){ if(i!==bossIdx && Math.random()<0.25) rivalIdxs.push(i); }
+    const rivalP = hasPact('rival') ? 1 : 0.25;   // ★v0.28 誓約(p_rival): 宿敵が毎戦かならず参戦(席が埋まるまで)
+    for(let i=0;i<RIVAL.count();i++){ if(i!==bossIdx && Math.random()<rivalP) rivalIdxs.push(i); }
     if(rivalIdxs.length>3){
       const head = bossIdx>=0 ? [bossIdx] : [];
       const rest = shuffleArr(rivalIdxs.filter(x=> head.indexOf(x)<0));
@@ -6558,6 +6766,7 @@ const AUDIO = (function(){
     run.inMatch=false;   // ★対戦を最後まで完了=クリア扱い(以降の中断ペナルティ対象外)。両分岐の saveRun で永続化される
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
     MODE.lastOutcome={ place, depth:playedDepth };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
+    run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
     // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
     //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
     // ★v0.18: 1位だけでなく3位にも+25。1位は前進(残機維持)・3位は残機-1という不利を、次戦の予算+25で補って4位と差をつける。
@@ -6580,12 +6789,24 @@ const AUDIO = (function(){
         ? { head:T('reward_boss_head'), line:T('reward_boss_line', got) }
         : { head:T('reward_elite_head'), line:T('reward_elite_line', got) };
     }
+    // ★v0.28 Heat×昂りの追加報酬＝ランダムエンブレムを"足すだけ"(基本報酬は不変・無双スノーボールを加速[[project_ru_le_muso_process]])。
+    //   1位のみ発火。extra = floor(Heat/2)+floor(昂り/2) を上限3で付与。reward 行に🔥バナーを追記。
+    const heatN = heatOf(run);
+    if(place===1 && (heatN>0 || (run.momentum||0)>=2)){
+      const extra = Math.min(HEAT_REWARD_CAP, Math.floor(heatN/2) + Math.floor((run.momentum||0)/2));
+      let hg=0; for(let i=0;i<extra;i++){ if(grantRandomEmblem(run)) hg++; }
+      if(hg>0){
+        const hline = T('reward_heat_line', heatN, run.momentum||0, hg);
+        reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
+      }
+    }
     // ★v0.16: 深度は勝っても負けても何位でも毎戦+1(=予算も毎戦+5)。3位/4位は残機-1のみ。
     const advanced = place<=2;
     if(!advanced) run.lives--;
     if(run.lives<0){
       // 終了: 残機尽きた巡業は復帰させない(中断セーブを破棄)。
       logNode(run, MODE.lastOutcome); MODE.lastOutcome=null;   // ★v0.25 最後の一戦も物語ログへ(この経路は advanceMap を通らない)
+      recordHeatBest(heatN, playedDepth);   // ★v0.28 Heat段位の名誉記録(死亡=その段位での到達深度を確定)
       store.clearRun();
       showResult(T('next_see_result'), ()=> runOver(), reward, playedDepth);
       return;
@@ -6593,6 +6814,7 @@ const AUDIO = (function(){
     // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
     run.depth++;
     recordBestDepth(run.depth);   // ★到達深度を即記録(死亡を待たず最高到達深度が機能するように)
+    recordHeatBest(heatN, run.depth);   // ★v0.28 Heat段位ごとの最高到達深度も前進で記録
     run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(深度予算。1位ボーナス+25は nextBonus で別管理)
     run.ban = decideBan(run, run.depth);   // ★v0.22 次深度の封じを宿敵が決め直す(観測が増えるほど鋭く)
     // ★v0.23 お題は次ノードが各自で予告保持するので、ここでの per-depth ロールは廃止(MODE.mutator はノード入場時に設定)。
@@ -6602,15 +6824,27 @@ const AUDIO = (function(){
   }
   // 最高到達深度を記録(深度が進むたびに更新＝死亡時だけでなく中断/再開でも反映される)。
   function recordBestDepth(d){ if(d>(store.bestDepth||0)){ store.bestDepth=d; store.save(); return true; } return false; }
+  // ★v0.28 Heat段位ごとの最高到達深度(名誉記録)。Heat 0 は通常記録(bestDepth)に集約するため除外。
+  function recordHeatBest(heat, depth){
+    if(!heat) return false;
+    store.heatBest = store.heatBest || {};
+    const k=String(heat);
+    if(depth>(store.heatBest[k]||0)){ store.heatBest[k]=depth; store.save(); return true; }
+    return false;
+  }
   function runOver(){
     stopMatchLoop();   // ★巡業終了=進行中の対戦ループを止める(残機尽き/中断のどちらの経路でも内部進行を残さない)
     const run=MODE.run;
     const reached=run.depth;
     let rec='';
     if(recordBestDepth(reached)) rec=T('runover_best');
+    const heatN=heatOf(run);
+    const heatRec = recordHeatBest(heatN, reached);   // ★v0.28 Heat段位の名誉記録
     store.clearRun();   // 巡業終了時に保存データを消去
     $('#runover-head').textContent=T('runover_head');
-    $('#runover-body').innerHTML=T('runover_body', reached, rec, store.bestDepth);
+    let body = T('runover_body', reached, rec, store.bestDepth);
+    if(heatN>0) body += '<div class="runover-heat">'+T('runover_heat', heatN, store.heatBest[String(heatN)]||reached)+(heatRec?' '+T('runover_best'):'')+'</div>';   // 🔥 Heat N で最高到達深度
+    $('#runover-body').innerHTML=body;
     $('#runover-digest').innerHTML=runDigestHTML(run);   // ★v0.25 通った道のダイジェスト/物語ログ
     show('s-runover');
   }
@@ -6658,7 +6892,7 @@ const AUDIO = (function(){
     // ★v0.17: 全エンブレムから3枚抽選。引いたカードが「その巡業で既に獲得済み(run.owned)」なら、
     //   そのカードは『ランダム獲得』枠に変わる＝選ぶと巡業限定のランダムエンブレムを1個付与(run.randomBuild)。
     //   未所持カードは従来通り、選ぶと永続獲得(run.owned + store.unlock)。
-    draftPicks = pick3(RL.EMBLEMS.map(e=>e.id));
+    draftPicks = pick3(RL.EMBLEMS.filter(e=>!e.hidden).map(e=>e.id), hasPact('draft')?2:3);   // 隠しエンブレム(弱ボム等)は除外／誓約(p_draft)で 3→2 に絞る
     const wrap=$('#draft-cards'); wrap.innerHTML='';
     draftPicks.forEach(id=>{
       const dup = run.owned.includes(id);          // 既得 → ランダム獲得カードへ差し替え
@@ -6683,10 +6917,11 @@ const AUDIO = (function(){
     });
     show('s-draft');
   }
-  function pick3(arr){
-    // 全エンブレムからユニークに最大3枚。プールが3未満ならある分だけ出す(水増しの重複は出さない)。
+  function pick3(arr, n){
+    // 全エンブレムからユニークに最大 n 枚(既定3)。プールが n 未満ならある分だけ出す(水増しの重複は出さない)。
+    n = n || 3;
     const a=arr.slice(); const out=[];
-    while(out.length<3 && a.length){ const i=Math.floor(Math.random()*a.length); out.push(a.splice(i,1)[0]); }
+    while(out.length<n && a.length){ const i=Math.floor(Math.random()*a.length); out.push(a.splice(i,1)[0]); }
     return out;
   }
   function takeDraft(id, dup){
@@ -6704,6 +6939,9 @@ const AUDIO = (function(){
   $('#draft-skip').onclick=()=>{ AUDIO.back(); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); };
   // 巡業マップの「中断してタイトル」(=onBack の s-map と同じ。状態は保存して再開可能に)
   $('#map-back').onclick=()=>{ AUDIO.back(); if(MODE.run) store.saveRun(MODE.run, MODE.mutator); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
+  // ★v0.28 誓約画面のボタン
+  $('#pact-go').onclick=()=>{ pactConfirm(); };
+  $('#pact-back').onclick=()=>{ pactBack(); };
 
   /* ============================================================
      ポーズ
@@ -7329,7 +7567,7 @@ const AUDIO = (function(){
     var pk = $('#bsim-' + c + '-picker');
     if(!BAL.sel || BAL.sel.col !== c){ pk.innerHTML = '<div class="pk-head">スロットを選ぶと、ここに装備候補が出ます。</div>'; return; }
     var type = BAL.sel.type, key = BAL.sel.key, arr = bsimSlotArr(BAL.builds[c], type, key);
-    var cands = RL.EMBLEMS.filter(function(e){ return RL.canScope(e.id, type); });
+    var cands = RL.EMBLEMS.filter(function(e){ return !e.hidden && RL.canScope(e.id, type); });   // 隠しエンブレム(弱ボム等)はSim編集に出さない
     var grid = cands.map(function(e){
       var on = arr.indexOf(e.id) >= 0, sc = RL.slotCost(e.id, type);
       return '<div class="bsim-emb' + (on ? ' on' : '') + '" data-id="' + e.id + '">' + e.ico + ' ' + e.name + ' <span class="ec">' + sc + '</span></div>';
@@ -7463,6 +7701,7 @@ const AUDIO = (function(){
     st.results.forEach(r=> console.log((r.pass?'  ✓ ':'  ✗ ')+r.name));
     if(st.passed!==st.total) console.warn('SELFTEST FAILED', st.results.filter(r=>!r.pass));
     checkBosses();   // ★v0.24 SHELLロスター整合性チェック(エンジン非介入のため RL.selftest とは別。壊れていれば console に警告)
+    checkPacts();    // ★v0.28 誓約ロスター整合性チェック(mut 参照が実在するか)
     // 保存された言語設定を反映(静的HTML差し替え＋vi用クラス)。動的描画は各 render が LANG を参照。
     document.documentElement.lang = LANG;
     document.title = T('doc_title');
