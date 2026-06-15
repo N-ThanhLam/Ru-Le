@@ -856,6 +856,26 @@
   .rankrow .pl{ font-size:54px; font-weight:900; width:120px; }
   .rankrow .nm{ font-size:38px; font-weight:900; flex:1; }
   .rankrow .ti{ font-size:30px; font-weight:800; color:#444; }
+  #s-result .ovl-page{ align-items:flex-start; padding:116px 48px 34px; }
+  #s-result .card-modal{
+    width:100%; max-width:1824px; min-height:0; height:930px;
+    display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:18px;
+    padding:24px 30px 26px;
+  }
+  #s-result .card-modal h2{ margin-bottom:0; line-height:1.08; }
+  #s-result .result-layout{
+    min-height:0; display:grid; grid-template-columns:minmax(780px,1fr) minmax(0,.92fr);
+    gap:26px; align-items:start;
+  }
+  #s-result .result-side{ min-width:0; display:flex; flex-direction:column; gap:14px; }
+  #s-result .ranklist{ min-width:0; gap:12px; }
+  #s-result .rankrow{ min-height:105px; }
+  #s-result #result-reward.show{ width:100%; max-width:none; margin:0; }
+  #s-result #result-rival.show{
+    width:100%; max-width:none; margin:0; gap:10px 14px; padding:14px 18px;
+  }
+  #s-result #result-rival .rv-card{ flex:1 1 300px; max-width:none; }
+  #s-result #result-btns{ margin-top:0; align-self:center; }
 
   /* ドラフト */
   .draft{ display:flex; gap:26px; justify-content:center; }
@@ -870,6 +890,8 @@
 
   /* ---- 巡業マップ(道/幕/ボス) ---- */
   .map-hint{ font-size:30px; font-weight:800; color:#cdd6ff; margin:2px 0 22px; }
+  #s-map .wrap,
+  #s-pact .wrap{ position:absolute; top:132px; left:28px; right:28px; bottom:42px; display:flex; flex-direction:column; }
   .runmap{ display:flex; gap:46px; align-items:stretch; justify-content:center; flex-wrap:nowrap; max-width:1760px; }
   .mapcol{ display:flex; flex-direction:column; gap:16px; align-items:center; position:relative; flex:1; min-width:0; }
   .mapcol-hd{ font-size:26px; font-weight:900; color:#9fb0e8; margin-bottom:2px; }
@@ -1263,9 +1285,13 @@
     <div class="ovl ovl-page active" style="background:transparent;">
       <div class="card-modal">
         <h2 id="result-head">けっか</h2>
-        <div class="ranklist" id="result-list"></div>
-        <div id="result-reward"></div>
-        <div id="result-rival"></div>
+        <div class="result-layout">
+          <div class="ranklist" id="result-list"></div>
+          <div class="result-side">
+            <div id="result-reward"></div>
+            <div id="result-rival"></div>
+          </div>
+        </div>
         <div class="rowbtns" id="result-btns"></div>
       </div>
     </div>
