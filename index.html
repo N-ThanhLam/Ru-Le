@@ -1735,11 +1735,13 @@ const RL = (function(){
     { id:'mi09', code:'緑09', color:'midori', name:'共鳴', cost:28, ico:'🔮', effect:'RESONANCE', place:'whole', desc:'あなたの「一緒に捨てる／余分に捨てる」効果（三重・連番・流星・投棄・掃除・放出・軽身・初動など）が発動したら、いつも弱い札を1枚多く捨てる。自分だけに適用。', nameVi:'Cộng Hưởng', abbrVi:'C.Hưởng', codeVi:'L09', descVi:'Mỗi khi hiệu ứng "bỏ kèm / bỏ thêm" của bạn (Tam Trùng, Liên Số, Sao Băng, Vứt Bỏ, Quét, Xả, Nhẹ Mình, Khởi Đầu...) kích hoạt, luôn bỏ thêm 1 lá yếu nhất. Chỉ áp dụng cho mình.' },
     // ───────── 黄 (ki) — 手札操作(不要な札も一緒に捨てる) ─────────
     //   ★v0.21 溜め撃ち化: 投棄/軽身は「出すと自動で捨てる」受動から「気を払って自分の手番に発動」へ転生(activated)。place:'whole'。
-    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:38, ico:'🗑️', effect:'ACT_SHED', actN:2, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を2枚まとめて捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 2 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
+    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:30, ico:'🗑️', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:42, suitCost:78, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
     { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:28, suitCost:68, ico:'🧹', effect:'SHED_WEAK', place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất.' },
     { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:30, ico:'🍃', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:2, desc:'【溜め撃ち】気を2つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'【Nạp】Tốn 2 năng lượng, kích hoạt trong lượt để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:1, suitCost:2, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
+    { id:'ki06',  code:'黄06', color:'ki', name:'乱棄', cost:36, ico:'🎲', effect:'ACT_RANDOM_SHED', actN:2, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、手持ちの札をランダムに2枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Ngẫu', abbrVi:'V.Ngẫu', codeVi:'V06', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để bỏ ngẫu nhiên 2 lá trên tay (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
+    { id:'ao08',  code:'青08', color:'ao', name:'封鳴', cost:34, ico:'🔇', effect:'ACT_SILENCE', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、この1巡だけ他のプレイヤーはエンブレムを発動できない。自分に手番が戻ると効果は終わる。', nameVi:'Câm Ấn', abbrVi:'Câm', codeVi:'X08', descVi:'【Nạp】Tốn 4 năng lượng trong lượt của mình: trong một vòng, người chơi khác không thể kích hoạt biểu tượng. Hết hiệu lực khi lượt quay lại bạn.' },
   ];
   const EMB_BY_ID = {}; EMBLEMS.forEach(e=>EMB_BY_ID[e.id]=e);
   function emblem(id){ return EMB_BY_ID[id]; }
@@ -2253,6 +2255,8 @@ const RL = (function(){
       direction: 1,
       passCount: 0,
       passed: [],                           // このトリックでパスして降りた席(場流し/上がりでリセット)
+      emblemSilence: null,                  // {owner, armed}: ownerに手番が戻るまで他席の発動系エンブレムを封じる
+      randCounter: 0,                       // 決定論的なランダム効果用。状態同期/自己テストで再現可能にする
       openSpade3: null,                     // 弱者: この席は最初の1手で必ず♠3を含めて出す(出したらnull)
       finishedOrder: [],
       gameOver:false,
@@ -2305,6 +2309,23 @@ const RL = (function(){
   //   (大富豪・ティエンレン本来のルール)。これにより「飛ばし/上がり/向き反転で場が流れず手番が
   //   場の持ち主に戻ってしまう」場流しバグも根治する(passCount 方式の脆さを置換)。
   function passedSet(state){ if(!Array.isArray(state.passed)) state.passed=[]; return state.passed; }
+  function setTurn(state, next){
+    state.turn = next;
+    const s = state.emblemSilence;
+    if(s && state.players[s.owner] && state.players[s.owner].finished){ state.emblemSilence = null; return next; }
+    if(s && next!==s.owner) s.armed = true;
+    else if(s && next===s.owner && s.armed) state.emblemSilence = null;
+    return next;
+  }
+  function emblemActivationBlocked(state, i){
+    const s = state.emblemSilence;
+    return !!(s && s.armed && i!==s.owner);
+  }
+  function stateRand(state){
+    state.randCounter = (state.randCounter||0) + 1;
+    const r = mulberry32(((state.seed||0) ^ (state.randCounter * 0x9E3779B9)) >>> 0);
+    return r();
+  }
   // まだこのトリックで打てる席(未上がり かつ 未パス)。
   function trickAlive(state){ const ps=passedSet(state); return state.players.filter((p,i)=> !p.finished && !ps.includes(i)).map(p=>p.id); }
   // 次の手番(上がり席・パス済み席を飛ばす)。
@@ -2543,7 +2564,7 @@ const RL = (function(){
       const others = trickAlive(state).filter(i=> i!==playerIndex);
       if(others.length===0 && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
     }
-    state.turn = next;
+    setTurn(state, next);
     if(state.players[next]) state.players[next].freeActed = false;   // ★新しい手番に入る席=無料アクション(発動)の枠をリセット
     state.passCount = passedSet(state).length;   // 後方互換(表示用)。判定は passed/trickAlive に一本化。
     // ★気(チャージ)は「出した時」ではなく「パスした時」に貯まる(applyPass を参照)。出すと貯まる旧仕様は廃止＝勝者(出せる人)が更に得をするスノーボールを避け、詰まった側に資源を回す。
@@ -2564,11 +2585,11 @@ const RL = (function(){
     if(contested && others.length===0){
       // 場流し: 持ち主(健在なら)からリードし直す。持ち主が上がり済みなら次の健在席。
       let lead = ownerActive ? owner : nextActiveFrom(state, (owner==null?playerIndex:owner), 1);
-      clearField(state); state.passed=[]; state.passCount=0; state.turn=lead;
+      clearField(state); state.passed=[]; state.passCount=0; setTurn(state, lead);
       if(state.players[lead]) state.players[lead].freeActed = false;   // ★新リードの席=無料アクション枠リセット
       events.push({kind:'flush', lead});
     } else {
-      state.turn = nextTurnFrom(state, playerIndex, 1);
+      setTurn(state, nextTurnFrom(state, playerIndex, 1));
       if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
       state.passCount = passedSet(state).length;
     }
@@ -2590,6 +2611,7 @@ const RL = (function(){
   function canReact(state, i){
     const p = state.players[i];
     if(!p || p.finished || state.gameOver) return false;
+    if(emblemActivationBlocked(state, i)) return false;
     const r = playerRules(state, i);
     if(!r || !r.reactClear) return false;
     if(!fieldCombo(state)) return false;             // 場が空＝後出しの対象が無い
@@ -2603,7 +2625,7 @@ const RL = (function(){
     p.charge = Math.max(0, (p.charge||0) - (r.reactCost||CONFIG.REACT_COST_DEFAULT));
     events.push({kind:'react', index:i});
     clearField(state); state.passed=[]; state.passCount=0;
-    state.turn = i;                                   // 場を吹き飛ばして自分がリードを奪う(新しいトリック＝全員復帰)
+    setTurn(state, i);                                // 場を吹き飛ばして自分がリードを奪う(新しいトリック＝全員復帰)
     events.push({kind:'clear'});
     return { events };
   }
@@ -2622,6 +2644,7 @@ const RL = (function(){
   function canActivate(state, i, eid){
     const p = state.players[i];
     if(!p || p.finished || state.gameOver) return false;
+    if(emblemActivationBlocked(state, i)) return false;
     if(p.freeActed) return false;                                 // ★発動は1手番に1回まで(溜めた気を1ターンに何度も吐いて手札を一気に消すのを封じる)
     const e = emblem(eid);
     if(!e || !e.activated) return false;
@@ -2631,8 +2654,10 @@ const RL = (function(){
     if(eff==='ACT_CLEAR'){
       if(!fieldCombo(state)) return false;                        // 流す対象が無い
       if(state.field.ownerIndex===i) return false;                // 自分の場には撃たない
-    } else if(eff==='ACT_SHED'){
+    } else if(eff==='ACT_SHED' || eff==='ACT_RANDOM_SHED'){
       if((p.hand.length||0) < 2) return false;                    // 最後の1枚は必ず残す
+    } else if(eff==='ACT_SILENCE'){
+      if(state.emblemSilence && state.emblemSilence.owner===i) return false;
     }
     return true;
   }
@@ -2646,7 +2671,7 @@ const RL = (function(){
     const eff = effList(e)[0];
     if(eff==='ACT_CLEAR'){
       clearField(state); state.passed=[]; state.passCount=0;
-      state.turn = i;                                             // 場を流して自分がリードし直す(新トリック=全員復帰)
+      setTurn(state, i);                                          // 場を流して自分がリードし直す(新トリック=全員復帰)
       events.push({kind:'clear'});
     } else if(eff==='ACT_SHED'){
       const want = e.actN||1; let shed=0;
@@ -2662,6 +2687,20 @@ const RL = (function(){
         const picks = pickByEffect(p.hand, p.hand[0], 'SHED_WEAK');
         if(picks.length){ const c=picks[0]; const idx=p.hand.findIndex(h=> h.rank===c.rank&&h.suit===c.suit); if(idx>=0){ p.hand.splice(idx,1); events.push({kind:'emb', emb:'mi09', n:1}); } }
       }
+    } else if(eff==='ACT_RANDOM_SHED'){
+      const want = e.actN||2; let shed=0;
+      for(let k=0; k<want && p.hand.length>1; k++){
+        const idx = Math.floor(stateRand(state) * p.hand.length);
+        if(idx>=0 && idx<p.hand.length){ p.hand.splice(idx,1); shed++; }
+      }
+      if(shed) events.push({kind:'emb', emb:eid, n:shed});
+      if(playerRules(state,i).resonance && shed>0 && p.hand.length>1){
+        const picks = pickByEffect(p.hand, p.hand[0], 'SHED_WEAK');
+        if(picks.length){ const c=picks[0]; const idx=p.hand.findIndex(h=> h.rank===c.rank&&h.suit===c.suit); if(idx>=0){ p.hand.splice(idx,1); events.push({kind:'emb', emb:'mi09', n:1}); } }
+      }
+    } else if(eff==='ACT_SILENCE'){
+      state.emblemSilence = { owner:i, armed:false };
+      events.push({kind:'emb', emb:eid});
     }
     return { events };
   }
@@ -2677,7 +2716,7 @@ const RL = (function(){
       if(fo!=null && fo!==i && !state.players[fo].finished && state.players[fo].hand.length <= p.hand.length) return { type:'activate', emblem:clear };
     }
     // 2) 溜め投/軽(ACT_SHED): いちばん弱い札が“腐り札”(実効ランク下位)で、まだ手札が多めなら処分してスリム化。
-    const shed = acts.find(id=> effList(emblem(id))[0]==='ACT_SHED');
+    const shed = acts.find(id=> ['ACT_SHED','ACT_RANDOM_SHED'].includes(effList(emblem(id))[0]));
     if(shed && p.hand.length>=4){
       const inv = xorB(state.revolution, state.mutator && state.mutator.effect==='REVERSE');
       const sorted = p.hand.slice().sort((a,b)=> strength(a.rank)-strength(b.rank));
@@ -2685,6 +2724,8 @@ const RL = (function(){
       const er = inv ? (RANKS.length-1-strength(weakest.rank)) : strength(weakest.rank);
       if(er <= 2) return { type:'activate', emblem:shed };        // 実効的に最弱クラスの腐り札があるとき
     }
+    const silence = acts.find(id=> effList(emblem(id))[0]==='ACT_SILENCE');
+    if(silence && state.players.some((pl,idx)=> idx!==i && !pl.finished && (pl.charge||0)>0 && playerRules(state,idx).usesCharge)) return { type:'activate', emblem:silence };
     return null;
   }
 
@@ -2885,13 +2926,13 @@ const RL = (function(){
     sg.players[0].build.rankSlots['3']=['ao01'];
     const s3=sg.players[0].hand.find(c=>c.rank==='3');
     if(s3){ applyPlay(sg,0,s3,{}); ok('加速で手番が2', sg.turn===2); } else ok('加速(スキップ)', true);
-    // 11 投棄(v0.21 溜め撃ち ACT_SHED): 気を払って発動すると最弱2枚を捨てる(出さずに発動・最後の1枚は残す)
+    // 11 投棄(v0.21 溜め撃ち ACT_SHED): 気を払って発動すると最弱1枚を捨てる(出さずに発動・最後の1枚は残す)
     const hgdefs=defs.map(x=>({...x})); hgdefs[0]={...hgdefs[0], build:buildFrom({rule:['ki01']})};
     const hg=newGame(hgdefs,88);
     ok('投棄装備でusesCharge', hg.players[0].rules.usesCharge===true && hg.players[0].rules.chargeCap>=3);
     hg.players[0].charge=5; const hb=hg.players[0].hand.length;
     applyActivate(hg,0,'ki01');
-    ok('投棄発動で2枚減', hg.players[0].hand.length===hb-2);
+    ok('投棄発動で1枚減', hg.players[0].hand.length===hb-1);
     ok('投棄発動で気-4(chargeCost4)', hg.players[0].charge===1);
     // 12 三重(CARRY_TWO_SAME): 同ランク2枚あれば2枚減
     const dg=newGame(defs.map(x=>({...x})),100);
@@ -3385,6 +3426,20 @@ const RL = (function(){
       sgB.players[0].hand=[{rank:'3',suit:'S'},{rank:'4',suit:'S'}]; sgB.players[0].charge=6;
       applyActivate(sgB,0,'ki01');
       ok('溜め撃ち捨ては最後の1枚を残す', sgB.players[0].hand.length===1);
+      // 乱棄(ACT_RANDOM_SHED): ランダムに2枚捨てるが、最後の1枚は残す
+      const rgA=newGame(seat0(buildFrom({rule:['ki06']})), 4445);
+      rgA.players[0].hand=[{rank:'3',suit:'S'},{rank:'4',suit:'S'},{rank:'K',suit:'S'}]; rgA.players[0].charge=4;
+      applyActivate(rgA,0,'ki06');
+      ok('乱棄発動でランダム2枚減', rgA.players[0].hand.length===1);
+      // 封鳴(ACT_SILENCE): 他席の発動/反撃を1巡だけ止め、発動者に手番が戻ると解除
+      const slB=buildFrom({rule:['ao08']});
+      const slC=buildFrom({rule:['ki04']});
+      const slG=newGame([{name:'A',isHuman:false,build:slB},{name:'B',isHuman:false,build:slC},{name:'C',isHuman:false,build:emptyBuild()},{name:'D',isHuman:false,build:emptyBuild()}], 4446);
+      slG.turn=0; slG.players[0].charge=4; slG.players[1].charge=2;
+      applyActivate(slG,0,'ao08'); setTurn(slG,1);
+      ok('封鳴中は他席が発動不可', canActivate(slG,1,'ki04')===false);
+      setTurn(slG,0);
+      ok('封鳴は自分に戻ると解除', canActivate(slG,1,'ki04')===true);
       // 焚く(burn)は撤去済み＝API も無い(チャージはパスでのみ貯まる)。
       ok('焚くAPIは撤去(canBurn)', typeof canBurn==='undefined');
       ok('焚くAPIは撤去(applyBurn)', typeof applyBurn==='undefined');
@@ -3632,7 +3687,7 @@ const AUDIO = (function(){
     aka08:'hero',
     ao01:'dash', ao02:'again', ao05:'suitorder', ao06:'weak', ao07:'resume',
     set2:'set', set3:'set', set4:'set',
-    mi02:'sweep', mi03:'sweep', mi04:'sweep', ki01:'sweep', ki03:'sweep', ki04:'sweep', ki05:'sweep',
+    mi02:'sweep', mi03:'sweep', mi04:'sweep', ki01:'sweep', ki03:'sweep', ki04:'sweep', ki05:'sweep', ki06:'sweep', ao08:'lock',
     mi05:'stair', mi06:'stair',
     mi08:'split', mi09:'shimmer'
   };
