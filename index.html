@@ -6353,8 +6353,21 @@ const AUDIO = (function(){
     const arr = type==='rule' ? build.ruleSlots : (type==='rank' ? (build.rankSlots[key]||[]) : (build.suitSlots[key]||[]));
     let i; while(arr && (i=arr.indexOf(id))>=0){ arr.splice(i,1); }
   }
-  // ランダムエンブレムを1個付与する。「エンブレム × 有効スロット」の全組み合わせをフラットに候補化し、
-  //   その中からランダムに1つ選んで付与する。同じ(id, スロット)が既に存在する組み合わせのみ除外。
+  const RANDOM_GRANT_COST_POWER = 1.35;   // 高コストのランダム獲得を薄くする係数。0=均等、上げるほど低コスト寄り。
+  function randomGrantWeight(id, slotType){
+    const cost = Math.max(1, RL.slotCost(id, slotType));
+    return 1 / Math.pow(cost, RANDOM_GRANT_COST_POWER);
+  }
+  function weightedPick(items, weightFn){
+    let total=0;
+    const weights=items.map(x=>{ const w=Math.max(0, weightFn(x)||0); total+=w; return w; });
+    if(!(total>0)) return items[(Math.random()*items.length)|0];
+    let r=Math.random()*total;
+    for(let i=0;i<items.length;i++){ r-=weights[i]; if(r<=0) return items[i]; }
+    return items[items.length-1];
+  }
+  // ランダムエンブレムを1個付与する。「エンブレム × 有効スロット」の全組み合わせを候補化し、
+  //   その中からコストが高いほど出にくい重み付きランダムで1つ選んで付与する。同じ(id, スロット)が既に存在する組み合わせのみ除外。
   //   別スロットへの同id重複はOK（連火なら数字13枠＋スート4枠の計17候補が常に存在する等）。
   //   付与した結果を {id, slot:{type,key}} で返す(報酬演出用)。
   //   全組み合わせ埋まり(全エンブレムを全有効スロットに配置済み)のときのみ null。
@@ -6375,7 +6388,7 @@ const AUDIO = (function(){
       }
     });
     if(!candidates.length) return null;                                    // 全組み合わせ埋まり(ほぼ起こらない)
-    const pick=candidates[(Math.random()*candidates.length)|0];           // (エンブレム, スロット)をまとめてランダム選択
+    const pick=weightedPick(candidates, c=>randomGrantWeight(c.id, c.slot.type));   // (エンブレム, スロット)をまとめて重み付きランダム選択
     const {id, slot}=pick;
     removeIdFromSlot(run.build, id, slot.type, slot.key);                 // 「同じ枠」に手で付けていた同idだけ外す(別の枠は残す)
     const arr=slot.type==='rule' ? rb.ruleSlots : (slot.type==='rank' ? rb.rankSlots[slot.key] : rb.suitSlots[slot.key]);
