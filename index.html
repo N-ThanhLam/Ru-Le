@@ -263,10 +263,16 @@
     border:4px solid var(--gold); border-radius:18px; background:rgba(255,207,77,.12); text-align:center; }
   #result-reward .rwd-h{ font-size:30px; font-weight:900; color:#7a5a00; }
   #result-reward .rwd-l{ font-size:34px; font-weight:900; color:var(--ink); margin-top:6px; }
-  /* 宿敵レポート(種明かし) */
+  /* 宿敵レポート(種明かし)。宿敵が多くても画面からはみ出さないよう、各宿敵を1枚のカードにして左右2列で並べる。 */
   #result-rival{ display:none; }
-  #result-rival.show{ display:block; margin:12px auto 4px; padding:14px 24px; max-width:760px;
-    border:4px solid #ff7a6b; border-radius:18px; background:#4a1714; text-align:center; }
+  #result-rival.show{ display:flex; flex-wrap:wrap; justify-content:center; align-items:stretch; gap:10px 16px;
+    margin:12px auto 4px; padding:14px 22px; max-width:1180px;
+    border:4px solid #ff7a6b; border-radius:18px; background:#4a1714; }
+  /* 1宿敵=1カード。flex:1 1 440px で 宿敵2人以上なら自動で2列(440px割れたら1列)に折り返す。 */
+  #result-rival .rv-card{ flex:1 1 440px; max-width:540px; min-width:0; text-align:center;
+    padding:8px 14px; border-radius:14px; background:rgba(0,0,0,.16); }
+  /* 封じ通知は全幅(左右どちらの列にも属さず)で下にまとめる。 */
+  #result-rival .rv-ban{ flex-basis:100%; text-align:center; font-size:28px; font-weight:800; color:#ffe7e2; margin-top:4px; }
   #result-rival .rv-h{ font-size:30px; font-weight:900; color:#fff; }
   #result-rival .rv-h .rv-p{ font-size:24px; font-weight:800; color:#ffd0c8; margin-left:8px; }
   #result-rival .rv-l{ font-size:28px; font-weight:800; color:#ffe7e2; margin-top:6px; }
@@ -1119,7 +1125,7 @@
     <div class="menu" id="title-menu"></div>
     <div class="cardfan" id="title-fan"></div>
     <div class="stbox" id="title-st">…</div>
-    <div class="ver">v0.29</div>
+    <div class="ver">v0.31</div>
     <!-- 汎用 確認ダイアログ(誤操作防止: 中断中の巡業を新規開始で上書きする前など) -->
     <div class="ovl" id="ovl-confirm">
       <div class="card-modal" style="text-align:center; max-width:1100px;">
@@ -3533,28 +3539,97 @@ const AUDIO = (function(){
   let ctx=null, on=true;
   function ensure(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ctx&&ctx.state==='suspended') ctx.resume(); }
   function setOn(v){ on=v; }
-  function tone(freq, dur, type, vol, slideTo){
+  // 純音(オシレータ)。基本SEは noise() の「シュ/サッ/ザァ」系へ寄せ、tone は祝祭ジングルと軽いアクセントだけに使う。
+  //   delay(秒)で遅らせて鳴らせる＝アルペジオを setTimeout 無しで組める。
+  function tone(freq, dur, type, vol, slideTo, delay){
     if(!on) return; ensure(); if(!ctx) return;
-    const t=ctx.currentTime, o=ctx.createOscillator(), g=ctx.createGain();
+    const t=ctx.currentTime+(delay||0), o=ctx.createOscillator(), g=ctx.createGain();
     o.type=type||'triangle'; o.frequency.setValueAtTime(freq,t);
-    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t+dur);
-    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.18, t+0.012);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(40,slideTo), t+dur);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.16, t+0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
     o.connect(g).connect(ctx.destination); o.start(t); o.stop(t+dur+0.02);
   }
+  // ノイズ(空気感)バースト＝「シュ」「サッ」「ザァ」の素。帯域フィルタの掃引で擦過/疾風/カード滑りを作る。
+  //   opt: {filter,f0,f1,vol,q,atk,delay}。f0→f1 へ周波数を掃引(上昇=シュッ↑/下降=サッ↓)。
+  function noise(dur, opt){
+    if(!on) return; ensure(); if(!ctx) return;
+    opt=opt||{}; const t=ctx.currentTime+(opt.delay||0);
+    const len=Math.max(1, Math.floor(ctx.sampleRate*dur)), buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource(); src.buffer=buf;
+    const f=ctx.createBiquadFilter(); f.type=opt.filter||'bandpass';
+    const f0=opt.f0||2000, f1=(opt.f1!=null?opt.f1:f0);
+    f.frequency.setValueAtTime(f0,t);
+    if(f1!==f0) f.frequency.exponentialRampToValueAtTime(Math.max(40,f1), t+dur);
+    f.Q.value=(opt.q!=null?opt.q:0.7);
+    const g=ctx.createGain(), vol=(opt.vol!=null?opt.vol:0.16), atk=(opt.atk!=null?opt.atk:0.005);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol, t+atk);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    src.connect(f).connect(g).connect(ctx.destination); src.start(t); src.stop(t+dur+0.02);
+  }
+  // 擦過スウィープ(シュッ/サッ)＝バンドパスを f0→f1 へ掃引するノイズの近道。
+  function swish(dur, f0, f1, vol, q, delay){ noise(dur, {f0, f1, vol, q:(q!=null?q:0.7), filter:'bandpass', delay}); }
+
+  // ── エンブレム別ボイス(状況に合った効果音) ── 全て noise/tone の合成。短く・空気感ベースで耳に痛くしない。
+  const voices = {
+    fire(){ noise(0.07,{filter:'lowpass',f0:700,f1:220,vol:0.13,q:1,atk:0.002}); swish(0.28,520,3200,0.12,0.5,0.04); tone(170,0.12,'sawtooth',0.05,90,0.02); },     // 連火/溜め火/放出: ボッ…シュー(燃え広がり)
+    boom(){ noise(0.20,{filter:'lowpass',f0:320,f1:70,vol:0.20,q:1.4,atk:0.002}); tone(95,0.24,'sine',0.13,52,0); },                                                  // ボム押し付け: ドンッ(着弾)
+    revolution(){ tone(320,0.22,'sawtooth',0.10,80,0); swish(0.20,900,3400,0.12,0.6,0.12); tone(180,0.20,'sine',0.07,520,0.10); },                                   // 革命: ゴゴゴ→シャッ(天地逆転)
+    lock(){ swish(0.05,3800,1400,0.10,0.5); tone(1320,0.05,'square',0.05,null,0); tone(990,0.05,'square',0.05,null,0.06); },                                          // 縛り/指名の鎖: ガチャッ
+    flip(){ swish(0.10,800,3200,0.11,1.4); swish(0.08,3200,1000,0.10,1.4,0.08); },                                                                                    // 逆位/逆流: ヒュンッ(反転)
+    dash(){ swish(0.08,1100,5200,0.13,1.8); },                                                                                                                        // 加速: ヒュッ(疾風)
+    again(){ swish(0.045,2200,4600,0.10,1); swish(0.045,2200,4600,0.10,1,0.07); },                                                                                    // 連撃: サッサッ(畳みかけ)
+    aim(){ swish(0.06,1500,4200,0.10,1.2); tone(1760,0.06,'triangle',0.06,null,0.02); },                                                                              // 指名: シュピッ(狙い撃ち)
+    wild(){ swish(0.14,1200,4800,0.11,0.9); tone(1318,0.08,'triangle',0.05,1976,0.04); },                                                                             // 越境/逆襲: シュワッ(踏み越え)
+    hero(){ swish(0.16,600,3600,0.12,0.5); [880,1320,1760].forEach((f,i)=>tone(f,0.16,'triangle',0.12,null,0.06+i*0.08)); },                                          // 英雄: 勝ち名乗りファンファーレ
+    counter(){ noise(0.05,{filter:'highpass',f0:6000,vol:0.13,q:0.4,atk:0.002}); tone(2093,0.09,'triangle',0.08,2637,0); },                                           // 3返し/反撃/一撃: シャキンッ(抜刀)
+    morph(){ tone(520,0.16,'sine',0.08,920,0); swish(0.10,1400,2400,0.06,2,0.02); },                                                                                  // 偽装: ポワン(化ける)
+    sweep(){ swish(0.06,3200,1100,0.10,0.8); },                                                                                                                        // 捨て札一掃: サッ(枚数ぶん連発)
+    split(){ swish(0.04,2600,3600,0.09,1); swish(0.04,2600,3600,0.09,1,0.05); },                                                                                      // 分裂: パッ(複製)
+    shimmer(){ noise(0.18,{filter:'bandpass',f0:3200,f1:5200,vol:0.08,q:6,atk:0.004}); [1568,2093,2637].forEach((f,i)=>tone(f,0.10,'sine',0.045,null,0.02+i*0.05)); }, // 共鳴: シャラ～ン
+    stair(){ [0,1,2,3].forEach(i=>tone(880*Math.pow(1.18,i),0.07,'triangle',0.06,null,i*0.045)); },                                                                   // 階段: トゥルル↑(駆け上がり)
+    set(){ swish(0.07,1800,3600,0.09,0.9); },                                                                                                                          // 役解禁: サッ(軽い確定)
+    suitorder(){ tone(1320,0.06,'triangle',0.06,null,0); },                                                                                                            // スート順: ティッ(序列)
+    weak(){ tone(330,0.12,'sine',0.08,220,0); },                                                                                                                       // 弱者: コトッ(控えめ先手)
+    resume(){ swish(0.08,1400,3200,0.09,1.2); swish(0.08,3200,1400,0.09,1.2,0.07); }                                                                                  // 再開: クルッ(舞い戻り)
+  };
+  // エンブレムid → ボイス。未登録は 'set'(軽い確定音)へフォールバックするので全idを安全にカバー。
+  const EMB_VOICE = {
+    aka01:'fire', aka14:'fire', ki02:'fire',
+    aka03:'flip', ao03:'flip',
+    aka04:'lock', ao04:'aim',
+    aka05:'revolution',
+    aka07:'counter', aka12:'counter', aka09:'counter',
+    aka11:'morph',
+    aka02:'wild', aka13:'wild',
+    aka08:'hero',
+    ao01:'dash', ao02:'again', ao05:'suitorder', ao06:'weak', ao07:'resume',
+    set2:'set', set3:'set', set4:'set',
+    mi02:'sweep', mi03:'sweep', mi04:'sweep', ki01:'sweep', ki03:'sweep', ki04:'sweep', ki05:'sweep',
+    mi05:'stair', mi06:'stair',
+    mi08:'split', mi09:'shimmer'
+  };
+  function embFx(id, n){
+    if(!on) return; ensure(); if(!ctx) return;
+    const key=EMB_VOICE[id]||'set'; (voices[key]||voices.set)();
+    // 複数枚を巻き込む捨て札系は、枚数ぶん軽く連ねて「サッ・サッ」に(最大3連)。
+    if(key==='sweep' && n>1){ for(let i=1;i<Math.min(n,3);i++) noise(0.05,{filter:'bandpass',f0:3200,f1:1100,vol:0.08,q:0.8,delay:i*0.06}); }
+  }
   return {
-    setOn, ensure,
-    move(){ tone(440,0.05,'square',0.08); },
-    play(){ tone(523,0.09,'triangle',0.16); setTimeout(()=>tone(784,0.12,'triangle',0.14),50); },
-    pass(){ tone(220,0.14,'sine',0.12,160); },
-    flush(){ tone(330,0.18,'sawtooth',0.12,110); },
-    emb(){ tone(660,0.08,'square',0.13); setTimeout(()=>tone(990,0.12,'square',0.12),60); },
-    finish(){ [523,659,784,1047].forEach((f,i)=> setTimeout(()=>tone(f,0.18,'triangle',0.18),i*90)); },
-    win(){ [523,659,784,1047,1318].forEach((f,i)=> setTimeout(()=>tone(f,0.22,'triangle',0.2),i*110)); },
-    lose(){ [392,330,262].forEach((f,i)=> setTimeout(()=>tone(f,0.26,'sine',0.16),i*140)); },
-    bad(){ tone(140,0.16,'sawtooth',0.14); },
-    confirm(){ tone(700,0.07,'triangle',0.14); },
-    back(){ tone(300,0.08,'sine',0.12); }
+    setOn, ensure, embFx,
+    move(){ noise(0.03,{filter:'highpass',f0:4800,vol:0.05,q:0.4,atk:0.002}); },                  // カーソル移動: サッ(ごく短い)
+    play(){ swish(0.10,1700,4600,0.12,0.7); },                                                     // カードを出す: シュッ(滑り出し)
+    pass(){ swish(0.13,1600,650,0.085,0.6); },                                                     // パス: サー(空気が抜ける)
+    flush(){ swish(0.24,700,3600,0.13,0.4); },                                                     // 場流し/吹き飛ばし: ザァッ(一掃)
+    emb(){ swish(0.08,1800,4200,0.10,0.9); },                                                      // 装備/設定の確定(対戦外): キュッ
+    penalty(){ voices.boom(); },                                                                   // 罰カード押し付け(ボム): ドンッ
+    finish(){ swish(0.18,700,3400,0.10,0.5); [659,880,1047].forEach((f,i)=>tone(f,0.16,'triangle',0.14,null,0.06+i*0.08)); },
+    win(){ swish(0.22,600,4000,0.12,0.45); [659,880,1047,1318,1568].forEach((f,i)=>tone(f,0.20,'triangle',0.16,null,0.08+i*0.10)); },
+    lose(){ swish(0.20,1800,500,0.10,0.5); [392,330,262].forEach((f,i)=>tone(f,0.26,'sine',0.13,null,i*0.14)); },
+    bad(){ noise(0.16,{filter:'lowpass',f0:520,f1:150,vol:0.16,q:1.2,atk:0.004}); tone(120,0.14,'sine',0.06,90,0); },   // エラー: ブッ(鈍い)
+    confirm(){ swish(0.085,1400,3800,0.12,1.1); },                                                  // 決定: シュッ↑
+    back(){ swish(0.10,2600,800,0.10,1.0); }                                                        // 戻る: シュ↓
   };
 })();
 
@@ -3705,6 +3780,7 @@ const AUDIO = (function(){
       place_n:'{0}位', title_daifugo:'大富豪', title_fugo:'富豪', title_hinmin:'貧民', title_daihinmin:'大貧民',
       toast_flush:'場流し', toast_react:'⚡ 後出し！場を吹き飛ばした', toast_activate:'発動！', toast_bad_play:'その手は出せない',
       toast_transfer:'💣 押し付け！罰カード ×{0} を相手へ',
+      toast_charge_up:'⚡ 気が少し溜まった（{0}/{1}）', toast_charge_full:'⚡ 気が満タン！撃てるぞ（{0}/{1}）', toast_charge_already:'⚡ もう満タンだ（{0}/{1}）',
       choose_h2:'「指名」— 次に出す人を選べ', choose_btn:'{0}（{1}枚）',
       inspect_h2:'エンブレム能力 — カーソルを当てると能力が読めます', inspect_close:'◀ もどる', inspect_turnnow:'いまの手番',
       pause_h2:'メニュー', pause_resume:'つづける', pause_help:'あそびかた', pause_quit:'タイトルへもどる',
@@ -3916,6 +3992,7 @@ const AUDIO = (function(){
       place_n:'Hạng {0}', title_daifugo:'Đại Phú', title_fugo:'Phú', title_hinmin:'Bần', title_daihinmin:'Đại Bần',
       toast_flush:'Dọn bãi', toast_react:'⚡ Hậu thủ! Thổi bay bãi', toast_activate:'Kích hoạt!', toast_bad_play:'Nước này không đánh được',
       toast_transfer:'💣 Trao tay! Dồn {0} lá phạt cho đối thủ',
+      toast_charge_up:'⚡ Nội lực tích thêm ({0}/{1})', toast_charge_full:'⚡ Nội lực đã đầy! Bắn được rồi ({0}/{1})', toast_charge_already:'⚡ Đã đầy sẵn rồi ({0}/{1})',
       choose_h2:'「Chỉ định」— Chọn người đánh kế', choose_btn:'{0} ({1} lá)',
       inspect_h2:'Năng lực Biểu Tượng — Trỏ con trỏ vào để đọc', inspect_close:'◀ Quay lại', inspect_turnnow:'Lượt hiện tại',
       pause_h2:'Menu', pause_resume:'Tiếp tục', pause_help:'Cách chơi', pause_quit:'Về Menu',
@@ -6445,12 +6522,14 @@ const AUDIO = (function(){
     }
   }
   function eventToast(events){
+    const sounded=new Set();   // 同一エンブレムが1手で複数イベントを出しても効果音は1回(例: 指名=CHOOSE_NEXT+縛り / 溜め撃ち=activate+emb)。
+    const embSfx=(id,n)=>{ if(id && !sounded.has(id)){ AUDIO.embFx(id,n); sounded.add(id); } };
     events.forEach(ev=>{
-      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; AUDIO.emb(); embFlash(e.ico); toast(e.ico+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
+      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; embSfx(ev.emb, ev.n); embFlash(e.ico); toast(e.ico+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
       else if(ev.kind==='flush'){ AUDIO.flush(); toast(T('toast_flush'),'#5c6bc0'); }
-      else if(ev.kind==='react'){ embFlash('⚡'); toast(T('toast_react'),'#e53935'); }   // 後出し: 場を吹き飛ばし手番を奪った
-      else if(ev.kind==='activate'){ const e=RL.emblem(ev.emb); AUDIO.emb(); embFlash(e?e.ico:'⚡'); toast((e?e.ico+' '+embName(e):'')+' '+T('toast_activate'), e?RL.COLORS[e.color].hex:'#e53935'); }  // 溜め撃ち発動
-      else if(ev.kind==='transfer'){ AUDIO.emb(); embFlash('💣'); toast(T('toast_transfer', ev.n),'#8e24aa'); }   // ボム押し付け: 罰カードを直前の人へ
+      else if(ev.kind==='react'){ embFlash('⚡'); toast(T('toast_react'),'#e53935'); }   // 後出し: 場を吹き飛ばし手番を奪った(音は doReact/cpuStep の flush)
+      else if(ev.kind==='activate'){ const e=RL.emblem(ev.emb); embSfx(ev.emb); embFlash(e?e.ico:'⚡'); toast((e?e.ico+' '+embName(e):'')+' '+T('toast_activate'), e?RL.COLORS[e.color].hex:'#e53935'); }  // 溜め撃ち発動
+      else if(ev.kind==='transfer'){ AUDIO.penalty(); embFlash('💣'); toast(T('toast_transfer', ev.n),'#8e24aa'); }   // ボム押し付け: 罰カードを直前の人へ(ドンッ)
       else if(ev.kind==='finish'){ /* 個別演出は afterStep で */ }
     });
   }
@@ -6491,10 +6570,26 @@ const AUDIO = (function(){
     if(G.openSpade3===meIdx()){ AUDIO.bad(); toast(T('act_need_spade3'),'#ff7043'); return; }   // 弱者: 最初は♠3を出す(パス不可)
     if(NET.active && !NET.isHost){ AUDIO.pass(); NET.sendAction({k:'pass'}); busy=true; renderMatch(); return; }
     AUDIO.pass();
+    const me=G.players[meIdx()]; const chgBefore=(me&&me.charge)||0;            // 気フィードバック用にパス前の気を控える
+    const wasContested=!!(G.field&&G.field.card);                               // 場に役がある＝主導権を譲るパス(気が貯まる対象)
     const r=RL.applyPass(G, meIdx());
     renderMatch(); eventToast(r.events);
+    chargeFeedback(me, chgBefore, wasContested);   // 「気が溜まった／もう満タンだ」を本人にだけ知らせる
     if(NET.active && NET.isHost) NET.broadcast();
     afterStep();
+  }
+  // パスで主導権を譲ったとき、気(チャージ)が動いたら本人に軽く知らせる。気を使わない席(jp/vn)では無関係なので無音。
+  function chargeFeedback(me, before, wasContested){
+    const rr = me && me.rules;
+    if(!rr || !rr.usesCharge) return;
+    const cap = rr.chargeCap || RL.CONFIG.REACT_COST_DEFAULT;
+    const now = (me.charge||0);
+    if(now > before){
+      if(now >= cap) toast(T('toast_charge_full', now, cap), '#ffb300');   // この一手で満タン到達＝撃てる合図
+      else           toast(T('toast_charge_up',   now, cap), '#3949ab');   // 軽く溜まった
+    } else if(wasContested && before >= cap){
+      toast(T('toast_charge_already', now, cap), '#ffb300');               // 主導権を譲ったが、もう満タンで増えなかった
+    }
   }
   // リアクション(後出し): 自分の手番の第3の選択肢。場を吹き飛ばし手番を奪う。
   function doReact(){
@@ -6509,8 +6604,8 @@ const AUDIO = (function(){
   // 溜め撃ち(発動): 自分の手番の無料アクション。気を払って効果を撃つ。手番は自分のまま(続けて出す/パス/再発動できる)。
   function doActivate(eid){
     if(!humanTurnReady() || !RL.canActivate(G, meIdx(), eid)) return;
-    if(NET.active && !NET.isHost){ AUDIO.emb(); NET.sendAction({k:'activate', emblem:eid}); busy=true; renderMatch(); return; }
-    AUDIO.emb();
+    if(NET.active && !NET.isHost){ AUDIO.embFx(eid); NET.sendAction({k:'activate', emblem:eid}); busy=true; renderMatch(); return; }   // クライアントは即時フィードバック(状態同期にイベントは乗らないため)
+    // ホスト/オフライン: 発動の効果音は applyActivate が出す activate イベント経由で eventToast が鳴らす(二重再生防止)。
     const r=RL.applyActivate(G, meIdx(), eid);
     renderMatch(); eventToast(r.events);
     if(NET.active && NET.isHost) NET.broadcast();
@@ -6569,7 +6664,7 @@ const AUDIO = (function(){
     const fa=RL.cpuFreeAction(G, idx);
     if(fa){
       const fr = RL.applyActivate(G, idx, fa.emblem);
-      AUDIO.emb(); eventToast(fr.events);
+      eventToast(fr.events);   // 発動の効果音は activate イベント経由(embFx)。
       if(G.gameOver){ renderMatch(); setTimeout(endMatch, 650); return; }
     }
     const mv=RL.cpuDecide(G, idx);
@@ -6691,9 +6786,9 @@ const AUDIO = (function(){
           const head = bossB
             ? '<div class="rv-h">👑 '+r.name+' <span class="rv-p">'+bossTitle(bossB)+'</span></div>'
             : '<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+'</div>';
-          html += head+'<div class="rv-l">'+rivalStyleLine(rs.idx, rs.boss)+'</div>'+'<div class="rv-rec">'+rivalRecordStr(rs.idx)+'</div>';
+          html += '<div class="rv-card">'+head+'<div class="rv-l">'+rivalStyleLine(rs.idx, rs.boss)+'</div>'+'<div class="rv-rec">'+rivalRecordStr(rs.idx)+'</div></div>';
         });
-        const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-l">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
+        const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-ban">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
         riv.innerHTML=html+banLn;
         riv.classList.add('show');
       } else { riv.innerHTML=''; riv.classList.remove('show'); }
@@ -7182,6 +7277,10 @@ const AUDIO = (function(){
     var g = 0;
     while(!state.gameOver && g < 5000){
       var idx = state.turn;
+      // 気(チャージ)経済: 本手の前に無料アクション(発動=溜め火/投棄/軽身)を1回だけ。実ゲーム(cpuStep)・Node sim と同一レール。
+      // これが無いと activated エンブレム(ACT_CLEAR/ACT_SHED)が一切発動せず、Sim 結果に反映されない(=入れても出てこない)。
+      var fa = RL.cpuFreeAction(state, idx);
+      if(fa){ RL.applyActivate(state, idx, fa.emblem); if(state.gameOver) break; idx = state.turn; }
       var mv = RL.cpuDecide(state, idx);
       if(mv.type === 'pass') RL.applyPass(state, idx);
       else if(mv.type === 'react') RL.applyReact(state, idx);
@@ -7827,7 +7926,10 @@ const AUDIO = (function(){
     let guard = 0;
 
     while(!state.gameOver && guard < MAX_TURNS){
-      const idx = state.turn;
+      let idx = state.turn;
+      // 気(チャージ)経済: 本手の前に無料アクション(発動=溜め火/投棄/軽身)を1回だけ。実ゲーム・Node sim と同一レール。
+      const fa = RL.cpuFreeAction(state, idx);
+      if(fa){ RL.applyActivate(state, idx, fa.emblem); if(state.gameOver) break; idx = state.turn; }
       const mv  = RL.cpuDecide(state, idx);
       if(mv.type === 'pass'){
         RL.applyPass(state, idx);
