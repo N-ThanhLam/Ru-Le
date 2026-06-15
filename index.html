@@ -1735,13 +1735,13 @@ const RL = (function(){
     { id:'mi09', code:'緑09', color:'midori', name:'共鳴', cost:28, ico:'🔮', effect:'RESONANCE', place:'whole', desc:'あなたの「一緒に捨てる／余分に捨てる」効果（三重・連番・流星・投棄・掃除・放出・軽身・初動など）が発動したら、いつも弱い札を1枚多く捨てる。自分だけに適用。', nameVi:'Cộng Hưởng', abbrVi:'C.Hưởng', codeVi:'L09', descVi:'Mỗi khi hiệu ứng "bỏ kèm / bỏ thêm" của bạn (Tam Trùng, Liên Số, Sao Băng, Vứt Bỏ, Quét, Xả, Nhẹ Mình, Khởi Đầu...) kích hoạt, luôn bỏ thêm 1 lá yếu nhất. Chỉ áp dụng cho mình.' },
     // ───────── 黄 (ki) — 手札操作(不要な札も一緒に捨てる) ─────────
     //   ★v0.21 溜め撃ち化: 投棄/軽身は「出すと自動で捨てる」受動から「気を払って自分の手番に発動」へ転生(activated)。place:'whole'。
-    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:30, ico:'🗑️', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
+    { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:24, ico:'🗑️', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:42, suitCost:78, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
     { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:28, suitCost:68, ico:'🧹', effect:'SHED_WEAK', place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất.' },
-    { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:30, ico:'🍃', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:2, desc:'【溜め撃ち】気を2つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'【Nạp】Tốn 2 năng lượng, kích hoạt trong lượt để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
+    { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:15, ico:'🍃', effect:'ACT_RANDOM_SHED', actN:1, place:'whole', activated:true, chargeCost:2, desc:'【溜め撃ち】気を2つ払って自分の手番に発動し、手持ちの札をランダムに1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'【Nạp】Tốn 2 năng lượng, kích hoạt trong lượt để bỏ ngẫu nhiên 1 lá trên tay (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:1, suitCost:2, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
-    { id:'ki06',  code:'黄06', color:'ki', name:'乱棄', cost:36, ico:'🎲', effect:'ACT_RANDOM_SHED', actN:2, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、手持ちの札をランダムに2枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Ngẫu', abbrVi:'V.Ngẫu', codeVi:'V06', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để bỏ ngẫu nhiên 2 lá trên tay (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
-    { id:'ao08',  code:'青08', color:'ao', name:'封鳴', cost:34, ico:'🔇', effect:'ACT_SILENCE', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、この1巡だけ他のプレイヤーはエンブレムを発動できない。自分に手番が戻ると効果は終わる。', nameVi:'Câm Ấn', abbrVi:'Câm', codeVi:'X08', descVi:'【Nạp】Tốn 4 năng lượng trong lượt của mình: trong một vòng, người chơi khác không thể kích hoạt biểu tượng. Hết hiệu lực khi lượt quay lại bạn.' },
+    { id:'ki06',  code:'黄06', color:'ki', name:'乱棄', cost:12, ico:'🎲', effect:'ACT_RANDOM_SHED', actN:2, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、手持ちの札をランダムに2枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Ngẫu', abbrVi:'V.Ngẫu', codeVi:'V06', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để bỏ ngẫu nhiên 2 lá trên tay (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
+    { id:'ao08',  code:'青08', color:'ao', name:'封鳴', cost:14, suitCost:30, ico:'🔇', effect:'SILENCE_OTHERS', place:'card', desc:'出すと、自分の番に戻ってくるまで他のプレイヤー全員のエンブレム効果を無くす。封じられた相手は純粋にパスするか、素のルールでより強い札を出すことしかできない。', nameVi:'Câm Ấn', abbrVi:'Câm', codeVi:'X08', descVi:'Khi đánh: cho tới khi lượt quay lại bạn, mọi người chơi khác mất toàn bộ hiệu ứng biểu tượng. Người bị khóa chỉ có thể bỏ lượt hoặc đánh lá mạnh hơn theo luật gốc.' },
   ];
   const EMB_BY_ID = {}; EMBLEMS.forEach(e=>EMB_BY_ID[e.id]=e);
   function emblem(id){ return EMB_BY_ID[id]; }
@@ -2166,8 +2166,8 @@ const RL = (function(){
   }
   function legalMoves(state, playerIndex){
     const p=state.players[playerIndex];
-    const pr=playerRules(state, playerIndex);            // 自分が組める役は自分の build のルールで決まる
-    let moves = handCombos(p.hand, pr).filter(m=> comboBeats(state, p.build, m, pr, p.hand.length));
+    const b=activeBuild(state, playerIndex), pr=activeRules(state, playerIndex);            // 自分が組める役は自分の build のルールで決まる
+    let moves = handCombos(p.hand, pr).filter(m=> comboBeats(state, b, m, pr, p.hand.length));
     // 弱者: 最初の1手は必ず♠3を含めて出す。
     if(state.openSpade3===playerIndex) moves = moves.filter(m=> m.cards.some(c=> c.rank==='3'&&c.suit==='S'));
     return moves;
@@ -2187,7 +2187,7 @@ const RL = (function(){
   const PRESETS = [
     { id:'balance', name:'バランス型', ico:'⚖️', desc:'ペア・革命に、場を流す連火と続けて出す連撃。場とターンを攻めで支配する万能型。', nameVi:'Cân Bằng', descVi:'Đôi, Cách mạng, cùng Liên Hỏa dọn bãi và Liên Kích đánh tiếp. Áp đảo cả bãi lẫn lượt.',
       spec:{ rule:['set2','aka05'], rank:{'8':['aka01'], '9':['ao02']} } },
-    { id:'speed', name:'速攻型',   ico:'⚡', desc:'加速・逆流で手番を掻き乱し、ためた気で軽身を発動して弱札を処分。単騎を連打して最速で上がる。', nameVi:'Tốc Công', descVi:'Tăng tốc, đảo dòng làm loạn lượt; nạp năng lượng rồi kích Nhẹ Mình bỏ lá yếu. Xả lá lẻ, về bài nhanh nhất.',
+    { id:'speed', name:'速攻型',   ico:'⚡', desc:'加速・逆流で手番を掻き乱し、ためた気で軽身を発動して札をランダムに処分。単騎を連打して最速で上がる。', nameVi:'Tốc Công', descVi:'Tăng tốc, đảo dòng làm loạn lượt; nạp năng lượng rồi kích Nhẹ Mình bỏ ngẫu nhiên 1 lá. Xả lá lẻ, về bài nhanh nhất.',
       spec:{ rank:{'7':['ao01'], '9':['ao03']}, rule:['ki04'] } },
     { id:'tidy', name:'手札整理型', ico:'🧹', desc:'三重で同じ数字を巻き込み、ためた気で投棄を発動して弱札を処分、共鳴で1枚多く捨てる。手札を一気に削り切る。', nameVi:'Dọn Bài', descVi:'Tam trùng kéo lá cùng số; nạp năng lượng rồi kích Vứt Bỏ xả lá yếu, cộng hưởng bỏ thêm 1 lá. Dọn sạch bài thật nhanh.',
       spec:{ rank:{'6':['mi03']}, rule:['mi09','ki01'] } },
@@ -2321,6 +2321,15 @@ const RL = (function(){
     const s = state.emblemSilence;
     return !!(s && s.armed && i!==s.owner);
   }
+  function plainRules(){
+    return emptyRules({twoStrong:RANKS[RANKS.length-1]==='2'});
+  }
+  function activeBuild(state, i){
+    return emblemActivationBlocked(state, i) ? emptyBuild() : ((state.players[i] && state.players[i].build) || emptyBuild());
+  }
+  function activeRules(state, i){
+    return emblemActivationBlocked(state, i) ? plainRules() : playerRules(state, i);
+  }
   function stateRand(state){
     state.randCounter = (state.randCounter||0) + 1;
     const r = mulberry32(((state.seed||0) ^ (state.randCounter * 0x9E3779B9)) >>> 0);
@@ -2347,8 +2356,8 @@ const RL = (function(){
   // 単騎として出せる札(UI の単騎ハイライト用。複数枚役は legalMoves を使う)。
   function legalCards(state, playerIndex){
     const p = state.players[playerIndex];
-    const pr = playerRules(state, playerIndex);
-    return p.hand.filter(c=> canPlay(state, p.build, c, pr, p.hand.length));   // 逆襲の劣勢判定に手札枚数を渡す
+    const b = activeBuild(state, playerIndex), pr = activeRules(state, playerIndex);
+    return p.hand.filter(c=> canPlay(state, b, c, pr, p.hand.length));   // 逆襲の劣勢判定に手札枚数を渡す
   }
 
   /* ---- carry/shed 対象選定(エンジン側ヘルパ) ---- */
@@ -2390,14 +2399,15 @@ const RL = (function(){
   function applyPlay(state, playerIndex, cardsArg, opts){
     opts = opts || {};
     const p = state.players[playerIndex];
-    const rules = playerRules(state, playerIndex);   // 出し手自身の per-seat ルールで役を解釈
+    const build = activeBuild(state, playerIndex);
+    const rules = activeRules(state, playerIndex);   // 出し手自身の per-seat ルールで役を解釈
     const cards = Array.isArray(cardsArg) ? cardsArg.slice() : [cardsArg];
     const wasFieldEmpty = !fieldCombo(state);
     const prevFieldCombo = fieldCombo(state);  // 場更新前のコンボ(縛り発動条件の比較用)
     const myHandBefore = p.hand.length;                                    // 出す前の自分の手札枚数(最多/満杯判定に使う)
     const wasFullHand  = myHandBefore === mutatorHandCount(state.mutator);  // 初動: 配り直後の満杯手札か
     const combo = classifyCombo(cards, rules) || singleCombo(cards[0]); // UI/CPU は検証済。保険で単騎扱い。
-    const fieldCombo2 = effectiveCombo(p.build, combo, {state, handLen:myHandBefore});  // 分裂: 場に出る役(単騎出しは疑似ペア化)。手札除去は実体札のみ。
+    const fieldCombo2 = effectiveCombo(build, combo, {state, handLen:myHandBefore});  // 分裂: 場に出る役(単騎出しは疑似ペア化)。手札除去は実体札のみ。
     // 3返し(CUT_TOP)が場の最強単騎(2)を実際に切り返したか(後で場流し＋続行に使う)。
     const wasTopSingleField = !!(prevFieldCombo && prevFieldCombo.type==='single' && isTopSingle(state, prevFieldCombo.key));
     // ボム押し付け(罰カード): 自分のボムが場の役を切ったか＝ボム戦争の継続か。場更新前に判定。
@@ -2411,7 +2421,7 @@ const RL = (function(){
 
     // 出した全札のエンブレムと効果(複数枚は union)
     const playedEmblems = [];
-    cards.forEach(c=> emblemsForCard(p.build, c).forEach(eid=> playedEmblems.push({eid, card:c})));
+    cards.forEach(c=> emblemsForCard(build, c).forEach(eid=> playedEmblems.push({eid, card:c})));
     const effs = []; playedEmblems.forEach(pe=> effList(emblem(pe.eid)).forEach(eff=>{ if(!effs.includes(eff)) effs.push(eff); }));
     const firstWith = (eff)=>{ const pe=playedEmblems.find(x=> effList(emblem(x.eid)).includes(eff)); return pe? pe.eid : null; };
 
@@ -2526,6 +2536,7 @@ const RL = (function(){
     const fSkip  = effs.includes('SKIP');
     const fRev   = effs.includes('REVERSE_DIR');
     const fChoose= effs.includes('CHOOSE_NEXT') && !finishedNow;
+    const fSilence = effs.includes('SILENCE_OTHERS');
     if(fieldCombo2.split)                events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
     if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
     if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
@@ -2533,6 +2544,7 @@ const RL = (function(){
     if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
     if(fRev)  events.push({kind:'emb', emb:firstWith('REVERSE_DIR')});
+    if(fSilence){ state.emblemSilence = { owner:playerIndex, armed:false }; events.push({kind:'emb', emb:firstWith('SILENCE_OTHERS')}); }
 
     // 弱者: 最初の1手(♠3込み)を出したら開始制約を解除。
     if(state.openSpade3===playerIndex) state.openSpade3 = null;
@@ -2597,7 +2609,7 @@ const RL = (function(){
     //   ★主導権を譲った見返りに気が貯まる＝「出す/溜める」の択を生む。リード中(場が空)のパスは対象外＝何も譲っていないので貯めない(farm 防止)。
     //   気アビリティを持たない席(jp/vn)は加算されない＝charge は 0 のまま＝正調ミラーの挙動はバイト単位で不変。
     if(contested){
-      const pp=state.players[playerIndex], rr=playerRules(state, playerIndex);
+      const pp=state.players[playerIndex], rr=activeRules(state, playerIndex);
       if(pp && rr && rr.usesCharge){ pp.charge = Math.min(rr.chargeCap||0, (pp.charge||0) + (CONFIG.CHARGE_PER_PASS||1)); }
     }
     return { events };
@@ -2656,8 +2668,6 @@ const RL = (function(){
       if(state.field.ownerIndex===i) return false;                // 自分の場には撃たない
     } else if(eff==='ACT_SHED' || eff==='ACT_RANDOM_SHED'){
       if((p.hand.length||0) < 2) return false;                    // 最後の1枚は必ず残す
-    } else if(eff==='ACT_SILENCE'){
-      if(state.emblemSilence && state.emblemSilence.owner===i) return false;
     }
     return true;
   }
@@ -2698,9 +2708,6 @@ const RL = (function(){
         const picks = pickByEffect(p.hand, p.hand[0], 'SHED_WEAK');
         if(picks.length){ const c=picks[0]; const idx=p.hand.findIndex(h=> h.rank===c.rank&&h.suit===c.suit); if(idx>=0){ p.hand.splice(idx,1); events.push({kind:'emb', emb:'mi09', n:1}); } }
       }
-    } else if(eff==='ACT_SILENCE'){
-      state.emblemSilence = { owner:i, armed:false };
-      events.push({kind:'emb', emb:eid});
     }
     return { events };
   }
@@ -2724,8 +2731,6 @@ const RL = (function(){
       const er = inv ? (RANKS.length-1-strength(weakest.rank)) : strength(weakest.rank);
       if(er <= 2) return { type:'activate', emblem:shed };        // 実効的に最弱クラスの腐り札があるとき
     }
-    const silence = acts.find(id=> effList(emblem(id))[0]==='ACT_SILENCE');
-    if(silence && state.players.some((pl,idx)=> idx!==i && !pl.finished && (pl.charge||0)>0 && playerRules(state,idx).usesCharge)) return { type:'activate', emblem:silence };
     return null;
   }
 
@@ -2734,6 +2739,7 @@ const RL = (function(){
   */
   function cpuDecide(state, playerIndex){
     const p = state.players[playerIndex];
+    const build = activeBuild(state, playerIndex);
     const moves = legalMoves(state, playerIndex);
     if(!moves.length){
       // 返せない＝本来パス。だがチャージが満ちていて、場の持ち主が「自分より手札が少ない(先行している)現役の相手」なら、
@@ -2762,7 +2768,7 @@ const RL = (function(){
       const iHaveMostBefore = state.players.every((pl,idx)=> idx===playerIndex || pl.finished || pl.hand.length <= p.hand.length);
       const handFull = p.hand.length === mutatorHandCount(state.mutator);     // 初動: 配り直後の満杯手札か
       m.cards.forEach(c=>{
-        const eff = effectsForCard(p.build, c);
+        const eff = effectsForCard(build, c);
         if(eff.includes('SHED_WEAK')) bo+=1.0;                                  // 余計な弱札を1枚処分
         if(eff.includes('SHED_WEAK_IF_MOST') && iHaveMostBefore) bo+=1.0;       // 最多のときだけ弱札を処分(逆位)
         if((eff.includes('SHED_WEAK_IF_FULL')||eff.includes('SHED_STRONG_IF_FULL')) && handFull) bo+=1.0; // 初動: 満杯時に弱/強を1枚ずつ処分
@@ -2794,8 +2800,8 @@ const RL = (function(){
       // リード: 連火/連撃を持つ“実効的に最弱”の単騎でテンポを取る → なければ評価関数で最良の役。ボムは温存。
       //   放出(CLEAR_FIELD+SHED_STRONG)は最強札を失うデメリット付きなので“純テンポ”扱いから除外し、leadScore で損得を込みで評価。
       const tempo = moves.filter(m=> m.type==='single'
-        && (hasEffect(p.build,m.cards[0],'CLEAR_FIELD')||hasEffect(p.build,m.cards[0],'EXTRA_TURN'))
-        && !hasEffect(p.build,m.cards[0],'SHED_STRONG'));
+        && (hasEffect(build,m.cards[0],'CLEAR_FIELD')||hasEffect(build,m.cards[0],'EXTRA_TURN'))
+        && !hasEffect(build,m.cards[0],'SHED_STRONG'));
       if(tempo.length){
         chosen = tempo.slice().sort((a,b)=> comboRank(a)-comboRank(b))[0];
       } else {
@@ -2812,7 +2818,7 @@ const RL = (function(){
     }
 
     const move = { type:'play', cards:chosen.cards };
-    if(chosen.type==='single' && hasEffect(p.build, chosen.cards[0], 'CHOOSE_NEXT')){
+    if(chosen.type==='single' && hasEffect(build, chosen.cards[0], 'CHOOSE_NEXT')){
       const ps=passedSet(state);   // パス済み席は指名不可(applyPlay 側で弾かれ自然手番に落ちるため、最初から除外)
       const others = state.players.filter(q=> !q.finished && q.id!==playerIndex && !ps.includes(q.id)).sort((a,b)=> a.hand.length-b.hand.length);
       if(others[0]) move.nextPlayer = others[0].id;
@@ -3415,7 +3421,7 @@ const RL = (function(){
       ok('溜め火: 発動で手番が自分', ag.turn===0);
       ok('溜め火: 気-4(消費)', (ag.players[0].charge||0)===0);
       ok('溜め火: event に activate', acr.events.some(e=>e.kind==='activate'));
-      // 軽身(ACT_SHED actN=1): 出さずに発動して最弱1枚を捨てる・気-2
+      // 軽身(ACT_RANDOM_SHED actN=1): 出さずに発動してランダム1枚を捨てる・気-2
       const sgA=newGame(seat0(buildFrom({rule:['ki04']})), 4343);
       sgA.players[0].charge=2; const sb0=sgA.players[0].hand.length;
       applyActivate(sgA,0,'ki04');
@@ -3431,15 +3437,16 @@ const RL = (function(){
       rgA.players[0].hand=[{rank:'3',suit:'S'},{rank:'4',suit:'S'},{rank:'K',suit:'S'}]; rgA.players[0].charge=4;
       applyActivate(rgA,0,'ki06');
       ok('乱棄発動でランダム2枚減', rgA.players[0].hand.length===1);
-      // 封鳴(ACT_SILENCE): 他席の発動/反撃を1巡だけ止め、発動者に手番が戻ると解除
-      const slB=buildFrom({rule:['ao08']});
-      const slC=buildFrom({rule:['ki04']});
+      // 封鳴(SILENCE_OTHERS): 出した札で発動し、他席は自分に戻るまで素のルールだけになる
+      const slB=buildFrom({rank:{'7':['ao08']}});
+      const slC=buildFrom({rank:{'4':['aka02']}});
       const slG=newGame([{name:'A',isHuman:false,build:slB},{name:'B',isHuman:false,build:slC},{name:'C',isHuman:false,build:emptyBuild()},{name:'D',isHuman:false,build:emptyBuild()}], 4446);
-      slG.turn=0; slG.players[0].charge=4; slG.players[1].charge=2;
-      applyActivate(slG,0,'ao08'); setTurn(slG,1);
-      ok('封鳴中は他席が発動不可', canActivate(slG,1,'ki04')===false);
+      slG.players[0].hand=[{rank:'7',suit:'S'},{rank:'9',suit:'S'}]; slG.players[1].hand=[{rank:'4',suit:'H'},{rank:'K',suit:'H'}]; slG.turn=0;
+      applyPlay(slG,0,{rank:'7',suit:'S'},{}); setTurn(slG,1);
+      const slLegal=legalCards(slG,1).map(c=>c.rank+c.suit).join(',');
+      ok('封鳴中は他席の越境が無効で高い札だけ出せる', slLegal==='KH');
       setTurn(slG,0);
-      ok('封鳴は自分に戻ると解除', canActivate(slG,1,'ki04')===true);
+      ok('封鳴は自分に戻ると解除', emblemActivationBlocked(slG,1)===false && legalCards(slG,1).some(c=>c.rank==='4'));
       // 焚く(burn)は撤去済み＝API も無い(チャージはパスでのみ貯まる)。
       ok('焚くAPIは撤去(canBurn)', typeof canBurn==='undefined');
       ok('焚くAPIは撤去(applyBurn)', typeof applyBurn==='undefined');
@@ -7338,8 +7345,8 @@ const AUDIO = (function(){
              メインスレッドの時間分割にフォールバック。
            - 同一 Seed なら何度でも同じ結果(per-game seed = f(master,i))。
            - コストは対戦結果に一切影響しない(編成可否=予算判定のみ)。
-             ゆえに Worker はコストを必要としない。コスト編集は buildCost
-             表示と実ゲームの予算判定にのみ効く。
+             ゆえに Worker はコストを必要としない。コスト編集はこの画面内の
+             表示/予算表示にだけ効き、本編の RL.EMBLEMS は書き換えない。
      ============================================================ */
 
   /* ---- シミュレーション専用エンジン(描画/音/DOM/ログ なし・Worker へも文字列化して渡す) ---- */
@@ -7402,15 +7409,39 @@ const AUDIO = (function(){
   const BAL = {
     running:false, mode:'jp', table:'2:2', count:10000, seed:12345,
     builds:{ A:RL.emptyBuild(), B:RL.presetBuild('jp') }, sel:null, history:[],
+    costs:bsimClone(BSIM_DEFAULT_COST), suits:bsimClone(BSIM_DEFAULT_SUIT),
     _wired:false, _workerURL:null, _cancel:null, _engineLabel:'—'
   };
   function bsimClone(o){ return JSON.parse(JSON.stringify(o)); }
+  function bsimBaseSuitCost(e){
+    return e.place === 'card' ? ((e.suitCost != null) ? e.suitCost : (e.cost + RL.SUIT_SURCHARGE)) : null;
+  }
+  function bsimCost(id){
+    return (BAL.costs && BAL.costs[id] != null) ? BAL.costs[id] : BSIM_DEFAULT_COST[id];
+  }
+  function bsimSuitCost(id){
+    return (BAL.suits && BAL.suits[id] != null) ? BAL.suits[id] : BSIM_DEFAULT_SUIT[id];
+  }
+  function bsimSlotCost(id, slotType){
+    var e = RL.emblem(id);
+    if(slotType === 'suit' && e && RL.placeOf(id) === 'card') return bsimSuitCost(id);
+    return bsimCost(id);
+  }
+  function bsimBuildCost(build){
+    var c = 0;
+    for(var r in build.rankSlots) build.rankSlots[r].forEach(function(id){ c += bsimSlotCost(id, 'rank'); });
+    for(var s in build.suitSlots) build.suitSlots[s].forEach(function(id){ c += bsimSlotCost(id, 'suit'); });
+    (build.ruleSlots || []).forEach(function(id){ c += bsimSlotCost(id, 'rule'); });
+    return c;
+  }
 
   function bsimLoadState(){
     try{
       var o = JSON.parse(localStorage.getItem(BSIM_KEY) || '{}');
-      if(o.costs) for(var id in o.costs){ if(RL.EMB_BY_ID[id]) RL.EMB_BY_ID[id].cost = o.costs[id]; }
-      if(o.suitCosts) for(var id2 in o.suitCosts){ if(RL.EMB_BY_ID[id2] && RL.EMB_BY_ID[id2].place === 'card') RL.EMB_BY_ID[id2].suitCost = o.suitCosts[id2]; }
+      BAL.costs = bsimClone(BSIM_DEFAULT_COST);
+      BAL.suits = bsimClone(BSIM_DEFAULT_SUIT);
+      if(o.costs) for(var id in o.costs){ if(RL.EMB_BY_ID[id]) BAL.costs[id] = o.costs[id]; }
+      if(o.suitCosts) for(var id2 in o.suitCosts){ if(RL.EMB_BY_ID[id2] && RL.EMB_BY_ID[id2].place === 'card') BAL.suits[id2] = o.suitCosts[id2]; }
       if(o.builds){ if(o.builds.A) BAL.builds.A = RL.normalizeBuild(o.builds.A); if(o.builds.B) BAL.builds.B = RL.normalizeBuild(o.builds.B); }
       if(o.seed != null) BAL.seed = o.seed >>> 0;
       if(o.mode) BAL.mode = o.mode;
@@ -7421,10 +7452,8 @@ const AUDIO = (function(){
   }
   function bsimSaveState(){
     try{
-      var costs = {}, suits = {};
-      RL.EMBLEMS.forEach(function(e){ costs[e.id] = e.cost; if(e.place === 'card') suits[e.id] = (e.suitCost != null) ? e.suitCost : (e.cost + RL.SUIT_SURCHARGE); });
       localStorage.setItem(BSIM_KEY, JSON.stringify({
-        costs:costs, suitCosts:suits,
+        costs:BAL.costs, suitCosts:BAL.suits,
         builds:{ A:BAL.builds.A, B:BAL.builds.B },
         seed:BAL.seed, mode:BAL.mode, table:BAL.table, count:BAL.count,
         history:BAL.history.slice(0, 200)
@@ -7636,9 +7665,7 @@ const AUDIO = (function(){
     bsimDownload('rule_balance_' + bsimStamp() + '.csv', '﻿' + csv, 'text/csv');
   }
   function bsimExportJSON(){
-    var costs = {}, suits = {};
-    RL.EMBLEMS.forEach(function(e){ costs[e.id] = e.cost; if(e.place === 'card') suits[e.id] = (e.suitCost != null) ? e.suitCost : (e.cost + RL.SUIT_SURCHARGE); });
-    var data = { exportedAt:new Date().toISOString(), maxBudget:RL.CONFIG.MAX_BUILD_COST, costs:costs, suitCosts:suits, runs:BAL.history };
+    var data = { exportedAt:new Date().toISOString(), maxBudget:RL.CONFIG.MAX_BUILD_COST, costs:BAL.costs, suitCosts:BAL.suits, runs:BAL.history };
     bsimDownload('rule_balance_' + bsimStamp() + '.json', JSON.stringify(data, null, 2), 'application/json');
   }
 
@@ -7654,10 +7681,10 @@ const AUDIO = (function(){
       var tr = el('tr');
       var cat = 'bsim-cat-' + e.color;
       // suitOnly はマーク枠にしか置けない＝rank の cost は使われない。数字コスト欄を無効化し、マークコストだけ編集可にする。
-      var suitVal = e.place === 'card' ? ((e.suitCost != null) ? e.suitCost : (e.cost + RL.SUIT_SURCHARGE)) : null;
+      var suitVal = e.place === 'card' ? bsimSuitCost(e.id) : null;
       var costInput = e.suitOnly
         ? '<input class="bsim-costnum na" disabled>'
-        : '<input class="bsim-costnum" data-id="' + e.id + '" data-kind="cost" type="number" min="1" step="1" value="' + e.cost + '">';
+        : '<input class="bsim-costnum" data-id="' + e.id + '" data-kind="cost" type="number" min="1" step="1" value="' + bsimCost(e.id) + '">';
       var suitInput = e.place === 'card'
         ? '<input class="bsim-costnum" data-id="' + e.id + '" data-kind="suit" type="number" min="1" step="1" value="' + suitVal + '">'
         : '<input class="bsim-costnum na" disabled>';
@@ -7673,8 +7700,8 @@ const AUDIO = (function(){
   function bsimEditCost(inp){
     var id = inp.dataset.id, kind = inp.dataset.kind, e = RL.EMB_BY_ID[id];
     var v = Math.round(Number(inp.value));
-    if(!(v >= 1)){ inp.value = (kind === 'cost') ? e.cost : ((e.suitCost != null) ? e.suitCost : (e.cost + RL.SUIT_SURCHARGE)); return; }
-    if(kind === 'cost') e.cost = v; else e.suitCost = v;
+    if(!(v >= 1)){ inp.value = (kind === 'cost') ? bsimCost(id) : bsimSuitCost(id); return; }
+    if(kind === 'cost') BAL.costs[id] = v; else BAL.suits[id] = v;
     inp.value = v;
     bsimSaveState(); bsimUpdateJpCost(); bsimMarkChangedCosts();
     bsimRenderBuild('A'); bsimRenderBuild('B');
@@ -7684,16 +7711,17 @@ const AUDIO = (function(){
       if(inp.disabled) return;
       var id = inp.dataset.id, kind = inp.dataset.kind;
       var def = (kind === 'cost') ? BSIM_DEFAULT_COST[id] : BSIM_DEFAULT_SUIT[id];
-      var cur = (kind === 'cost') ? RL.EMB_BY_ID[id].cost : RL.EMB_BY_ID[id].suitCost;
+      var cur = (kind === 'cost') ? bsimCost(id) : bsimSuitCost(id);
       inp.classList.toggle('changed', Number(cur) !== Number(def));
     });
   }
   function bsimUpdateJpCost(){
-    var c = RL.buildCost(RL.presetBuild('jp'));
+    var c = bsimBuildCost(RL.presetBuild('jp'));
     $('#bsim-jpcost').textContent = '日本式 = ' + c;
   }
   function bsimResetCosts(){
-    RL.EMBLEMS.forEach(function(e){ e.cost = BSIM_DEFAULT_COST[e.id]; if(e.place === 'card') e.suitCost = BSIM_DEFAULT_SUIT[e.id]; });
+    BAL.costs = bsimClone(BSIM_DEFAULT_COST);
+    BAL.suits = bsimClone(BSIM_DEFAULT_SUIT);
     bsimBuildCostRows(); bsimSaveState();
     bsimRenderBuild('A'); bsimRenderBuild('B');
     bsimProgTxt('コストをデフォルトに戻しました');
@@ -7728,14 +7756,14 @@ const AUDIO = (function(){
     var type = BAL.sel.type, key = BAL.sel.key, arr = bsimSlotArr(BAL.builds[c], type, key);
     var cands = RL.EMBLEMS.filter(function(e){ return !e.hidden && RL.canScope(e.id, type); });   // 隠しエンブレム(弱ボム等)はSim編集に出さない
     var grid = cands.map(function(e){
-      var on = arr.indexOf(e.id) >= 0, sc = RL.slotCost(e.id, type);
+      var on = arr.indexOf(e.id) >= 0, sc = bsimSlotCost(e.id, type);
       return '<div class="bsim-emb' + (on ? ' on' : '') + '" data-id="' + e.id + '">' + e.ico + ' ' + e.name + ' <span class="ec">' + sc + '</span></div>';
     }).join('');
     pk.innerHTML = '<div class="pk-head">選択中: <b>' + bsimSlotHeadLabel(type, key) + '</b> （クリックで付け外し・同じ枠に複数可）</div><div class="bsim-pickgrid">' + grid + '</div>';
     Array.prototype.forEach.call(pk.querySelectorAll('.bsim-emb'), function(b){ b.onclick = function(){ bsimToggleEmb(c, b.dataset.id); }; });
   }
   function bsimRenderBuild(c){
-    var b = BAL.builds[c], max = RL.CONFIG.MAX_BUILD_COST, cost = RL.buildCost(b);
+    var b = BAL.builds[c], max = RL.CONFIG.MAX_BUILD_COST, cost = bsimBuildCost(b);
     var cstEl = $('#bsim-' + c + '-cost'); cstEl.textContent = cost + ' / ' + max; cstEl.classList.toggle('over', cost > max);
     var rr = $('#bsim-' + c + '-ranks'); rr.innerHTML = '';
     RL.DISPLAY_RANKS.forEach(function(rk){ rr.appendChild(bsimSlotEl(c, 'rank', rk, rk, b.rankSlots[rk])); });
@@ -7823,7 +7851,7 @@ const AUDIO = (function(){
   function openBalance(){ bsimInit(); show('s-balance'); bsimRenderAll(); }
   function closeBalance(){ if(BAL.running && BAL._cancel) BAL._cancel(); buildTitle(); show('s-title'); }
 
-  // 起動前にコスト上書きを適用(実ゲームの予算判定/selftest にも反映)
+  // Balance Simulator のコスト編集は BAL.costs/BAL.suits にだけ復元する。本編の RL.EMBLEMS は書き換えない。
   bsimLoadState();
 
   /* ============================================================
