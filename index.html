@@ -4014,7 +4014,7 @@ const AUDIO = (function(){
       runover_heat:'🔥 段位{0} で 深度{1} まで到達',
       pact_p_rev_ti:'天地無用',   pact_p_rev_ds:'毎戦ずっと逆位（弱い札しか出せない）。',
       pact_p_budget_ti:'緊縮',     pact_p_budget_ds:'編成コストが 12 減る。',
-      pact_p_life_ti:'薄氷',       pact_p_life_ds:'開始の残機が 1 減る（巡業開始時のみ）。',
+      pact_p_life_ti:'薄氷',       pact_p_life_ds:'この巡業中、残機の上限が 2 になる（回復しても2まで）。',
       pact_p_rival_ti:'宿敵常駐',  pact_p_rival_ds:'宿敵が毎戦かならず参戦する。',
       pact_p_ban_ti:'常時封じ',    pact_p_ban_ds:'宿敵が毎深度、あなたの常用エンブレムを容赦なく封じる。',
       pact_p_draft_ti:'選択減',    pact_p_draft_ds:'ドラフトの選択肢が 3→2 に減る。',
@@ -4220,7 +4220,7 @@ const AUDIO = (function(){
       runover_heat:'🔥 Cấp {0}: đạt đến tầng {1}',
       pact_p_rev_ti:'Đảo Lộn',     pact_p_rev_ds:'Luôn đảo vị mỗi trận (chỉ đánh được lá yếu hơn).',
       pact_p_budget_ti:'Thắt Lưng', pact_p_budget_ds:'Ngân sách cấu hình giảm 12.',
-      pact_p_life_ti:'Băng Mỏng',  pact_p_life_ds:'Số mạng khởi đầu giảm 1 (chỉ lúc bắt đầu).',
+      pact_p_life_ti:'Băng Mỏng',  pact_p_life_ds:'Trong lượt lữ hành này, mạng tối đa là 2 (hồi cũng chỉ tới 2).',
       pact_p_rival_ti:'Kẻ Thù Thường Trực', pact_p_rival_ds:'Kẻ thù luôn tham chiến mỗi trận.',
       pact_p_ban_ti:'Cấm Vĩnh Viễn', pact_p_ban_ds:'Mỗi tầng kẻ thù cấm thẳng tay huy hiệu bạn hay dùng.',
       pact_p_draft_ti:'Bớt Lựa Chọn', pact_p_draft_ds:'Lựa chọn khi bốc thưởng giảm 3→2.',
@@ -4845,7 +4845,7 @@ const AUDIO = (function(){
   const PACTS = [
     { id:'p_rev',    heat:2, kind:'mut', mut:'m_rev', ico:'🙃' },   // 天地無用を毎戦適用(素卓のみ・ボス/お題ノードは各自の看板を優先)
     { id:'p_budget', heat:1, kind:'budget', d:-12,    ico:'🪙' },   // 編成予算 -12
-    { id:'p_life',   heat:1, kind:'life',             ico:'💔' },   // 開始残機 -1(巡業開始時のみ)
+    { id:'p_life',   heat:1, kind:'life',             ico:'💔' },   // 残機上限 3→2(巡業中ずっと。回復しても2まで)
     { id:'p_rival',  heat:1, kind:'rival',            ico:'🔥' },   // 宿敵が毎戦かならず参戦(席が埋まるまで)
     { id:'p_ban',    heat:2, kind:'ban',              ico:'🚫' },   // 封じ常時(mercy 無し・鋭く2種)
     { id:'p_draft',  heat:1, kind:'draft',            ico:'✂️' },   // ドラフトの選択肢 3→2
@@ -4856,6 +4856,7 @@ const AUDIO = (function(){
   function runPacts(){ const r=MODE.run; if(!r || !r.pact) return []; return (r.pact.ids||[]).map(pactById).filter(Boolean); }
   function pactHeat(){ return runPacts().reduce((s,p)=>s+p.heat,0); }
   function hasPact(kind){ return runPacts().some(p=>p.kind===kind); }
+  function runLifeMax(run){ return (run && run.pact && (run.pact.ids||[]).includes('p_life')) ? 2 : 3; }
   function pactBudgetDelta(){ return runPacts().filter(p=>p.kind==='budget').reduce((s,p)=>s+(p.d||0),0); }
   function pactMut(){ const p=runPacts().find(p=>p.kind==='mut'); return p ? mutById(p.mut) : null; }
   // run.pact から Heat を算出(MODE 非依存・resume/記録用)。
@@ -5012,8 +5013,8 @@ const AUDIO = (function(){
   function pactConfirm(){
     const run=MODE.run; if(!run) return;
     run.pact.heat = pactHeat();
-    if(pactMode!=='boss'){   // 開始時のみ: 開始残機を誓約から確定(基準3 − p_life)。途中追加では残機を弄らない
-      run.lives = Math.max(1, 3 - ((run.pact.ids||[]).includes('p_life') ? 1 : 0));
+    if(pactMode!=='boss'){   // 開始時のみ: 残機を誓約後の上限に揃える。薄氷はこの巡業中ずっと最大2。
+      run.lives = runLifeMax(run);
     }
     store.saveRun(run, MODE.mutator);
     AUDIO.confirm();
@@ -5041,8 +5042,9 @@ const AUDIO = (function(){
   }
   function enterRest(){
     const run=MODE.run;
+    const maxLives = runLifeMax(run);
     let msg;
-    if(run.lives<3){ run.lives++; msg=T('rest_healed', run.lives); AUDIO.confirm(); }
+    if(run.lives<maxLives){ run.lives=Math.min(maxLives, run.lives+1); msg=T('rest_healed', run.lives); AUDIO.confirm(); }
     else msg=T('rest_full');
     store.saveRun(run, MODE.mutator);
     showRest(msg);   // ★v0.25 休憩は即進行せず、回復＋宿敵レポートを見せてから「すすむ」
@@ -5140,6 +5142,7 @@ const AUDIO = (function(){
     MODE.run.pact = (MODE.run.pact && Array.isArray(MODE.run.pact.ids)) ? MODE.run.pact : { ids:[], heat:0 };   // ★v0.28 旧セーブ互換: 誓約枠
     MODE.run.pact.ids = MODE.run.pact.ids.filter(pactById);   // 不明な誓約 id を掃除
     MODE.run.pact.heat = heatOf(MODE.run);                     // Heat を再算出(定義変更に追従)
+    MODE.run.lives = Math.min(MODE.run.lives, runLifeMax(MODE.run));   // 旧セーブ互換: 薄氷中は回復済みでも上限2へ丸める
     MODE.run.momentum = MODE.run.momentum || 0;               // ★v0.28 旧セーブ互換: 昂り
     recordBestDepth(MODE.run.depth);   // 再開時にも到達深度を記録(旧セーブ救済)
     if(!MODE.run.map || !Array.isArray(MODE.run.map.rows) || !MODE.run.map.rows.length){ MODE.run.map = genAct(MODE.run.act, MODE.run.depth); }   // 旧セーブ互換: マップ無→現深度から生成
