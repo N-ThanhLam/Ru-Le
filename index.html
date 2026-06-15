@@ -308,7 +308,7 @@
      集中セット（同一枠に複数）でも重ならないよう wrap＋自動伸長。多すぎる時は ＋N に丸める。
      高さを上限で抑え＋overflow:hidden で、何個積んでも枠から飛び出さない。 */
   .slot .es{ display:flex; flex-wrap:wrap; align-items:center; align-content:center; justify-content:center; gap:6px; max-width:100%; }
-  .slot .e{ font-size:33px; font-weight:900; color:#fff; padding:3px 9px; border-radius:11px; line-height:1.05; box-shadow:0 2px 5px rgba(0,0,0,.28); }
+  .slot .e{ font-size:33px; font-weight:900; color:#fff; padding:3px 9px; border-radius:11px; line-height:1.05; box-shadow:0 2px 5px rgba(0,0,0,.28); letter-spacing:0; }
   .slot .e.more{ background:#5b6080; color:#fff; font-size:27px; }
   /* ★巡業のランダムエンブレム＝金色の塗り＋🎲バッジ＋脈動で「ランダム獲得・外せない固定枠」を一目で。 */
   .slot .e.rnd{ position:relative; overflow:visible;
@@ -316,7 +316,7 @@
     color:#5a4500 !important; border:3px solid #b8860b;
     box-shadow:0 0 0 3px rgba(255,207,77,.55), 0 2px 7px rgba(0,0,0,.32);
     animation:rndGlow 1.7s ease-in-out infinite; }
-  .slot .e.rnd::after{ content:'🎲'; position:absolute; top:-12px; right:-8px; font-size:24px; line-height:1;
+  .slot .e.rnd::after{ content:'🎲'; position:absolute; top:-12px; right:-8px; font-size:24px; font-weight:900; line-height:1;
     filter:drop-shadow(0 1px 1px rgba(0,0,0,.45)); pointer-events:none; }
   .slot .e.rnd .rndtag{ display:inline-block; margin-left:8px; font-size:20px; font-weight:900; color:#7a5800;
     background:rgba(255,255,255,.62); border-radius:8px; padding:1px 9px; }
@@ -379,7 +379,7 @@
     display:flex; flex-direction:column; justify-content:flex-start; gap:8px; height:158px; position:relative; cursor:pointer;
     box-shadow:inset 0 3px 0 rgba(255,255,255,.9), 0 5px 12px rgba(0,0,0,.16); }
   .palette .emb .thd{ display:flex; align-items:center; gap:10px; }
-  .palette .emb .ico{ font-size:50px; line-height:1; }
+  .palette .emb .ico{ font-size:50px; line-height:1; font-weight:900; letter-spacing:0; }
   /* コスト＝右上のbadge(装備中/…にも)と重ならないよう、右下の独立ピルへ。常に読めるよう不透明背景。 */
   .palette .emb .cst{ position:absolute; right:14px; bottom:10px; font-size:28px; font-weight:900; color:#fff;
     background:#b25a00; padding:2px 14px; border-radius:11px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
@@ -391,7 +391,7 @@
   /* 巡業ランダム獲得分: 金色+🎲で一目で分かる(読めるが選択不可) */
   .palette .emb.rndfix{ background:linear-gradient(135deg,#fff6d8,#ffe08a); border-color:#d4a017;
     box-shadow:0 0 0 4px rgba(212,160,23,.45), 0 4px 10px rgba(0,0,0,.18); }
-  .palette .emb.rndfix::after{ content:'🎲'; position:absolute; top:-14px; left:-10px; font-size:34px; line-height:1;
+  .palette .emb.rndfix::after{ content:'🎲'; position:absolute; top:-14px; left:-10px; font-size:34px; font-weight:900; line-height:1;
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
   .palette .emb.rndfix .nm{ color:#6b4d00; }
   .palette .emb .badge.rnd{ background:#b8860b; }
@@ -444,7 +444,7 @@
   .opp .builds{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; max-height:88px; overflow:hidden; align-content:flex-start; }
   .bchip{ display:inline-flex; align-items:center; gap:4px; font-size:34px; font-weight:900; color:#fff; padding:3px 9px; border-radius:12px; line-height:1; box-shadow:0 2px 5px rgba(0,0,0,.3); }
   .bchip .sk{ background:#fff; color:var(--ink); border-radius:8px; padding:1px 8px; font-size:29px; }
-  .bchip .bi{ font-size:32px; }
+  .bchip .bi{ font-size:32px; font-weight:900; letter-spacing:0; }
   .bchip.more{ background:#3a4170; padding:3px 12px; }
   .opp .builds .no-emb, #s-match .selfbar .builds .no-emb{ color:#cdd6ff; font-size:24px; font-weight:800; }
   .opp .place{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:46px; font-weight:900; color:#fff; text-shadow:0 3px 8px #000; }
@@ -470,7 +470,7 @@
   .red{ color:#d3382f; } .blk{ color:#1f2440; }
   .statecol{ display:flex; flex-direction:column; gap:8px; min-width:300px; }
   .stbadge{ display:flex; align-items:center; gap:12px; font-size:27px; font-weight:900; color:#fff; background:rgba(8,11,28,.5); border:4px solid rgba(255,255,255,.3); border-radius:16px; padding:8px 16px; white-space:nowrap; }
-  .stbadge .ic{ font-size:32px; }
+  .stbadge .ic{ font-size:32px; font-weight:900; letter-spacing:0; }
   .stbadge.on{ border-color:var(--gold); background:rgba(255,207,77,.2); }
 
   #toast{ position:absolute; top:300px; left:50%; transform:translateX(-50%); z-index:30;
@@ -3886,8 +3886,9 @@ const AUDIO = (function(){
       forfeit_penalty:'中断ペナルティ：残機 −1', confirm_quit_run_title:'巡業を中断する？', confirm_quit_run_body:'この対戦をクリアせずに抜けると<br><b>残機を1つ失います</b>（残機 {0} → {1}）。', confirm_quit_run_ok:'中断する（残機-1）',
       /* メタ崩壊(v0.22) 宿敵の標的宣言(Meta-Ban) */
       ban_tag:'封じ', badge_ban:'封じ', act_banned:'宿敵に封じられている（この深度は装備できない）',
-      ban_banner:'{0} があなたの手を読んだ！', ban_banner_ds:'この深度は「{0}」を封じられた。別の手で攻略しよう。',
-      toast_banned:'「{0}」は宿敵に読まれて封じられている', rival_banned:'今回はあなたの「{0}」を封じてきた',
+      ban_banner:'この深度の対策対象',
+      ban_banner_ds:'「{0}」はこの深度では使えない。別軸の構成で攻略しよう。',
+      toast_banned:'この深度では「{0}」は使えない', rival_banned:'対策対象：「{0}」',
       reward_outwit_head:'🏆 裏をかいた！', reward_outwit_line:'封じを攻略。次の対戦だけ コスト容量 +{0}',
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
@@ -4097,8 +4098,9 @@ const AUDIO = (function(){
       forfeit_penalty:'Phạt bỏ dở: Mạng −1', confirm_quit_run_title:'Bỏ dở lữ hành?', confirm_quit_run_body:'Rời đi khi chưa hoàn thành trận này sẽ<br><b>mất 1 mạng</b> (mạng {0} → {1}).', confirm_quit_run_ok:'Bỏ dở (Mạng -1)',
       /* Sụp đổ meta (v0.22) — Tuyên bố cấm của kỳ phùng (Meta-Ban) */
       ban_tag:'Bị cấm', badge_ban:'Cấm', act_banned:'Bị kỳ phùng cấm (tầng này không gắn được)',
-      ban_banner:'{0} đã đọc được bài của bạn!', ban_banner_ds:'Tầng này bị cấm "{0}". Hãy phá bằng cách khác.',
-      toast_banned:'"{0}" đã bị kỳ phùng đọc thấu và cấm dùng', rival_banned:'Lần này đã cấm "{0}" của bạn',
+      ban_banner:'Mục tiêu bị khắc chế tầng này',
+      ban_banner_ds:'Tầng này không dùng được "{0}". Hãy đổi hướng xây dựng.',
+      toast_banned:'Tầng này không dùng được "{0}"', rival_banned:'Mục tiêu khắc chế: "{0}"',
       reward_outwit_head:'🏆 Lật ngược thế cờ!', reward_outwit_line:'Phá được lệnh cấm. Riêng trận kế: ngân sách +{0}',
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
@@ -4238,6 +4240,27 @@ const AUDIO = (function(){
   function embShort(e){ return LANG==='vi' ? (e.abbrVi||e.nameVi||e.name) : e.name; }
   function embDesc(e){ return LANG==='vi' ? (e.descVi||e.desc) : e.desc; }
   function embCode(e){ return LANG==='vi' ? (e.codeVi||e.code) : e.code; }
+  const GLYPH_CACHE = {};
+  function glyphHash(text){
+    try{
+      const c=document.createElement('canvas'); c.width=64; c.height=64;
+      const x=c.getContext('2d'); x.clearRect(0,0,64,64);
+      x.font='36px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
+      x.textBaseline='middle'; x.textAlign='center'; x.fillStyle='#000'; x.fillText(text,32,34);
+      const d=x.getImageData(0,0,64,64).data; let h=2166136261, ink=0;
+      for(let i=3;i<d.length;i+=4){ const a=d[i]; if(a){ ink++; h^=a+i; h=Math.imul(h,16777619); } }
+      return ink ? (ink+':'+(h>>>0)) : '';
+    }catch(e){ return 'ok'; }
+  }
+  function glyphOk(text){
+    if(!text) return false;
+    if(GLYPH_CACHE[text]!=null) return GLYPH_CACHE[text];
+    const h=glyphHash(text);
+    const bad = h && (h===glyphHash('\uFFFD') || h===glyphHash('□') || h===glyphHash('▯'));
+    return GLYPH_CACHE[text] = !!h && !bad;
+  }
+  function uiMark(icon, fallback){ return glyphOk(icon) ? icon : fallback; }
+  function embMark(e){ return uiMark(e.ico, embCode(e)); }
   function mutName(m){ return m ? (LANG==='vi' ? (m.nameVi||m.name) : m.name) : ''; }
   function mutDesc(m){ return m ? (LANG==='vi' ? (m.descVi||m.desc) : m.desc) : ''; }
   function presetName(p){ return LANG==='vi' ? (p.nameVi||p.name) : p.name; }
@@ -5075,7 +5098,7 @@ const AUDIO = (function(){
       owned:BASE_UNLOCKED.slice(),                 // 巡業の初期所持=基本セット(クイック/オンの初期解放と同一)。ドラフトで増える
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
-      ban:{ ids:[], depth:1 },                     // ★v0.22 メタ崩壊: この深度で宿敵が封じた常用エンブレム(深度進行で更新)
+      ban:{ ids:[], depth:1 }, banRecent:[],       // ★v0.22 メタ崩壊: この深度の封じ / 直近封じ履歴(連続で同じ対象に偏らせない)
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
       log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
       inMatch:false,                                // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
@@ -5109,8 +5132,9 @@ const AUDIO = (function(){
     // 旧セーブ互換: ランダムエンブレム枠が無ければ空で補完(中断復帰で獲得済みを失わないよう正規化)。
     MODE.run.randomBuild = MODE.run.randomBuild ? RL.normalizeBuild(MODE.run.randomBuild) : RL.emptyBuild();
     MODE.run.budget = runBudget(MODE.run.depth);   // 旧セーブ互換: 予算は加算値を捨て、常に深度から再計算
-    MODE.run.nextBonus = MODE.run.nextBonus || 0;  // 旧セーブ互換: 1位ボーナス枠
-    MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致は決め直す
+    MODE.run.nextBonus = Math.min(MODE.run.nextBonus || 0, RUN_WIN_BONUS);  // 旧セーブ互換: 旧版の封じ上乗せ(+40)を通常ボーナス(+25)へ丸める
+    MODE.run.banRecent = Array.isArray(MODE.run.banRecent) ? MODE.run.banRecent.filter(id=>RL.emblem(id)).slice(0,6) : [];
+    MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth && saved.run.ban.ver===BAN_RULE_VER) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致/旧封じルールは決め直す
     MODE.run.act = MODE.run.act || 1;   // 旧セーブ互換
     MODE.run.log = Array.isArray(MODE.run.log) ? MODE.run.log : [];   // 旧セーブ互換: 物語ログ枠
     MODE.run.pact = (MODE.run.pact && Array.isArray(MODE.run.pact.ids)) ? MODE.run.pact : { ids:[], heat:0 };   // ★v0.28 旧セーブ互換: 誓約枠
@@ -5592,7 +5616,7 @@ const AUDIO = (function(){
      ============================================================ */
   let buildState=null; // {build, owned, budget, selSlot:{type,key}}
   function currentBudget(){
-    // 巡業は深度予算＋1位ボーナス(+25・次戦のみ・100上限を超えてよい)。クイック/オンは固定100。
+    // 巡業は深度予算＋次戦ボーナス(+25・次戦のみ・100上限を超えてよい)。クイック/オンは固定100。
     const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
     return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta());   // お題＋誓約(p_budget)の予算増減を反映(下限30・100系)
   }
@@ -5659,7 +5683,7 @@ const AUDIO = (function(){
     const names=banNames();
     if(!names.length){ host.className='banbar'; host.innerHTML=''; return; }
     host.className='banbar show';
-    host.innerHTML='<span class="btag">🚫 '+T('ban_banner', RIVAL.name(RIVAL.adaptiveIndex()))+'</span><span class="bds">'+T('ban_banner_ds', names.join('・'))+'</span>';
+    host.innerHTML='<span class="btag">'+uiMark('🚫','BAN')+' '+T('ban_banner')+'</span><span class="bds">'+T('ban_banner_ds', names.join('・'))+'</span>';
   }
   // おすすめ構成オーバーレイ：初心者がワンタップで完成形を入れられる近道。常時表示はせず、必要な時だけ開く。
   function openRecommend(){
@@ -5755,19 +5779,19 @@ const AUDIO = (function(){
       if(type==='rule'){
         // 役ルール枠は横幅があるのでアイコン＋役名(行内で折り返し)。ランダムぶんは金枠(.rnd)で続けて表示。
         ids.forEach(id=>{ const e=RL.emblem(id);
-          wrap.appendChild(el('div','e '+RL.COLORS[e.color].cls, e.ico+' '+embName(e))); });
+          wrap.appendChild(el('div','e '+RL.COLORS[e.color].cls, embMark(e)+' '+embName(e))); });
         rnd.forEach(id=>{ const e=RL.emblem(id);
-          const c=el('div','e rnd '+RL.COLORS[e.color].cls, e.ico+' '+embName(e));
+          const c=el('div','e rnd '+RL.COLORS[e.color].cls, embMark(e)+' '+embName(e));
           c.appendChild(el('span','rndtag', T('rnd_tag')));   // 役ルール枠は幅があるので「ランダム」表記も添える
           wrap.appendChild(c); });
       } else {
         // 数字/マーク枠はアイコンのみの小チップを折り返し。多すぎる時は ＋N に丸めて崩れ防止。
         const es=el('div','es');
         ids.slice(0, SLOT_ICON_MAX).forEach(id=>{ const e=RL.emblem(id);
-          es.appendChild(el('div','e '+RL.COLORS[e.color].cls, e.ico)); });
+          es.appendChild(el('div','e '+RL.COLORS[e.color].cls, embMark(e))); });
         if(ids.length > SLOT_ICON_MAX) es.appendChild(el('div','e more', '+'+(ids.length-SLOT_ICON_MAX)));
         rnd.forEach(id=>{ const e=RL.emblem(id);                         // ランダムは金枠で常に表示(少数なので丸めない)
-          es.appendChild(el('div','e rnd '+RL.COLORS[e.color].cls, e.ico)); });
+          es.appendChild(el('div','e rnd '+RL.COLORS[e.color].cls, embMark(e))); });
         wrap.appendChild(es);
       }
     } else {
@@ -5872,7 +5896,7 @@ const AUDIO = (function(){
     const slotBadge=$('#emblem-slot');
     slotBadge.textContent = slotLbl;
     slotBadge.classList.toggle('red', sel.type==='suit' && RL.SUIT_RED[sel.key]);
-    const cur = arr.length ? arr.map(id=>{ const e=RL.emblem(id); return e.ico+embName(e); }).join('・') : T('emblem_cur_none');
+    const cur = arr.length ? arr.map(id=>{ const e=RL.emblem(id); return embMark(e)+' '+embName(e); }).join('・') : T('emblem_cur_none');
     $('#emblem-cur').textContent = cur;
     // 現在コスト / 予算 と「コストオーバーです」表示。
     const cost=RL.buildCost(b), max=buildState.budget, over=cost>max;
@@ -5903,7 +5927,7 @@ const AUDIO = (function(){
       card.style.borderLeft='10px solid '+col.hex;
       card.innerHTML =
         '<span class="badge rnd">'+T('rnd_tag')+'</span>'+
-        '<div class="thd"><span class="ico">'+e.ico+'</span></div>'+
+        '<div class="thd"><span class="ico">'+embMark(e)+'</span></div>'+
         '<div class="nm">'+embName(e)+'</div>';
       card.onclick=()=>{
         if(focusedEl===card){ AUDIO.bad(); toast(T('toast_rand_fixed'),'#b8860b'); }
@@ -5919,7 +5943,7 @@ const AUDIO = (function(){
       card.style.borderLeft='10px solid '+col.hex;
       card.innerHTML =
         '<span class="badge ban">'+T('ban_tag')+'</span>'+
-        '<div class="thd"><span class="ico">'+e.ico+'</span></div>'+
+        '<div class="thd"><span class="ico">'+embMark(e)+'</span></div>'+
         '<div class="nm">'+embName(e)+'</div>';
       card.onclick=()=>{
         if(focusedEl===card){ AUDIO.bad(); toast(T('toast_banned', embName(e)),'#ff5252'); }
@@ -5947,7 +5971,7 @@ const AUDIO = (function(){
       // タイルは「アイコン＋コスト／名前」だけ。短く＝選択肢として見せる(効果説明は右の詳細ペイン)。
       card.innerHTML =
         badge+
-        '<div class="thd"><span class="ico">'+e.ico+'</span></div>'+
+        '<div class="thd"><span class="ico">'+embMark(e)+'</span></div>'+
         '<div class="nm">'+embName(e)+'</div>'+
         '<span class="cst">C'+cst+'</span>';
       card.onclick=()=>{
@@ -5993,7 +6017,7 @@ const AUDIO = (function(){
     else if(here){ act=T('act_equipped', actKey('decide')); }
     else { act=T('act_equip', actKey('decide'), where, cst); }
     const html=
-      '<div class="dt-top"><span class="dt-code '+col.cls+'">'+e.ico+' '+embCode(e)+'</span>'
+      '<div class="dt-top"><span class="dt-code '+col.cls+'">'+embMark(e)+'</span>'
         +'<span class="dt-cat '+col.cls+'">'+colName(col)+(LANG==='vi'?' · ':'・')+colCat(col)+'</span></div>'
       +'<div class="dt-name">'+embName(e)+'</div>'
       +'<div class="dt-desc">'+embDesc(e)+'</div>'
@@ -6017,7 +6041,7 @@ const AUDIO = (function(){
       : type==='suit'
       ? T('slot_role_suit', RL.SUIT_SYM[key])
       : T('slot_role_rank', key);
-    const names = arr.map(id=> RL.emblem(id).ico+' '+embName(RL.emblem(id)));
+    const names = arr.map(id=> embMark(RL.emblem(id))+' '+embName(RL.emblem(id)));
     const equip = names.length ? T('equip_label')+'<span class="ev">'+names.join(' / ')+'</span>' : T('equip_empty');
     const html=
       '<div class="dt-top"><span class="dt-cat chip-ao">'+T('slot_cat')+'</span></div>'
@@ -6270,21 +6294,26 @@ const AUDIO = (function(){
        → 強ビルドの再利用を内的に阻止＝メタが自己崩壊し、毎深度ビルドを組み替えさせる。
      ・封じても基本ビルド(素の大富豪＋残りの所持)は常に成立＝詰み無し。深度1は無し。負け越し中は mercy で無し。
      ============================================================ */
-  const BAN_WIN_BONUS = 15;   // 封じ下で1位通過 → 通常の RUN_WIN_BONUS に上乗せ(宿敵の読みを外した報酬)
+  const BAN_WIN_BONUS = 0;    // 封じ下で1位通過しても予算上乗せはしない。報酬の差はランダムエンブレム側に寄せる。
+  const BAN_RULE_VER = 2;     // 封じ選定ルールの互換番号。旧セーブは再開時に選び直す。
   function decideBan(run, depth){
-    if(depth<=1) return { ids:[], depth };                       // 序盤(データ蓄積前)はban無し
+    if(depth<=1) return { ids:[], depth, ver:BAN_RULE_VER };      // 序盤(データ蓄積前)はban無し
     RIVAL.ensure();
     const pban = !!(run.pact && (run.pact.ids||[]).includes('p_ban'));   // ★v0.28 誓約(p_ban): mercy 無し・常時・鋭く2種
     const agg=RIVAL.aggRecord();                                 // 全宿敵合算: l=あなたの勝ち / w=あなたの負け
     const w=agg.w, l=agg.l;
-    if(!pban && w - l >= 2) return { ids:[], depth };            // あなたが負け越し → mercy(封じ無し・難易度自己調整)。誓約中は容赦なし
+    if(!pban && w - l >= 2) return { ids:[], depth, ver:BAN_RULE_VER };   // あなたが負け越し → mercy(封じ無し・難易度自己調整)。誓約中は容赦なし
     const owned = run.owned || [];
-    if(owned.length < 6) return { ids:[], depth };               // 所持が少ないうちは封じない(組み替え余地を確保)
-    const top = RIVAL.topIds(8).filter(id=> owned.includes(id) && RL.emblem(id));
-    if(!top.length) return { ids:[], depth };
+    if(owned.length < 6) return { ids:[], depth, ver:BAN_RULE_VER };      // 所持が少ないうちは封じない(組み替え余地を確保)
+    const top = RIVAL.topIds(12).filter(id=> owned.includes(id) && RL.emblem(id));
+    if(!top.length) return { ids:[], depth, ver:BAN_RULE_VER };
     const n = (pban || l - w >= 2) ? 2 : 1;                      // あなたが勝ち越し/誓約中 → 鋭く2種読む(エスカレーション)
-    const ids = top.slice(0, Math.max(1, Math.min(n, owned.length-4)));   // 念のため最低4枠は残す
-    return { ids, depth };
+    const recent = Array.isArray(run.banRecent) ? run.banRecent : [];
+    const fresh = top.filter(id=> !recent.includes(id));
+    const pool = fresh.concat(top.filter(id=> recent.includes(id)));
+    const ids = pool.slice(0, Math.max(1, Math.min(n, owned.length-4)));   // 念のため最低4枠は残す
+    run.banRecent = ids.concat(recent.filter(id=> !ids.includes(id))).slice(0,6);
+    return { ids, depth, ver:BAN_RULE_VER };
   }
   // この深度で封じられているエンブレムid集合(巡業のみ・深度一致時だけ有効＝旧深度の封じは効かない)。
   function bannedIdSet(){
@@ -6358,7 +6387,7 @@ const AUDIO = (function(){
     if(!g) return '';
     const e=RL.emblem(g.id);
     const slotLbl = g.slot.type==='rule' ? T('grp_rules') : (g.slot.type==='suit' ? RL.SUIT_SYM[g.slot.key] : g.slot.key);
-    return T('reward_random_line', slotLbl, e.ico, embName(e));
+    return T('reward_random_line', slotLbl, embMark(e), embName(e));
   }
   // 対戦に渡す“実効ビルド”。巡業はランダム枠を統合(コストは別管理なのでここでだけ合流させる)。
   function effectiveRunBuild(){
@@ -6447,7 +6476,7 @@ const AUDIO = (function(){
   function chipHTML(slot, e){
     const col=RL.COLORS[e.color];
     // ★文字は載せず「セット元のマーク(白チップ)＋エンブレムのアイコン」を大きく見せる。能力全文は🔍しらべるで。
-    return '<span class="bchip '+col.cls+'"><span class="sk">'+slot+'</span><span class="bi">'+e.ico+'</span></span>';
+    return '<span class="bchip '+col.cls+'"><span class="sk">'+slot+'</span><span class="bi">'+embMark(e)+'</span></span>';
   }
   // チップ群をHTML化。多すぎる時は cap までに丸め、残りは「+N」チップに（UIからはみ出さない）。
   function buildChipsHTML(build, cap){
@@ -6486,13 +6515,13 @@ const AUDIO = (function(){
     // 状態バッジ
     const sc=$('#match-state'); sc.innerHTML='';
     if(G.mutator && G.mutator.effect!=='NONE') sc.appendChild(badge(G.mutator.ico,T('badge_mut'), mutName(G.mutator), true));
-    { const bn=banNames(); if(bn.length) sc.appendChild(badge('🚫',T('badge_ban'), bn.join('・'), true)); }   // ★v0.22 封じ中バッジ
-    sc.appendChild(badge('🔁',T('badge_dir'), G.direction>0?T('dir_normal'):T('dir_rev'), false));
+    { const bn=banNames(); if(bn.length) sc.appendChild(badge(uiMark('🚫','BAN'),T('badge_ban'), bn.join('・'), true)); }   // ★v0.22 封じ中バッジ
+    sc.appendChild(badge(uiMark('🔁','DIR'),T('badge_dir'), G.direction>0?T('dir_normal'):T('dir_rev'), false));
     const lockSuits = G.field.suitLock;
     const lockDisplay = lockSuits ? (Array.isArray(lockSuits) ? lockSuits.map(s=>RL.SUIT_SYM[s]).join('') : RL.SUIT_SYM[lockSuits]) : null;
-    sc.appendChild(badge('⛓️',T('badge_lock'), lockDisplay ? T('lock_only', lockDisplay) : T('lock_none'), !!lockSuits));
-    sc.appendChild(badge('🔃',T('badge_inv'), G.field.reverseCompare?T('inv_weak'):T('inv_none'), G.field.reverseCompare));
-    if(G.revolution) sc.appendChild(badge('🚩',T('badge_rev'), T('rev_on'), true));
+    sc.appendChild(badge(uiMark('⛓️','LOCK'),T('badge_lock'), lockDisplay ? T('lock_only', lockDisplay) : T('lock_none'), !!lockSuits));
+    sc.appendChild(badge(uiMark('🔃','INV'),T('badge_inv'), G.field.reverseCompare?T('inv_weak'):T('inv_none'), G.field.reverseCompare));
+    if(G.revolution) sc.appendChild(badge(uiMark('🚩','REV'),T('badge_rev'), T('rev_on'), true));
     // 自分
     const me=G.players[meIdx()];
     const myTag=(typeof NET!=='undefined'&&NET.active)?(' <span style="font-size:22px;color:#9fd9a8;">('+me.name+')</span>'):'';
@@ -6613,10 +6642,10 @@ const AUDIO = (function(){
     const sounded=new Set();   // 同一エンブレムが1手で複数イベントを出しても効果音は1回(例: 指名=CHOOSE_NEXT+縛り / 溜め撃ち=activate+emb)。
     const embSfx=(id,n)=>{ if(id && !sounded.has(id)){ AUDIO.embFx(id,n); sounded.add(id); } };
     events.forEach(ev=>{
-      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; embSfx(ev.emb, ev.n); embFlash(e.ico); toast(e.ico+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
+      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; embSfx(ev.emb, ev.n); embFlash(embMark(e)); toast(embMark(e)+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
       else if(ev.kind==='flush'){ AUDIO.flush(); toast(T('toast_flush'),'#5c6bc0'); }
       else if(ev.kind==='react'){ embFlash('⚡'); toast(T('toast_react'),'#e53935'); }   // 後出し: 場を吹き飛ばし手番を奪った(音は doReact/cpuStep の flush)
-      else if(ev.kind==='activate'){ const e=RL.emblem(ev.emb); embSfx(ev.emb); embFlash(e?e.ico:'⚡'); toast((e?e.ico+' '+embName(e):'')+' '+T('toast_activate'), e?RL.COLORS[e.color].hex:'#e53935'); }  // 溜め撃ち発動
+      else if(ev.kind==='activate'){ const e=RL.emblem(ev.emb); embSfx(ev.emb); embFlash(e?embMark(e):'ACT'); toast((e?embMark(e)+' '+embName(e):'')+' '+T('toast_activate'), e?RL.COLORS[e.color].hex:'#e53935'); }  // 溜め撃ち発動
       else if(ev.kind==='transfer'){ AUDIO.penalty(); embFlash('💣'); toast(T('toast_transfer', ev.n),'#8e24aa'); }   // ボム押し付け: 罰カードを直前の人へ(ドンッ)
       else if(ev.kind==='finish'){ /* 個別演出は afterStep で */ }
     });
@@ -6876,7 +6905,7 @@ const AUDIO = (function(){
             : '<div class="rv-h">🔥 '+T('rival_word')+' '+r.name+'</div>';
           html += '<div class="rv-card">'+head+'<div class="rv-l">'+rivalStyleLine(rs.idx, rs.boss)+'</div>'+'<div class="rv-rec">'+rivalRecordStr(rs.idx)+'</div></div>';
         });
-        const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-ban">🚫 '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
+        const banLn=(MODE.matchBanNames && MODE.matchBanNames.length) ? '<div class="rv-ban">'+uiMark('🚫','BAN')+' '+T('rival_banned', MODE.matchBanNames.join('・'))+'</div>' : '';
         riv.innerHTML=html+banLn;
         riv.classList.add('show');
       } else { riv.innerHTML=''; riv.classList.remove('show'); }
@@ -6932,12 +6961,12 @@ const AUDIO = (function(){
     // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
     //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
     // ★v0.18: 1位だけでなく3位にも+25。1位は前進(残機維持)・3位は残機-1という不利を、次戦の予算+25で補って4位と差をつける。
-    // ★v0.22 メタ崩壊: 封じが掛かった深度を1位通過 → 「裏をかいた」上乗せボーナス(banをペナルティから駆け引きへ)。
+    // ★v0.22 メタ崩壊: 封じが掛かった深度を1位通過 → 「裏をかいた」演出。予算ボーナスは通常の+25に揃える。
     const banWasActive = !!(run.ban && run.ban.depth===playedDepth && (run.ban.ids||[]).length);
     let reward=null;
     if(place===1 && banWasActive){
-      run.nextBonus = RUN_WIN_BONUS + BAN_WIN_BONUS;
-      reward={ head:T('reward_outwit_head'), line:T('reward_outwit_line', RUN_WIN_BONUS + BAN_WIN_BONUS) };
+      run.nextBonus = RUN_WIN_BONUS;
+      reward={ head:T('reward_outwit_head'), line:T('reward_outwit_line', RUN_WIN_BONUS) };
     } else if(place===1 || place===3){
       run.nextBonus = RUN_WIN_BONUS; reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) };
     }
@@ -7069,7 +7098,7 @@ const AUDIO = (function(){
       } else {
         const e=RL.emblem(id); const col=RL.COLORS[e.color];
         c.innerHTML=
-          '<div class="code '+col.cls+'">'+e.ico+' '+embCode(e)+'</div>'+
+          '<div class="code '+col.cls+'">'+embMark(e)+'</div>'+
           '<div class="nm">'+embName(e)+'</div>'+
           '<div class="ds">'+embDesc(e)+'</div>'+
           '<div class="cost">'+T('draft_cost', e.cost, colCat(col), placeShort(RL.placeOf(id)), '')+'</div>';
@@ -7168,7 +7197,7 @@ const AUDIO = (function(){
           const red = it.type==='suit' && RL.SUIT_RED[it.key];
           const label = it.type==='suit' ? RL.SUIT_SYM[it.key] : it.key;
           return '<div class="inspe foc"><div class="ehd"><span class="eslot'+(red?' red':'')+'">'+label+'</span>'+
-            '<span class="ebadge '+col.cls+'">'+it.e.ico+' '+embName(it.e)+'</span></div>'+
+            '<span class="ebadge '+col.cls+'">'+embMark(it.e)+' '+embName(it.e)+'</span></div>'+
             '<div class="eds">'+embDesc(it.e)+'</div></div>';
         }).join('');
       } else {
@@ -7688,7 +7717,7 @@ const AUDIO = (function(){
       var suitInput = e.place === 'card'
         ? '<input class="bsim-costnum" data-id="' + e.id + '" data-kind="suit" type="number" min="1" step="1" value="' + suitVal + '">'
         : '<input class="bsim-costnum na" disabled>';
-      tr.innerHTML = '<td class="ce-ico">' + e.ico + '</td>'
+      tr.innerHTML = '<td class="ce-ico">' + embMark(e) + '</td>'
         + '<td><div class="ce-name ' + cat + '">' + e.name + '</div></td>'
         + '<td class="ce-place">' + bsimPlaceLabel(e) + '</td>'
         + '<td>' + costInput + '</td><td>' + suitInput + '</td>';
@@ -7733,7 +7762,7 @@ const AUDIO = (function(){
   function bsimSlotEl(c, type, key, label, arr, wide){
     var d = el('div', 'bsim-slot' + ((arr && arr.length) ? '' : ' empty') + (wide ? ' rulebox' : ''));
     if(BAL.sel && BAL.sel.col === c && BAL.sel.type === type && BAL.sel.key === key) d.classList.add('sel');
-    var chips = (arr || []).map(function(id){ var e = RL.emblem(id); return '<span title="' + (e ? e.name : id) + '">' + (e ? e.ico : '?') + '</span>'; }).join('');
+    var chips = (arr || []).map(function(id){ var e = RL.emblem(id); return '<span title="' + (e ? e.name : id) + '">' + (e ? embMark(e) : '?') + '</span>'; }).join('');
     d.innerHTML = '<div class="sk">' + label + '</div><div class="chips">' + chips + '</div>';
     d.onclick = function(){ bsimSelectSlot(c, type, key); };
     return d;
@@ -7757,7 +7786,7 @@ const AUDIO = (function(){
     var cands = RL.EMBLEMS.filter(function(e){ return !e.hidden && RL.canScope(e.id, type); });   // 隠しエンブレム(弱ボム等)はSim編集に出さない
     var grid = cands.map(function(e){
       var on = arr.indexOf(e.id) >= 0, sc = bsimSlotCost(e.id, type);
-      return '<div class="bsim-emb' + (on ? ' on' : '') + '" data-id="' + e.id + '">' + e.ico + ' ' + e.name + ' <span class="ec">' + sc + '</span></div>';
+      return '<div class="bsim-emb' + (on ? ' on' : '') + '" data-id="' + e.id + '">' + embMark(e) + ' ' + e.name + ' <span class="ec">' + sc + '</span></div>';
     }).join('');
     pk.innerHTML = '<div class="pk-head">選択中: <b>' + bsimSlotHeadLabel(type, key) + '</b> （クリックで付け外し・同じ枠に複数可）</div><div class="bsim-pickgrid">' + grid + '</div>';
     Array.prototype.forEach.call(pk.querySelectorAll('.bsim-emb'), function(b){ b.onclick = function(){ bsimToggleEmb(c, b.dataset.id); }; });
