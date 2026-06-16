@@ -4149,7 +4149,7 @@ const AUDIO = (function(){
       keys_reset:'きほんに戻す', keys_note:'※ スティック移動・Spaceの即出しは固定です。',
       keyact_up:'カーソル上', keyact_down:'カーソル下', keyact_left:'カーソル左', keyact_right:'カーソル右',
       keyact_decide:'けってい', keyact_back:'もどる', keyact_pass:'パス／スロット解除', keyact_sub:'スロット⇄一覧', keyact_pause:'ポーズ', keyact_play:'選択した札を出す',
-      keyact_inspect:'しらべる（対戦中）', keyact_start:'対戦開始（編成画面）',
+      keyact_inspect:'しらべる（対戦中）', keyact_start:'開始／次へ',
       cap_key:'割り当てたい<b>キー</b>を押してください', cap_pad:'割り当てたい<b>ボタン</b>を押してください', cap_esc:'Esc でキャンセル',
       /* オンライン */
       online_back:'◀ もどる', online_title:'オンライン対戦', online_h2:'合言葉でつながる',
@@ -4381,7 +4381,7 @@ const AUDIO = (function(){
       keys_reset:'Về mặc định', keys_note:'※ Cần gạt để di chuyển và Space đánh ngay là cố định.',
       keyact_up:'Lên', keyact_down:'Xuống', keyact_left:'Trái', keyact_right:'Phải',
       keyact_decide:'Xác nhận', keyact_back:'Quay lại', keyact_pass:'Bỏ lượt / Gỡ ô', keyact_sub:'Ô ⇄ Danh sách', keyact_pause:'Tạm dừng', keyact_play:'Đánh lá đã chọn',
-      keyact_inspect:'Soi (trong trận)', keyact_start:'Bắt đầu trận (màn cấu hình)',
+      keyact_inspect:'Soi (trong trận)', keyact_start:'Bắt đầu / Tiếp',
       cap_key:'Hãy nhấn <b>phím</b> muốn gán', cap_pad:'Hãy nhấn <b>nút</b> muốn gán', cap_esc:'Esc để hủy',
       online_back:'◀ Quay lại', online_title:'Đấu Trực Tuyến', online_h2:'Kết nối bằng mật khẩu',
       online_desc:'Những người nhập cùng <b>mật khẩu</b> sẽ đấu với nhau. Một người <b>tạo phòng</b>, người khác <b>vào</b> bằng cùng mật khẩu. Ghế trống do CPU đảm nhiệm (tối đa 4 người).',
@@ -4413,7 +4413,7 @@ const AUDIO = (function(){
       net_kw_required:'Hãy nhập mật khẩu',
       /* ★v0.28 Lời Thề (Pact / Heat) */
       pact_topbar:'Lời Thề', pact_back:'◀ Quay lại',
-      pact_hint:'Càng thề nhiều, độ khó càng cao và phần thưởng (huy hiệu ngẫu nhiên) càng nhiều. Không thề cũng được.',
+      pact_hint:'Càng thề nhiều, độ khó càng cao và phần thưởng (huy hiệu ngẫu nhiên) càng nhiều.',
       pact_heat:'🔥 Cấp {0}',
       pact_reward_prev:'Cấp {0} ／ mỗi lần Nhất +{1} huy hiệu ngẫu nhiên (thắng liên tiếp còn tăng)',
       pact_best:'(Cấp {0}: sâu nhất tầng {1})',
@@ -4699,6 +4699,11 @@ const AUDIO = (function(){
   /* ---------- 入力アクション・ディスパッチ（キーボード/パッド共通） ---------- */
   // 論理アクション → 実動作。キーボードもパッドも、最終的にここを叩く(操作系を一元化)。
   function dispatchAction(a){
+    if(currentScreen==='s-map' && !focusedEl && !['back','pause'].includes(a)){
+      focusFirstMapNode();
+      AUDIO.move();
+      return;
+    }
     switch(a){
       case 'up':    moveFocus('up');    break;
       case 'down':  moveFocus('down');  break;
@@ -4711,7 +4716,11 @@ const AUDIO = (function(){
       case 'pause': if(currentScreen==='s-match') togglePause();     break;
       case 'play':  spaceAction();      break;
       case 'inspect': if(currentScreen==='s-match' && !anyMatchOvlActive()) openInspect(); break;  // しらべる(リバインド可・既定I)
-      case 'start':   if(currentScreen==='s-build' && !pickerOpen()) startMatchFromBuild();  break; // 編成→対戦開始
+      case 'start':
+        if(currentScreen==='s-build' && !pickerOpen()) startMatchFromBuild();
+        else if(currentScreen==='s-pact') pactConfirm();
+        else if(currentScreen==='s-map') activate();
+        break; // 編成→開始 / 誓約→次へ / マップ→選択
     }
   }
   // e.key を内部表記へ正規化(小文字・スペースは 'space')。割当の照合に使う。
@@ -4938,11 +4947,9 @@ const AUDIO = (function(){
     [['A','♠',false],['K','♥',true],['Q','♦',true],['J','♣',false],['2','♠',false]].forEach(([r,s,red])=>{
       const c=el('div','pc'); c.innerHTML='<span class="'+(red?'red':'blk')+'">'+r+'</span>'; fan.appendChild(c);
     });
-    const st=RL.selftest();
     $('#title-sub').textContent = T('title_sub');
-    $('#title-st').textContent = (st.passed===st.total? '✓ ':'⚠ ') + T('selftest_word')+' '+st.passed+'/'+st.total
-      + sepDot() + T('unlocked_emblems')+' '+store.unlocked.length+'/'+VISIBLE_EMB_TOTAL;
-    $('#title-st').style.color = st.passed===st.total ? '#9fd9a8' : '#ffb4a0';
+    $('#title-st').textContent = T('unlocked_emblems')+' '+store.unlocked.length+'/'+VISIBLE_EMB_TOTAL;
+    $('#title-st').style.color = '#b9c4ef';
   }
 
   /* ----- 汎用 確認ダイアログ(誤操作防止) ----- */
@@ -5165,8 +5172,13 @@ const AUDIO = (function(){
       wrap.appendChild(col);
     });
     show('s-map');
+    setTimeout(()=>setFocus(null),0);
   }
   function enterMap(){ renderMap(); }
+  function focusFirstMapNode(){
+    const first = $('#map-rows .mapcol.cur .mapnode.foc');
+    if(first) setFocus(first);
+  }
 
   /* ----- ★v0.28 誓約(Pact / Heat)選択画面 ----- */
   let pactMode='start';      // 'start'=巡業開始前 / 'boss'=ボス撃破後の追い焚き
@@ -5179,7 +5191,7 @@ const AUDIO = (function(){
     pactBaseIds = (pactMode==='boss') ? (run.pact.ids||[]).slice() : [];
     renderPactList();
     show('s-pact');
-    setTimeout(focusFirst, 0);
+    setTimeout(()=>{ setFocus($('#pact-list .pactile.foc') || focusables()[0] || null); }, 0);
   }
   function renderPactList(){
     const run=MODE.run, sel=new Set(run.pact.ids||[]);
