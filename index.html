@@ -237,6 +237,9 @@
   .banbar.show{ display:flex; }
   .banbar .btag{ display:inline-flex; align-items:center; gap:10px; font-size:35px; font-weight:900; color:#ff8a80; white-space:nowrap; }
   .banbar .bds{ font-size:29px; font-weight:700; color:#ffd7d2; }
+  .banbar.discount{ background:rgba(42,32,5,.66); border-color:#ffd54a; animation:none; }
+  .banbar.discount .btag{ color:#ffe082; }
+  .banbar.discount .bds{ color:#fff2bf; }
   @keyframes banpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,82,82,.0); } 50%{ box-shadow:0 0 22px 3px rgba(255,82,82,.45); } }
   /* 封じられたエンブレムのパレットタイル(選択不可) */
   .emb.banned{ opacity:.5; filter:grayscale(.6); }
@@ -277,6 +280,15 @@
   #result-rival .rv-h .rv-p{ font-size:24px; font-weight:800; color:#ffd0c8; margin-left:8px; }
   #result-rival .rv-l{ font-size:28px; font-weight:800; color:#ffe7e2; margin-top:6px; }
   #result-rival .rv-rec{ font-size:26px; font-weight:800; color:#ffb4a0; margin-top:4px; }
+  #result-tags{ display:none; width:100%; max-width:none; margin:0; padding:14px 18px;
+    border:4px solid #7ed957; border-radius:18px; background:rgba(126,217,87,.13); }
+  #result-tags.show{ display:block; }
+  #result-tags .tg-h{ font-size:29px; font-weight:900; color:#dbffd1; text-align:center; margin-bottom:10px; }
+  #result-tags .tg-list{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+  #result-tags .tg{ display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:13px;
+    background:#fff7d8; border:3px solid #ffcf4d; color:#2b2f4a; font-size:25px; font-weight:900; }
+  #result-tags .tg .ic{ font-size:29px; line-height:1; }
+  #result-tags .tg .ds{ display:block; font-size:18px; font-weight:800; color:#5f6280; line-height:1.12; }
 
   /* 解除モード（トグル）: ON の間はスロットをタップすると、そのスロットのエンブレムを全部はずす。 */
   #build-clear.on{ background:linear-gradient(180deg,#ff8f86,#ef5350); color:#fff; border-color:#7a1f1a;
@@ -737,26 +749,54 @@
     border-color:#3a3f66;
     box-shadow:0 2px 4px rgba(10,14,40,.45), 0 16px 28px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 14px rgba(48,54,110,.16); }
 
-  /* ── タイトルを一段豪華に(gfx-hi限定・静的) ── ロゴ背後に金/青の柔らかな後光＋下部の温かい床光。 */
+  /* ── タイトル(gfx-hi限定): 派手な発光を抑え、紙と薄金の上品な佇まいに寄せる。 */
   .gfx-hi #s-title::before{ content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
-      radial-gradient(120% 62% at 50% -4%, rgba(255,214,130,.16), rgba(255,214,130,0) 58%),
-      radial-gradient(82% 48% at 50% 30%, rgba(126,176,255,.14), rgba(126,176,255,0) 62%),
-      radial-gradient(140% 70% at 50% 112%, rgba(120,90,200,.16), rgba(120,90,200,0) 60%); }
+      radial-gradient(96% 58% at 50% 4%, rgba(248,232,180,.12), rgba(248,232,180,0) 62%),
+      linear-gradient(180deg, rgba(5,8,24,.16), rgba(5,8,24,.02) 42%, rgba(5,8,24,.22)); }
   .gfx-hi #s-title .logo, .gfx-hi #s-title .menu{ position:absolute; z-index:1; }   /* 後光より前面に */
-  /* 巡業再開(緑)・言語(青)＝独自背景で他の艶ボタンより特異度が高く艶が乗っていなかったのを是正＝色は保ち艶＋立体を同等付与。 */
+  .gfx-hi #s-title .logo .big{
+    background:linear-gradient(180deg,#fff8dd 0%,#edd183 42%,#b48833 60%,#f3dda4 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 0 rgba(44,31,10,.75)) drop-shadow(0 10px 18px rgba(0,0,0,.34)); }
+  .gfx-hi #s-title .logo .big span{
+    background:linear-gradient(180deg,#ffffff 0%,#f6e6b7 55%,#d4ad56 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .gfx-hi #s-title .logo .sub{
+    background:linear-gradient(90deg,#d7c28a,#fff1bd 50%,#d7c28a);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:none; filter:drop-shadow(0 2px 5px rgba(0,0,0,.38)); letter-spacing:12px; }
+  .gfx-hi #s-title .logo .sub::before,
+  .gfx-hi #s-title .logo .sub::after{ display:none; }
+  .gfx-hi #s-title .title-row .btn{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.08) 48%, rgba(28,34,72,.08)),
+      linear-gradient(180deg,#fbf7eb,#dfe5f6);
+    border-color:#394161; color:#1e263f;
+    box-shadow:0 4px 0 rgba(22,28,58,.78), 0 10px 22px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.86); }
+  .gfx-hi #s-title .title-row .btn.primary{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.08) 48%, rgba(120,84,18,.08)),
+      linear-gradient(180deg,#fff3bd,#e6c96d);
+    border-color:#5a4c25; color:#2d2612; }
+  .gfx-hi #s-title .title-row .btn.ghost{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04) 48%),
+      linear-gradient(180deg,#354061,#252c48);
+    border-color:#59617f; color:#f3f0df; }
+  .gfx-hi #s-title .title-row .btn:hover{ transform:translateY(-1px); box-shadow:0 5px 0 rgba(22,28,58,.78), 0 12px 24px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.9); }
+  .gfx-hi #s-title .cardfan{ opacity:.42; filter:saturate(.75); }
+  /* 巡業再開(緑)・言語(青)もタイトル内では控えめな差し色にする。 */
   .gfx-hi #s-title .btn.btn-resume{
     background:
-      linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,0) 42%),
-      linear-gradient(116deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.4) 50%, rgba(255,255,255,0) 62%),
-      linear-gradient(180deg,#8fefbd 0%, #3aa46c 52%, #237247 100%);
-    box-shadow:0 6px 0 #15482b, 0 12px 22px rgba(0,40,20,.42), inset 0 2px 0 rgba(255,255,255,.7); }
+      linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.06) 50%),
+      linear-gradient(180deg,#bdeccf,#4f9c72);
+    border-color:#2c6747; color:#102719; box-shadow:0 4px 0 #214c35, 0 10px 20px rgba(0,35,18,.28), inset 0 1px 0 rgba(255,255,255,.7); }
   .gfx-hi #title-lang{
     background:
-      linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,0) 42%),
-      linear-gradient(116deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 62%),
-      linear-gradient(180deg,#8fd0ff 0%, #4a9be8 52%, #2f78c8 100%);
-    box-shadow:0 6px 0 #1a4e82, 0 12px 22px rgba(0,26,56,.42), inset 0 2px 0 rgba(255,255,255,.7); }
+      linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.06) 50%),
+      linear-gradient(180deg,#c3e0f4,#5d8eba);
+    border-color:#335d83; color:#10253a; box-shadow:0 4px 0 #254967, 0 10px 20px rgba(0,26,56,.28), inset 0 1px 0 rgba(255,255,255,.7); }
 
   /* ── 暗い/半透明の脇役パネル ── ごく微かな上端ハイライトと締まった影だけ足して「塗っただけ」感を消す。 */
   .gfx-hi .topbar{ box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 6px 18px rgba(0,0,0,.34); }
@@ -767,14 +807,26 @@
   .gfx-hi .opp .cnt{ box-shadow:inset 0 2px 0 rgba(255,255,255,.22), 0 4px 14px rgba(0,0,0,.4); }
 
   /* ── 巡業マップ(道/ノード/エッジ)の質感(gfx-hi限定・静的) ── カードに浮き・接地影、エッジに金の光。 */
-  .gfx-hi .mapnode{ box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 18px rgba(60,68,120,.12), 0 6px 0 rgba(40,46,90,.16), 0 14px 28px rgba(0,0,0,.34); }
-  .gfx-hi .mapnode .nic{ filter:drop-shadow(0 3px 4px rgba(0,0,0,.22)); }
+  .gfx-hi #s-map, .gfx-hi #s-pact{
+    background:
+      radial-gradient(72% 54% at 50% 24%, rgba(255,220,130,.16), rgba(255,220,130,0) 62%),
+      radial-gradient(90% 70% at 18% 108%, rgba(77,160,210,.16), rgba(77,160,210,0) 58%),
+      linear-gradient(160deg, rgba(19,30,67,.38), rgba(46,32,79,.28)); }
+  .gfx-hi .mapcol{ background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025)); border:2px solid rgba(255,255,255,.12); border-radius:22px; padding:10px 8px; box-shadow:inset 0 1px 0 rgba(255,255,255,.16), 0 10px 26px rgba(0,0,0,.24); }
+  .gfx-hi .mapnode{ box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -12px 20px rgba(60,68,120,.16), 0 7px 0 rgba(40,46,90,.2), 0 16px 30px rgba(0,0,0,.38); }
+  .gfx-hi .mapnode .nic{ filter:drop-shadow(0 4px 5px rgba(0,0,0,.28)); }
+  .gfx-hi .mapnode.battle{ background:linear-gradient(160deg,#ffffff 0%,#edf1ff 58%,#dce5ff 100%); }
+  .gfx-hi .mapnode.elite{ background:linear-gradient(160deg,#fff 0%,#ffe4df 48%,#ffbdb4 100%); }
+  .gfx-hi .mapnode.mutator{ background:linear-gradient(160deg,#ffffff 0%,#dff0ff 50%,#b8ddff 100%); }
+  .gfx-hi .mapnode.gamble{ background:linear-gradient(160deg,#ffffff 0%,#f1dcff 48%,#dca8ff 100%); }
+  .gfx-hi .mapnode.loot{ background:linear-gradient(160deg,#ffffff 0%,#e3f9e7 50%,#bcefc7 100%); }
+  .gfx-hi .mapnode.rest{ background:linear-gradient(160deg,#ffffff 0%,#def7f2 50%,#abe8dd 100%); }
   .gfx-hi .mapnode.boss{ background:linear-gradient(160deg,#fffbe9 0%,#ffe9a0 55%,#f4c64a 100%); box-shadow:inset 0 2px 0 rgba(255,255,255,1), inset 0 -14px 22px rgba(180,130,20,.28), 0 0 0 2px rgba(224,169,28,.5), 0 8px 0 rgba(150,110,20,.4), 0 18px 36px rgba(0,0,0,.42); }
   .gfx-hi .mapnode .nbadge{ box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 2px 5px rgba(0,0,0,.18); }
   .gfx-hi .mapcol-hd{ text-shadow:0 2px 4px rgba(0,0,0,.45); }
   .gfx-hi .mapcol.cur .mapcol-hd{ text-shadow:0 0 12px rgba(255,213,74,.7), 0 2px 4px rgba(0,0,0,.4); }
   .gfx-hi .map-hint{ text-shadow:0 2px 6px rgba(0,0,0,.5); }
-  .gfx-hi .mapcol:not(:last-child)::after{ color:#ffd25a; text-shadow:0 0 14px rgba(255,200,70,.75), 0 2px 3px rgba(0,0,0,.45); }
+  .gfx-hi .mapcol:not(:last-child)::after{ color:#ffe08a; text-shadow:0 0 18px rgba(255,200,70,.9), 0 2px 3px rgba(0,0,0,.45); }
   .gfx-hi .mapnode.foc.focused{ box-shadow:0 0 0 6px #ffd54a, 0 0 30px rgba(255,213,74,.6), 0 14px 30px rgba(0,0,0,.42); }
   /* 休憩カード/レポート・ダイジェストのノードチップに静的な艶。 */
   .gfx-hi .rest-card{ box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 18px 44px rgba(0,0,0,.46); }
@@ -821,21 +873,20 @@
 
   /* ===== エンブレム閲覧オーバーレイ ===== */
   /* ★相手の能力説明＝とにかく読めることを優先。スクロールは伸ばしてよいので文字を大きく。 */
-  .inspwrap{ display:flex; flex-direction:column; gap:16px; min-width:1560px; max-height:800px; overflow-y:auto; padding:6px 10px; }
+  .inspwrap{ display:flex; flex-direction:column; gap:12px; min-width:1560px; max-height:800px; overflow-y:auto; padding:6px 10px; }
   .inspwrap::-webkit-scrollbar{ width:16px; } .inspwrap::-webkit-scrollbar-thumb{ background:#9aa3c8; border-radius:8px; }
   .inspplayer{ background:#fff; border:5px solid var(--line); border-radius:18px; padding:14px 20px; }
   .inspplayer.you{ background:linear-gradient(90deg,#fff7df,#ffeeb0); }
-  .inspplayer .pnm{ font-size:38px; font-weight:900; margin-bottom:10px; display:flex; align-items:center; gap:16px; }
-  .inspplayer .pnm .cnt{ font-size:30px; color:#b25a00; font-weight:900; }
-  .inspplayer .pnm .turnnow{ font-size:28px; font-weight:900; color:#fff; background:#e6a700; border-radius:10px; padding:3px 14px; }
-  .inspgrid{ display:flex; flex-wrap:wrap; gap:14px; }
-  .inspe{ width:492px; background:#f7f9ff; border:4px solid var(--line); border-radius:16px; padding:14px 18px; display:flex; flex-direction:column; gap:8px; }
-  .inspe .ehd{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .inspe .ebadge{ font-size:34px; font-weight:900; color:#fff; padding:3px 15px; border-radius:12px; }
-  .inspe .eslot{ font-size:34px; font-weight:900; background:#1f2440; color:#fff; border-radius:11px; padding:1px 15px; }
+  .inspplayer .pnm{ font-size:44px; font-weight:900; margin-bottom:10px; display:flex; align-items:center; gap:16px; }
+  .inspplayer .pnm .cnt{ font-size:39px; color:#b25a00; font-weight:900; }
+  .inspplayer .pnm .turnnow{ font-size:36px; font-weight:900; color:#fff; background:#e6a700; border-radius:10px; padding:3px 16px; }
+  .inspgrid{ display:flex; flex-direction:column; gap:10px; }
+  .inspe{ width:auto; min-height:76px; background:#f7f9ff; border:3px solid var(--line); border-radius:12px; padding:10px 16px; display:grid; grid-template-columns:102px 325px minmax(0,1fr); gap:14px; align-items:center; }
+  .inspe .ebadge{ font-size:39px; font-weight:900; color:#fff; padding:3px 14px; border-radius:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .inspe .eslot{ font-size:39px; font-weight:900; background:#1f2440; color:#fff; border-radius:10px; padding:1px 14px; text-align:center; white-space:nowrap; }
   .inspe .eslot.red{ color:#ff8f86; }
-  .inspe .eds{ font-size:30px; color:#222; line-height:1.38; font-weight:600; }
-  .inspe.none{ width:auto; color:#777; font-size:30px; font-weight:800; background:transparent; border-style:dashed; }
+  .inspe .eds{ font-size:33px; color:#222; line-height:1.26; font-weight:650; min-width:0; }
+  .inspe.none{ width:auto; color:#777; font-size:39px; font-weight:800; background:transparent; border-style:dashed; }
 
   /* ===== オーバーレイ(指名/メニュー/結果/ドラフト) ===== */
   .ovl{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(4,6,16,.72); z-index:40; }
@@ -889,26 +940,27 @@
   .draftcard .code.rnd{ background:linear-gradient(135deg,#f0a500,#ffd54a); color:#3a2a00; box-shadow:0 3px 0 #c98700; }
 
   /* ---- 巡業マップ(道/幕/ボス) ---- */
-  .map-hint{ font-size:30px; font-weight:800; color:#cdd6ff; margin:2px 0 22px; }
+  .map-hint{ font-size:36px; font-weight:900; color:#dfe6ff; margin:0 0 18px; line-height:1.22; text-align:center; }
   #s-map .wrap,
-  #s-pact .wrap{ position:absolute; top:132px; left:28px; right:28px; bottom:42px; display:flex; flex-direction:column; }
-  .runmap{ display:flex; gap:46px; align-items:stretch; justify-content:center; flex-wrap:nowrap; max-width:1760px; }
-  .mapcol{ display:flex; flex-direction:column; gap:16px; align-items:center; position:relative; flex:1; min-width:0; }
-  .mapcol-hd{ font-size:26px; font-weight:900; color:#9fb0e8; margin-bottom:2px; }
+  #s-pact .wrap{ position:absolute; top:124px; left:28px; right:28px; bottom:34px; display:flex; flex-direction:column; }
+  .runmap{ display:flex; gap:32px; align-items:stretch; justify-content:center; flex-wrap:nowrap; max-width:1780px; width:100%; }
+  .mapcol{ display:flex; flex-direction:column; gap:14px; align-items:center; position:relative; flex:1; min-width:0; }
+  .mapcol-hd{ font-size:32px; font-weight:900; color:#9fb0e8; margin-bottom:0; line-height:1.1; }
   .mapcol.cur .mapcol-hd{ color:#ffd54a; }
-  .mapcol:not(:last-child)::after{ content:'›'; position:absolute; right:-32px; top:54%; transform:translateY(-50%); font-size:50px; color:#56639c; font-weight:900; }
-  .mapnode{ width:100%; max-width:312px; background:#fff; border:5px solid var(--line); border-radius:18px; padding:16px 14px; display:flex; flex-direction:column; gap:7px; align-items:center; text-align:center; }
-  .mapnode .nic{ font-size:46px; line-height:1; }
-  .mapnode .nnm{ font-size:30px; font-weight:900; color:var(--ink); }
-  .mapnode .nds{ font-size:21px; color:#444; line-height:1.25; min-height:54px; }
-  .mapnode .nbadge{ font-size:21px; font-weight:900; color:#b25a00; background:#fff2d6; border-radius:10px; padding:3px 10px; }
+  .mapcol:not(:last-child)::after{ content:'›'; position:absolute; right:-24px; top:54%; transform:translateY(-50%); font-size:52px; color:#56639c; font-weight:900; }
+  .mapnode{ width:100%; max-width:300px; background:#fff; border:5px solid var(--line); border-radius:18px; padding:14px 12px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; }
+  .mapnode .nic{ font-size:52px; line-height:1; }
+  .mapnode .nnm{ font-size:36px; font-weight:900; color:var(--ink); line-height:1.05; }
+  .mapnode .nds{ font-size:27px; color:#333; line-height:1.22; min-height:82px; font-weight:750; }
+  .mapnode .nbadge{ font-size:25px; font-weight:900; color:#b25a00; background:#fff2d6; border-radius:10px; padding:3px 10px; line-height:1.15; }
   .mapnode.battle{ border-color:#9aa6c8; }
   .mapnode.elite{ border-color:#ef5350; background:linear-gradient(160deg,#fff,#ffe6e3); }
   .mapnode.mutator{ border-color:#42a5f5; background:linear-gradient(160deg,#fff,#e6f1ff); }
+  .mapnode.gamble{ border-color:#ab47bc; background:linear-gradient(160deg,#fff,#f4e3ff); }
   .mapnode.loot{ border-color:#66bb6a; background:linear-gradient(160deg,#fff,#e8f8ea); }
   .mapnode.rest{ border-color:#26a69a; background:linear-gradient(160deg,#fff,#e3f7f4); }
   .mapnode.boss{ border-color:#d8a200; background:linear-gradient(160deg,#fff8e1,#ffe39a); border-width:6px; }
-  .mapnode.boss .nnm{ font-size:25px; line-height:1.15; }   /* 「宿敵名 〈異名〉」が収まるよう少し縮小 */
+  .mapnode.boss .nnm{ font-size:30px; line-height:1.12; }   /* 「宿敵名 〈異名〉」が収まるよう少し縮小 */
   .mapnode .nbadge.raw{ color:#7a5a00; background:#ffe9a8; }   /* 看板ルール無しボスの「物量」バッジ */
   .mapnode.future{ opacity:.48; filter:saturate(.55); }
   .mapnode.chosen{ opacity:.9; box-shadow:0 0 0 4px rgba(126,217,87,.45) inset; }
@@ -919,26 +971,42 @@
   .rest-card{ width:min(1100px,92%); background:linear-gradient(160deg,#fff,#eef4ff); border:5px solid #26a69a; border-radius:24px; padding:30px 40px 34px; text-align:center; box-shadow:0 18px 40px rgba(0,0,0,.4); }
   .rest-card .rest-ico{ font-size:64px; line-height:1; }
   .rest-card .rest-heal{ font-size:34px; font-weight:900; color:#1c7a6a; margin:8px 0 18px; }
+  .rest-choices{ display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin:0 auto 20px; max-width:980px; }
+  .rest-choice{ width:300px; min-height:108px; background:#fff; border:4px solid #26a69a; border-radius:14px; padding:12px 14px; color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; box-shadow:0 5px 0 #15746a; }
+  .rest-choice .rc-h{ font-size:27px; font-weight:900; }
+  .rest-choice .rc-d{ font-size:20px; font-weight:800; color:#4a557e; line-height:1.25; }
+  .rest-choice.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; }
   .rest-report{ background:#2a3055; border:3px solid #3c447a; border-radius:16px; padding:18px 24px; margin:0 auto 22px; max-width:860px; text-align:left; }
   .rest-report .rr-h{ font-size:30px; font-weight:900; color:#ffd0c8; }
   .rest-report .rr-rec{ font-size:26px; font-weight:800; color:#ffb4a0; margin:2px 0 10px; }
   .rest-report .rr-l{ font-size:25px; color:#dfe5ff; line-height:1.4; margin:6px 0; }
 
   /* ---- ★v0.28 誓約(Pact / Heat)画面 ---- */
-  .pactgrid{ display:flex; flex-wrap:wrap; gap:20px; align-items:stretch; justify-content:center; max-width:1500px; }
-  .pactile{ width:328px; background:#fff; border:5px solid #c0466a; border-radius:18px; padding:16px 16px 14px; display:flex; flex-direction:column; gap:7px; align-items:center; text-align:center; position:relative; background:linear-gradient(160deg,#fff,#ffe7ee); }
-  .pactile .pt-ico{ font-size:42px; line-height:1; }
-  .pactile .pt-nm{ font-size:30px; font-weight:900; color:var(--ink); }
-  .pactile .pt-ds{ font-size:21px; color:#444; line-height:1.25; min-height:80px; }
-  .pactile .pt-heat{ font-size:24px; font-weight:900; color:#c0466a; }
-  .pactile .pt-on{ position:absolute; top:8px; right:12px; font-size:30px; }
+  .pactgrid{ display:flex; flex-wrap:wrap; gap:20px; align-items:stretch; justify-content:center; max-width:1540px; }
+  .pactile{ width:360px; background:#fff; border:5px solid #c0466a; border-radius:18px; padding:18px 18px 16px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; position:relative; background:linear-gradient(160deg,#fff,#ffe7ee); }
+  .pactile .pt-ico{ font-size:50px; line-height:1; }
+  .pactile .pt-nm{ font-size:38px; font-weight:900; color:var(--ink); line-height:1.08; }
+  .pactile .pt-ds{ font-size:27px; color:#333; line-height:1.22; min-height:104px; font-weight:750; }
+  .pactile .pt-heat{ font-size:31px; font-weight:900; color:#c0466a; }
+  .pactile .pt-on{ position:absolute; top:8px; right:12px; font-size:36px; }
   .pactile.on{ border-color:#e0331f; background:linear-gradient(160deg,#fff5cc,#ffd7a0); box-shadow:0 0 0 4px rgba(224,51,31,.35) inset; }
   .pactile.locked{ opacity:.92; }
   .pactile.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; box-shadow:0 10px 28px rgba(0,0,0,.35); }
-  .gfx-hi .pactile{ box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -10px 18px rgba(120,40,70,.12), 0 6px 0 rgba(120,40,70,.16), 0 14px 28px rgba(0,0,0,.34); }
-  .gfx-hi .pactile.on{ box-shadow:inset 0 2px 0 rgba(255,255,255,1), inset 0 -12px 20px rgba(180,90,20,.28), 0 0 0 4px rgba(224,51,31,.45), 0 8px 0 rgba(150,60,20,.4), 0 16px 32px rgba(0,0,0,.4); }
-  .pact-foot{ display:flex; flex-direction:column; align-items:center; gap:16px; margin-top:26px; }
-  .pact-reward{ font-size:27px; font-weight:800; color:#ffd76a; text-align:center; min-height:34px; }
+  .gfx-hi .pactgrid{ padding:8px 12px; border-radius:28px; background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)); box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 14px 32px rgba(0,0,0,.22); }
+  .gfx-hi .pactile{
+    background:
+      radial-gradient(80% 46% at 50% 0%, rgba(255,255,255,.75), rgba(255,255,255,0) 62%),
+      linear-gradient(160deg,#fff8fb 0%,#ffe1ea 52%,#ffc4d3 100%);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -12px 22px rgba(120,40,70,.16), 0 7px 0 rgba(120,40,70,.22), 0 16px 30px rgba(0,0,0,.38); }
+  .gfx-hi .pactile .pt-ico{ filter:drop-shadow(0 4px 5px rgba(90,20,45,.28)); }
+  .gfx-hi .pactile .pt-heat{ background:#fff2d6; border:2px solid rgba(192,70,106,.35); border-radius:999px; padding:2px 14px; box-shadow:inset 0 1px 0 rgba(255,255,255,.8); }
+  .gfx-hi .pactile.on{
+    background:
+      radial-gradient(80% 46% at 50% 0%, rgba(255,255,255,.78), rgba(255,255,255,0) 62%),
+      linear-gradient(160deg,#fff7d0 0%,#ffd79e 55%,#ffb36f 100%);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,1), inset 0 -14px 24px rgba(180,90,20,.3), 0 0 0 4px rgba(224,51,31,.45), 0 8px 0 rgba(150,60,20,.42), 0 18px 34px rgba(0,0,0,.43); }
+  .pact-foot{ display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:18px; }
+  .pact-reward{ font-size:34px; font-weight:900; color:#ffd76a; text-align:center; min-height:40px; line-height:1.2; }
   .runover-heat{ font-size:30px; font-weight:900; color:#ff9a6a; margin-top:10px; }
 
   /* ---- 走り終わりダイジェスト(物語ログ) ---- */
@@ -952,6 +1020,12 @@
   .run-digest .dg-node.win{ box-shadow:0 0 0 3px rgba(126,217,87,.5); }
   .run-digest .dg-pl{ font-weight:900; color:#b25a00; }
   .run-digest .dg-pl.win{ color:#2e9b4f; }
+  .run-digest .dg-tags{ display:inline-flex; gap:5px; margin-left:6px; vertical-align:middle; }
+  .run-digest .dg-tag{ font-size:18px; font-weight:900; color:#3b3410; background:#fff1a8; border:2px solid #d8a200; border-radius:8px; padding:1px 6px; }
+  .run-digest .dg-title{ display:flex; align-items:center; justify-content:center; gap:12px; margin:0 auto 14px; }
+  .run-digest .dg-title .ic{ font-size:44px; line-height:1; }
+  .run-digest .dg-title .tx{ font-size:32px; font-weight:900; color:#fff4bd; }
+  .run-digest .dg-title .ds{ font-size:23px; font-weight:800; color:#cdd6ff; margin-top:2px; }
   .run-digest .dg-stats{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:center; margin-top:16px; font-size:27px; font-weight:800; color:#e7ecff; }
 
   /* ヘルプ/設定ページ */
@@ -1118,7 +1192,7 @@
   /* .bchip は文字を載せないので VI 用の縮小は不要（マーク＋アイコンのみ） */
   .lang-vi .detailpane .dt-name{ font-size:48px; }
   .lang-vi .detailpane .dt-cat{ font-size:28px; }
-  .lang-vi .inspe .ebadge{ font-size:30px; }
+  .lang-vi .inspe .ebadge{ font-size:39px; }
   .lang-vi .pcard .emb{ font-size:16px; }
   .lang-vi .draftcard .nm{ font-size:32px; }
   .lang-vi .recocard .rnm{ font-size:34px; }
@@ -1173,8 +1247,9 @@
       <div class="btn small primary foc" id="build-ok" style="flex-shrink:0;" data-i18n="build_ok">けってい ▶</div>
     </div>
     <div class="wrap">
-      <!-- メタ崩壊(v0.22)：巡業で宿敵があなたの常用エンブレムを読み、この深度だけ封じる。封じ中だけ表示。 -->
+      <!-- 深度ごとの編成揺さぶり：封じ/半額対象。封じは制限、半額は組み替えの誘因。 -->
       <div class="banbar" id="build-ban"></div>
+      <div class="banbar discount" id="build-discount"></div>
       <!-- 常時表示の“情報”はこの1行だけ：お題（左）＋コスト（右） -->
       <div class="buildstatus">
         <div class="mutbar" id="build-mutator"></div>
@@ -1289,6 +1364,7 @@
           <div class="ranklist" id="result-list"></div>
           <div class="result-side">
             <div id="result-reward"></div>
+            <div id="result-tags"></div>
             <div id="result-rival"></div>
           </div>
         </div>
@@ -1330,6 +1406,7 @@
       <div class="rest-card">
         <div class="rest-ico">🛏️</div>
         <div id="rest-heal" class="rest-heal"></div>
+        <div class="rest-choices" id="rest-choices"></div>
         <div class="rest-report" id="rest-report"></div>
         <div class="rowbtns" style="justify-content:center;"><div class="btn primary foc" id="rest-ok" data-i18n="rest_continue">マップへすすむ ▶</div></div>
       </div>
@@ -3764,7 +3841,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', gfx:'lite', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
-    keymap:null, padmap:null, netKw:'', netName:'', rival:null, rivals:null, rivalProf:null, heatBest:{},
+    keymap:null, padmap:null, netKw:'', netName:'', rival:null, rivals:null, rivalProf:null, heatBest:{}, titleBest:{},
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -3783,11 +3860,12 @@ const AUDIO = (function(){
       this.rivals = (Array.isArray(this.rivals) && this.rivals.length===4) ? this.rivals : null;   // 宿敵4人(名前/戦績hist)
       this.rivalProf = (this.rivalProf && typeof this.rivalProf==='object') ? this.rivalProf : null; // あなたのビルド傾向(共有・学習型/ban が使う)
       this.heatBest = (this.heatBest && typeof this.heatBest==='object') ? this.heatBest : {};   // ★v0.28 Heat段位→最高到達深度(名誉記録)
+      this.titleBest = (this.titleBest && typeof this.titleBest==='object') ? this.titleBest : {};   // ラン称号→最高到達深度(名誉記録)
       this.save();   // 移行(コレクション初期化)や欠落フィールドの補完を確定させる
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest, titleBest:this.titleBest})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -3823,7 +3901,7 @@ const AUDIO = (function(){
       slot_empty:'空き', slot_all_short:'全', scroll_more:'▼ まだ下にエンブレムがあります（十字で送る）',
       reco_h2:'おすすめ構成 — ワンタップで完成', reco_cost:'コスト {0} / {1}', reco_close:'とじる ✕',
       toast_loaded:'{0} を装填', mut_label:'お題',
-      palette_head:'{0} に入れるエンブレムを選ぶ', badge_on:'装備中', badge_elsewhere:'{0}にも',
+      palette_head:'{0} に入れるエンブレムを選ぶ', badge_on:'装備中', badge_elsewhere:'{0}にも', badge_discount:'半額',
       slot_role_rule:'自分だけに効く役ルール（ペア・階段・革命・ボムなど）を入れる枠。',
       slot_role_suit:'「{0}」の札を出したとき発動。階段に使うマークもここ。',
       slot_role_rank:'「{0}」の札を出したとき発動するエンブレムを入れる枠。',
@@ -3876,7 +3954,12 @@ const AUDIO = (function(){
       /* 結果 */
       result_run_title:'深度 {0} けっか', result_title:'けっか', result_win:'🏆 あなたの勝ち！', result_head:'けっか発表',
       btn_to_lobby:'ロビーへもどる', btn_leave_title:'退室してタイトルへ', btn_again:'もう一度', btn_to_title:'タイトルへ',
-      next_see_result:'結果を見る', next_loot_win:'🏆 戦利品を選ぶ', next_loot:'戦利品を選ぶ', next_lifedown:'（残機-1）次の深度へ',
+      next_see_result:'結果を見る', next_loot_win:'🏆 戦利品を選ぶ', next_loot:'戦利品を選ぶ', next_lifedown:'（残機-1）次の深度へ', next_lifedown2:'（残機-2）次の深度へ', next_lifedown3:'（残機-3）次の深度へ',
+      result_tags_head:'今回の戦果',
+      tag_fast:'速攻勝利', tag_fast_ds:'少ない手数で1位',
+      tag_ban:'封じ突破', tag_ban_ds:'対策されても1位',
+      tag_budget:'節約勝利', tag_budget_ds:'低コスト編成で1位',
+      tag_clutch:'土俵際', tag_clutch_ds:'残機1から上位',
       /* 宿敵(適応AI) */
       rival_word:'宿敵', rival_p_counter:'カウンター', rival_p_mirror:'ミラー', rival_p_exp:'実験', rival_p_mix:'混合',
       rival_dom_aka:'場操作', rival_dom_ao:'ターン', rival_dom_midori:'役', rival_dom_ki:'手札', rival_dom_none:'様子見',
@@ -3889,7 +3972,8 @@ const AUDIO = (function(){
       ban_banner:'この深度の対策対象',
       ban_banner_ds:'「{0}」はこの深度では使えない。別軸の構成で攻略しよう。',
       toast_banned:'この深度では「{0}」は使えない', rival_banned:'対策対象：「{0}」',
-      reward_outwit_head:'🏆 裏をかいた！', reward_outwit_line:'封じを攻略。次の対戦だけ コスト容量 +{0}',
+      discount_banner:'今だけ半額',
+      discount_banner_ds:'この深度は「{0}」の編成コストが半額。',
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
       /* 巡業1位ボーナス(次戦のみコスト容量+25) */
@@ -3915,6 +3999,12 @@ const AUDIO = (function(){
       /* 走り終わりダイジェスト */
       digest_head:'🗺 通った道', digest_act:'― 幕 {0} ―', digest_none:'まだ道を歩んでいない',
       digest_acts:'クリアした幕 {0}', digest_bosses:'撃破したボス {0}体', digest_emblems:'集めたエンブレム {0}（ランダム {1}）',
+      digest_title_fast:'疾風の巡業者', digest_title_fast_ds:'速攻勝利が多い、前のめりな走り。',
+      digest_title_ban:'封じ破り', digest_title_ban_ds:'対策されても勝ち筋を折らなかった。',
+      digest_title_budget:'倹約の名手', digest_title_budget_ds:'軽い編成で勝ちを拾った、組み替え上手の走り。',
+      digest_title_clutch:'崖際の生還者', digest_title_clutch_ds:'残機ぎりぎりから踏みとどまった。',
+      digest_title_none:'名もなき旅路', digest_title_none_ds:'まだ色は薄い。でも次の一走で化ける。',
+      digest_title_best:'この称号での最高：深度 {0}{1}',
       /* ドラフト */
       draft_topbar:'エンブレム獲得 — 1つ選ぶ', draft_head:'戦利品を1つ選ぶ', draft_skip:'受け取らずに進む',
       draft_depth:'次は 深度 {0}{1}', draft_mut:'　／　お題 {0} {1}', draft_cost:'コスト {0} ／ {1} ／ {2}{3}',
@@ -3927,8 +4017,9 @@ const AUDIO = (function(){
       node_battle:'通常戦', node_battle_ds:'ふつうの4人卓',
       node_elite:'強敵戦', node_elite_ds:'宿敵が強化。勝てばランダム獲得＋次戦コスト+25',
       node_mutator:'お題戦', node_mutator_ds:'予告のお題で戦う',
+      node_gamble:'賭場', node_gamble_ds:'次の戦闘：1位ならランダムエンブレム+2、2位以下なら残機追加-1',
       node_loot:'市（いち）', node_loot_ds:'戦わずにエンブレムを1つ獲得',
-      node_rest:'休憩', node_rest_ds:'残機を1回復',
+      node_rest:'休憩', node_rest_ds:'回復・次戦コスト+10・半額引き直しから1つ選ぶ',
       node_boss:'ボス', node_boss_ds:'宿敵の看板ルール＋強化。撃破で幕クリア・大報酬',
       node_mut_badge:'お題 {0} {1}',
       boss_raw_badge:'看板 物量',
@@ -3936,11 +4027,23 @@ const AUDIO = (function(){
       b_dancer_ti:'重ね撃ちの舞', b_dancer_ds:'相席歓迎の舞姫。連撃と指名で手番を奪い続ける。',
       b_assassin_ti:'十手の刹那', b_assassin_ds:'短期決戦の刺客。10枚を一気に捌き切る速攻。',
       b_tycoon_ti:'蕩尽の黄金',  b_tycoon_ds:'看板ルール無し。物量とボムで正面から圧し潰す。',
+      b_throne_hint:'場を流す連火・溜め火、低い札を整理できる手札操作が有効。',
+      b_dancer_hint:'手番を奪い返す反撃・溜め火、相手の連鎖を止める封鳴が有効。',
+      b_assassin_hint:'短期決戦。序盤から減らせるペア/三重/軽身、飛ばしの加速が有効。',
+      b_tycoon_hint:'物量とボムに注意。場流し、縛り、封鳴で大技を遅らせると有効。',
+      rest_choose:'休憩：ひとつ選ぶ',
+      rest_pick_heal:'残機を回復', rest_pick_heal_ds:'残機 +1（上限まで）',
+      rest_pick_budget:'次戦コスト +10', rest_pick_budget_ds:'次の対戦だけ編成容量を増やす',
+      rest_pick_discount:'半額を引き直す', rest_pick_discount_ds:'今だけ半額の対象を変える',
       rest_healed:'🛏 休憩：残機 +1（残機 {0}）', rest_full:'🛏 ひと息ついた（残機は満タン）',
+      rest_budget:'🪙 次の対戦だけ コスト容量 +10',
+      rest_discount:'💸 半額対象を「{0}」に変更',
       rest_title:'休憩', rest_continue:'マップへすすむ ▶',
-      rest_rival_tops:'宿敵が見たあなたの常用：{0}', rest_next_boss:'この幕のボス＝{0}〈{1}〉／看板：{2}',
+      rest_rival_tops:'宿敵が見たあなたの常用：{0}', rest_next_boss:'この幕のボス＝{0}〈{1}〉／看板：{2}', rest_boss_hint:'有効そう：{0}',
       reward_elite_head:'🔥 強敵を撃破！', reward_elite_line:'ランダムエンブレム +{0}',
       reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'ランダムエンブレム +{0} ／ 次戦コスト +25',
+      reward_gamble_head:'🎰 賭場の勝ち分', reward_gamble_line:'ランダムエンブレム +{0}',
+      reward_gamble_loss_head:'🎰 賭場のツケ', reward_gamble_loss_line:'残機 追加 -1',
       /* ヘルプ */
       help_topbar:'あそびかた', help_close:'◀ もどる', help_prev:'◀ まえ', help_next:'つぎ ▶',
       help0_h:'Ru-Le とは',
@@ -3952,7 +4055,7 @@ const AUDIO = (function(){
       help3_h:'装備のルール（重要）',
       help3_b:'<ul><li><b>数字</b>スロット＝その数字<b>4枚</b>で発動。<b>マーク</b>スロット＝そのマーク<b>13枚</b>で発動（高頻度ぶん<b>マーク装備のコストは高い</b>＝強い能力ほど跳ね上がる）。</li><li><b>全体ルール枠（全）</b>＝<b>ペア/3枚/4枚許可・革命・ボム・スート順</b>。自分だけに効く。</li><li><b>自由階段・同種階段</b>は<b>マークに装備</b>＝そのマークだけ階段に使える。4マーク全部に積めば全色（コストも4倍）。</li><li><b>同じエンブレムは何か所にでも</b>付けられ、1スロットに<b>複数</b>重ねてもOK。自由に組み、<b>強さはコストで管理</b>（予算100まで何を積んでも同じくらいの強さ）。</li></ul>',
       help4_h:'巡業（ソロ）と解放',
-      help4_b:'<ul><li>4人対戦の<b>ローグライク</b>。何位でも<b>毎戦深度+1</b>（3位以下は残機-1／残機3）。</li><li>予算は<b>深度55+5ずつ成長</b>（深度10で100＝あなたはそこで頭打ち、<b>敵はその先も成長</b>）。</li><li>毎戦後に<b>戦利品エンブレム</b>をドラフト＝<b>永続解放</b>で<b>クイック対戦でも使える</b>。</li><li>深いほど敵が強い。<b>最高到達深度</b>に挑め。</li></ul>',
+      help4_b:'<ul><li>4人対戦の<b>ローグライク</b>。何位でも<b>毎戦深度+1</b>（3位は残機-1／4位は残機-2／残機3）。</li><li>予算は<b>深度55+5ずつ成長</b>（深度10で100＝あなたはそこで頭打ち、<b>敵はその先も成長</b>）。</li><li>毎戦後に<b>戦利品エンブレム</b>をドラフト＝<b>永続解放</b>で<b>クイック対戦でも使える</b>。</li><li>深いほど敵が強い。<b>最高到達深度</b>に挑め。</li></ul>',
       help5_h:'変則ルールお題',
       help5_b:'<ul><li>対戦ごとに<b>お題</b>が変わる。編成画面の上に表示される。</li><li><span style="color:#ef5350;font-weight:900;">天地無用</span>＝ずっと逆位（弱い札しか出せない）。<span style="color:#66bb6a;font-weight:900;">相席歓迎</span>＝同じ強さも重ねられる。</li><li><b>短期決戦</b>＝手札10枚で速攻決着。<b>大盤振舞／緊縮の掟</b>＝編成コストが増減。</li><li><b>お題を見てからビルドを組み替える</b>のがコツ。同じ構築でもお題で価値が変わる。</li></ul>',
       help6_h:'操作',
@@ -3961,7 +4064,7 @@ const AUDIO = (function(){
       set_topbar:'せってい', set_close:'◀ もどる',
       set_sfx:'効果音', set_gfx:'画質', gfx_hi:'高品質', gfx_lite:'描画優先（標準）', set_rankmode:'強さルール', rankmode_2:'2 が最強（標準）', rankmode_a:'A が最強（変則）',
       set_budget:'対戦の予算', set_budget_val:'コスト {0}', set_unlocked:'解放エンブレム', set_unlocked_val:'{0} / {1}（巡業で増える）',
-      set_best:'最高到達深度', set_best_val:'深度 {0}', set_toggle:'切替 ▶',
+      set_best:'最高到達深度', set_best_val:'深度 {0}', set_title_best:'称号記録', set_title_best_none:'まだ記録なし', set_title_best_item:'{0} 深度{1}', set_toggle:'切替 ▶',
       set_rival_name:'ライバルの名前', set_rival_ok:'けってい', set_edit:'変更 ▶', set_rival_val:'{0}人', set_open:'ひらく ▶', rivals_topbar:'ライバルの名前', rivals_close:'◀ もどる',
       set_keys:'キー設定', set_keys_val:'キーボード／パッド', keys_open:'ひらく ▶',
       /* キーコンフィグ */
@@ -4037,7 +4140,7 @@ const AUDIO = (function(){
       slot_empty:'Trống', slot_all_short:'Bộ', scroll_more:'▼ Còn biểu tượng phía dưới (dùng mũi tên)',
       reco_h2:'Gợi Ý Cấu Hình — Hoàn thiện một chạm', reco_cost:'Chi phí {0} / {1}', reco_close:'Đóng ✕',
       toast_loaded:'Đã nạp {0}', mut_label:'Đề bài',
-      palette_head:'Chọn biểu tượng gắn vào {0}', badge_on:'Đang gắn', badge_elsewhere:'cả {0}',
+      palette_head:'Chọn biểu tượng gắn vào {0}', badge_on:'Đang gắn', badge_elsewhere:'cả {0}', badge_discount:'Nửa giá',
       slot_role_rule:'Ô gắn luật bộ chỉ áp dụng cho mình (đôi, sảnh, Cách mạng, Chặt heo...).',
       slot_role_suit:'Kích hoạt khi đánh lá chất「{0}」. Chất dùng cho sảnh cũng ở đây.',
       slot_role_rank:'Ô gắn biểu tượng kích hoạt khi đánh lá số「{0}」.',
@@ -4088,7 +4191,12 @@ const AUDIO = (function(){
       match_inspect:'🔍 Soi', match_menu:'☰ Menu',
       result_run_title:'Tầng {0} kết quả', result_title:'Kết quả', result_win:'🏆 Bạn thắng!', result_head:'Công bố kết quả',
       btn_to_lobby:'Về Sảnh', btn_leave_title:'Rời phòng về Menu', btn_again:'Chơi lại', btn_to_title:'Về Menu',
-      next_see_result:'Xem kết quả', next_loot_win:'🏆 Chọn chiến lợi phẩm', next_loot:'Chọn chiến lợi phẩm', next_lifedown:'(Mạng -1) Sang tầng kế',
+      next_see_result:'Xem kết quả', next_loot_win:'🏆 Chọn chiến lợi phẩm', next_loot:'Chọn chiến lợi phẩm', next_lifedown:'(Mạng -1) Sang tầng kế', next_lifedown2:'(Mạng -2) Sang tầng kế', next_lifedown3:'(Mạng -3) Sang tầng kế',
+      result_tags_head:'Chiến tích trận này',
+      tag_fast:'Thắng tốc công', tag_fast_ds:'Hạng 1 với ít lượt',
+      tag_ban:'Phá khắc chế', tag_ban_ds:'Bị cấm vẫn hạng 1',
+      tag_budget:'Thắng tiết kiệm', tag_budget_ds:'Hạng 1 với chi phí thấp',
+      tag_clutch:'Sát mép vực', tag_clutch_ds:'Còn 1 mạng vẫn vào top',
       /* Kỳ phùng địch thủ (AI thích nghi) */
       rival_word:'Kỳ phùng', rival_p_counter:'Khắc chế', rival_p_mirror:'Phản chiếu', rival_p_exp:'Thử nghiệm', rival_p_mix:'Pha trộn',
       rival_dom_aka:'Khống sân', rival_dom_ao:'Lượt', rival_dom_midori:'Bộ bài', rival_dom_ki:'Lá bài', rival_dom_none:'Quan sát',
@@ -4101,7 +4209,8 @@ const AUDIO = (function(){
       ban_banner:'Mục tiêu bị khắc chế tầng này',
       ban_banner_ds:'Tầng này không dùng được "{0}". Hãy đổi hướng xây dựng.',
       toast_banned:'Tầng này không dùng được "{0}"', rival_banned:'Mục tiêu khắc chế: "{0}"',
-      reward_outwit_head:'🏆 Lật ngược thế cờ!', reward_outwit_line:'Phá được lệnh cấm. Riêng trận kế: ngân sách +{0}',
+      discount_banner:'Nửa giá lúc này',
+      discount_banner_ds:'Tầng này, chi phí cấu hình của "{0}" giảm một nửa.',
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
       /* Thưởng hạng 1 (chỉ trận kế: ngân sách +25) */
@@ -4125,6 +4234,12 @@ const AUDIO = (function(){
       runover_body:'Tầng đạt được <span style="color:#ffcf4d;">{0}</span>{1}<br><span style="font-size:30px;">Kỷ lục: Tầng {2}</span>',
       digest_head:'🗺 Đường đã qua', digest_act:'― Màn {0} ―', digest_none:'Chưa đi đường nào',
       digest_acts:'Màn đã qua {0}', digest_bosses:'Hạ {0} Boss', digest_emblems:'Biểu tượng thu được {0} (ngẫu nhiên {1})',
+      digest_title_fast:'Lữ khách gió lốc', digest_title_fast_ds:'Nhiều trận thắng tốc công, luôn lao về phía trước.',
+      digest_title_ban:'Kẻ phá phong ấn', digest_title_ban_ds:'Bị khắc chế vẫn không đánh mất đường thắng.',
+      digest_title_budget:'Bậc thầy tiết kiệm', digest_title_budget_ds:'Thắng bằng cấu hình nhẹ và đổi bài khéo.',
+      digest_title_clutch:'Người sống sót sát mép', digest_title_clutch_ds:'Đứng vững khi mạng chỉ còn rất ít.',
+      digest_title_none:'Chuyến đi chưa đặt tên', digest_title_none_ds:'Màu sắc còn mờ, nhưng lượt sau có thể đổi khác.',
+      digest_title_best:'Kỷ lục với danh hiệu này: Tầng {0}{1}',
       draft_topbar:'Nhận Biểu Tượng — Chọn 1', draft_head:'Chọn 1 chiến lợi phẩm', draft_skip:'Bỏ qua, đi tiếp',
       draft_depth:'Kế tiếp: Tầng {0}{1}', draft_mut:'　/　Đề bài {0} {1}', draft_cost:'Chi phí {0} / {1} / {2}{3}',
       place_whole_short:'Luật bộ', place_suitRun_short:'Sảnh chất', place_card_short:'Số/Chất',
@@ -4136,8 +4251,9 @@ const AUDIO = (function(){
       node_battle:'Trận thường', node_battle_ds:'Bàn 4 người thường',
       node_elite:'Cường địch', node_elite_ds:'Địch thủ mạnh hơn. Thắng: nhận ngẫu nhiên + ngân sách trận kế +25',
       node_mutator:'Trận đề bài', node_mutator_ds:'Đấu với đề bài đã báo trước',
+      node_gamble:'Sòng cược', node_gamble_ds:'Trận kế: hạng 1 nhận biểu tượng ngẫu nhiên +2, hạng 2 trở xuống mất thêm 1 mạng',
       node_loot:'Chợ', node_loot_ds:'Không đấu, nhận 1 biểu tượng',
-      node_rest:'Nghỉ', node_rest_ds:'Hồi 1 mạng',
+      node_rest:'Nghỉ', node_rest_ds:'Chọn 1: hồi mạng, ngân sách trận kế +10, hoặc đổi nửa giá',
       node_boss:'Boss', node_boss_ds:'Luật đặc trưng của địch thủ + mạnh hơn. Hạ được = qua màn, thưởng lớn',
       node_mut_badge:'Đề bài {0} {1}',
       boss_raw_badge:'Đặc trưng: Áp đảo',
@@ -4145,11 +4261,23 @@ const AUDIO = (function(){
       b_dancer_ti:'Vũ Điệu Chồng',   b_dancer_ds:'Vũ cơ Cùng Mạnh. Liên kích và chỉ định liên tục cướp lượt.',
       b_assassin_ti:'Sát Na Thập Thủ', b_assassin_ds:'Thích khách Tốc Chiến. Dứt sạch 10 lá trong chớp mắt.',
       b_tycoon_ti:'Hoàng Kim Tận',   b_tycoon_ds:'Không luật đặc trưng. Lấy số đông và bom đè thẳng mặt.',
+      b_throne_hint:'Hữu hiệu: dọn bãi, Tích Hỏa, và hiệu ứng dọn bài thấp.',
+      b_dancer_hint:'Hữu hiệu: Phản Kích/Tích Hỏa để giành lại lượt, Câm Ấn để ngắt chuỗi.',
+      b_assassin_hint:'Trận ngắn. Hữu hiệu: đôi, Tam Trùng, Nhẹ Mình, và Tăng Tốc từ đầu.',
+      b_tycoon_hint:'Cẩn thận số đông và bom. Hữu hiệu: dọn bãi, khóa chất, Câm Ấn để làm chậm đòn lớn.',
+      rest_choose:'Nghỉ: chọn 1',
+      rest_pick_heal:'Hồi mạng', rest_pick_heal_ds:'Mạng +1 (tới giới hạn)',
+      rest_pick_budget:'Ngân sách +10 trận kế', rest_pick_budget_ds:'Chỉ trận kế tăng sức chứa cấu hình',
+      rest_pick_discount:'Đổi mục nửa giá', rest_pick_discount_ds:'Đổi biểu tượng được nửa giá lúc này',
       rest_healed:'🛏 Nghỉ: Mạng +1 (Mạng {0})', rest_full:'🛏 Nghỉ ngơi (mạng đã đầy)',
+      rest_budget:'🪙 Riêng trận kế: ngân sách +10',
+      rest_discount:'💸 Đổi nửa giá sang "{0}"',
       rest_title:'Nghỉ ngơi', rest_continue:'Tới bản đồ ▶',
-      rest_rival_tops:'Địch thủ thấy bạn hay dùng: {0}', rest_next_boss:'Boss màn này = {0}〈{1}〉/ Đặc trưng: {2}',
+      rest_rival_tops:'Địch thủ thấy bạn hay dùng: {0}', rest_next_boss:'Boss màn này = {0}〈{1}〉/ Đặc trưng: {2}', rest_boss_hint:'Có vẻ hữu hiệu: {0}',
       reward_elite_head:'🔥 Hạ cường địch!', reward_elite_line:'Biểu tượng ngẫu nhiên +{0}',
       reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Biểu tượng ngẫu nhiên +{0} / Ngân sách trận kế +25',
+      reward_gamble_head:'🎰 Thắng cược', reward_gamble_line:'Biểu tượng ngẫu nhiên +{0}',
+      reward_gamble_loss_head:'🎰 Trả giá sòng cược', reward_gamble_loss_line:'Mạng mất thêm -1',
       help_topbar:'Cách Chơi', help_close:'◀ Quay lại', help_prev:'◀ Trước', help_next:'Sau ▶',
       help0_h:'Ru-Le là gì',
       help0_b:'<ul><li>52 lá bài <b>chung cho mọi người</b>.</li><li>Khác biệt chỉ đến từ <b>cấu hình Biểu Tượng</b>.</li><li>Gắn biểu tượng lên số/chất để tạo <b>luật của riêng mình</b>.</li><li>Nền tảng là "Tiến Lên thuần (đánh lẻ)".</li></ul>',
@@ -4168,7 +4296,7 @@ const AUDIO = (function(){
       set_topbar:'Cài Đặt', set_close:'◀ Quay lại',
       set_sfx:'Âm thanh', set_gfx:'Chất lượng', gfx_hi:'Cao cấp', gfx_lite:'Ưu tiên hiệu năng (chuẩn)', set_rankmode:'Luật mạnh yếu', rankmode_2:'Lá 2 (heo) mạnh nhất (chuẩn)', rankmode_a:'Lá A mạnh nhất (biến thể)',
       set_budget:'Ngân sách trận', set_budget_val:'Chi phí {0}', set_unlocked:'Biểu tượng mở khóa', set_unlocked_val:'{0} / {1} (tăng khi lữ hành)',
-      set_best:'Tầng cao nhất', set_best_val:'Tầng {0}', set_toggle:'Đổi ▶',
+      set_best:'Tầng cao nhất', set_best_val:'Tầng {0}', set_title_best:'Kỷ lục danh hiệu', set_title_best_none:'Chưa có kỷ lục', set_title_best_item:'{0} Tầng {1}', set_toggle:'Đổi ▶',
       set_rival_name:'Tên đối thủ', set_rival_ok:'Xác nhận', set_edit:'Sửa ▶', set_rival_val:'{0} người', set_open:'Mở ▶', rivals_topbar:'Tên đối thủ', rivals_close:'◀ Quay lại',
       set_keys:'Gán phím', set_keys_val:'Bàn phím / Tay cầm', keys_open:'Mở ▶',
       /* Gán phím */
@@ -4823,6 +4951,7 @@ const AUDIO = (function(){
   function bossForNode(node){ return (node && node.boss) ? (bossById(node.boss)||bossForAct((MODE.run&&MODE.run.act)||1)) : null; }
   function bossTitle(b){ return b ? T(b.id+'_ti') : ''; }
   function bossTagline(b){ return b ? T(b.id+'_ds') : ''; }
+  function bossHint(b){ return b ? T(b.id+'_hint') : ''; }
   // ボスロスターが参照する mut/アーキタイプ/エンブレムが全て実在するかを検証(壊れた id を入れた時に気づくため)。
   function checkBosses(){
     const bad=[];
@@ -4881,7 +5010,8 @@ const AUDIO = (function(){
     if(r<0.40) return 'battle';
     if(r<0.60) return 'elite';
     if(r<0.78) return 'mutator';
-    if(r<0.90) return 'loot';
+    if(r<0.88) return 'gamble';
+    if(r<0.94) return 'loot';
     return 'rest';
   }
   // 1つの分岐行ぶんの「互いに異なる」ノード種別を k 個選ぶ。
@@ -4890,7 +5020,7 @@ const AUDIO = (function(){
     const types=[]; let guard=0;
     while(types.length<k && guard<80){ const t=pickNodeType(rowIdx); if(!types.includes(t)) types.push(t); guard++; }
     if(types.length<k){   // 念のため(乱数が偏った場合)未使用種別で埋める。row0 は序盤らしい種別に限定。
-      const pool = rowIdx===0 ? ['battle','mutator','loot'] : ['battle','elite','mutator','loot','rest'];
+      const pool = rowIdx===0 ? ['battle','mutator','loot'] : ['battle','elite','mutator','gamble','loot','rest'];
       for(const t of pool){ if(!types.includes(t)){ types.push(t); if(types.length>=k) break; } }
     }
     return types;
@@ -4925,7 +5055,7 @@ const AUDIO = (function(){
   /* ----- マップ描画 ----- */
   function nodeCardHTML(node){
     const t=node.type;
-    const ico = t==='battle'?'⚔️' : t==='elite'?'🔥' : t==='mutator'?(node.mut?node.mut.ico:'🎲') : t==='loot'?'🎁' : t==='rest'?'🛏️' : '👑';
+    const ico = t==='battle'?'⚔️' : t==='elite'?'🔥' : t==='mutator'?(node.mut?node.mut.ico:'🎲') : t==='gamble'?'🎰' : t==='loot'?'🎁' : t==='rest'?'🛏️' : '👑';
     if(t==='boss'){   // ★v0.24 ボスは「宿敵名 〈異名〉」＋看板ルール(ルール無しボスは"物量"を明示)で個性化
       const b=bossForNode(node);
       const ruleBadge = (node.mut && node.mut.effect!=='NONE')
@@ -5036,26 +5166,69 @@ const AUDIO = (function(){
   function enterNode(node){
     const run=MODE.run;
     if(node.type==='loot'){ MODE.mutator=mutById('m_none'); openDraft(); return; }   // 戦わずドラフト
+    if(node.type==='gamble'){ enterGamble(); return; }
     if(node.type==='rest'){ enterRest(); return; }
     MODE.mutator = node.mut || pactMut() || mutById('m_none');   // 戦闘: 素なら誓約(天地無用常時)を注入／ボス・お題ノードは各自の看板を優先
     openBuild(T('bt_run', run.depth));
   }
-  function enterRest(){
-    const run=MODE.run;
-    const maxLives = runLifeMax(run);
-    let msg;
-    if(run.lives<maxLives){ run.lives=Math.min(maxLives, run.lives+1); msg=T('rest_healed', run.lives); AUDIO.confirm(); }
-    else msg=T('rest_full');
+  function enterGamble(){
+    const run=MODE.run; if(!run) return;
+    run.gamble = { depth:run.depth };
     store.saveRun(run, MODE.mutator);
-    showRest(msg);   // ★v0.25 休憩は即進行せず、回復＋宿敵レポートを見せてから「すすむ」
+    AUDIO.confirm();
+    toast(T('node_gamble')+'：'+T('node_gamble_ds'), '#ab47bc');
+    afterDraftNode();
   }
-  // ★v0.25 休憩ノード: 残機回復に加え、宿敵レポート(公開情報のみ)と次のボス予告を閲覧できる。
-  function showRest(healMsg){
+  function enterRest(){
+    restResolved=false;
+    showRest(T('rest_choose'), true);   // ★v0.33 休憩は回復/次戦予算/半額引き直しから選ぶ
+  }
+  let restResolved=false;
+  // ★v0.33 休憩ノード: 1つ選んでから進む。宿敵レポート(公開情報のみ)と次のボス予告も閲覧できる。
+  function showRest(healMsg, choosing){
     $('#rest-heal').textContent=healMsg;
+    renderRestChoices(!!choosing);
     $('#rest-report').innerHTML=rivalReportHTML();
+    const ok=$('#rest-ok'); if(ok) ok.style.display = choosing ? 'none' : '';
     show('s-rest');
+    setTimeout(focusFirst,0);
   }
-  function restContinue(){ AUDIO.confirm(); afterDraftNode(); }
+  function renderRestChoices(choosing){
+    const host=$('#rest-choices'); if(!host) return;
+    host.innerHTML='';
+    if(!choosing) return;
+    const run=MODE.run, maxLives=runLifeMax(run);
+    const add=(kind, head, desc)=>{
+      const c=el('div','rest-choice foc');
+      c.innerHTML='<div class="rc-h">'+head+'</div><div class="rc-d">'+desc+'</div>';
+      c.onclick=()=> restPick(kind);
+      host.appendChild(c);
+    };
+    if(run.lives<maxLives) add('heal', T('rest_pick_heal'), T('rest_pick_heal_ds'));
+    add('budget', T('rest_pick_budget'), T('rest_pick_budget_ds'));
+    add('discount', T('rest_pick_discount'), T('rest_pick_discount_ds'));
+  }
+  function restPick(kind){
+    const run=MODE.run; if(!run || restResolved) return;
+    let msg='';
+    if(kind==='heal'){
+      const maxLives=runLifeMax(run);
+      if(run.lives<maxLives){ run.lives=Math.min(maxLives, run.lives+1); msg=T('rest_healed', run.lives); }
+      else msg=T('rest_full');
+    } else if(kind==='budget'){
+      run.nextBonus = (run.nextBonus||0) + 10;
+      msg=T('rest_budget');
+    } else if(kind==='discount'){
+      const old=currentDiscountId();
+      run.discount=chooseRunDiscount(run, old);
+      msg=T('rest_discount', discountName()||'-');
+    }
+    restResolved=true;
+    AUDIO.confirm();
+    store.saveRun(run, MODE.mutator);
+    showRest(msg, false);
+  }
+  function restContinue(){ if(!restResolved){ AUDIO.bad(); return; } AUDIO.confirm(); afterDraftNode(); }
   // 宿敵レポート(休憩で閲覧)＝公開情報だけで構成。宿敵4人の名前＋勝率＋次のボス予告。
   function rivalReportHTML(){
     RIVAL.ensure();
@@ -5066,8 +5239,9 @@ const AUDIO = (function(){
     const obs=dom ? T('rival_countered', T('rival_dom_'+dom)) : T('rival_first');
     const ruleNm=(nb && mutById(nb.mut) && mutById(nb.mut).effect!=='NONE') ? mutName(mutById(nb.mut)) : T('boss_raw_badge');
     const bossLn=nb ? '<div class="rr-l">👑 '+T('rest_next_boss', bossRivalName(nb), bossTitle(nb), ruleNm)+'</div>' : '';
+    const hintLn=nb ? '<div class="rr-l">💡 '+T('rest_boss_hint', bossHint(nb))+'</div>' : '';
     return '<div class="rr-h">🔥 '+T('rest_rivals_head')+'</div>'+list
-      +'<div class="rr-l">'+obs+'</div>'+bossLn;
+      +'<div class="rr-l">'+obs+'</div>'+bossLn+hintLn;
   }
   // ノード(戦闘の結果ドラフト/市/休憩)を解決し終えたら現在地を進めてマップへ戻る。
   function afterDraftNode(){
@@ -5084,6 +5258,7 @@ const AUDIO = (function(){
     if(n.type==='boss') e.boss=n.boss;
     if(n.mut && n.mut.effect!=='NONE') e.mut=n.mut.id;
     if(outcome && outcome.place) e.place=outcome.place;
+    if(outcome && Array.isArray(outcome.tags) && outcome.tags.length) e.tags=outcome.tags.slice(0,4);
     run.log.push(e);
   }
   function advanceMap(){
@@ -5100,7 +5275,7 @@ const AUDIO = (function(){
       owned:BASE_UNLOCKED.slice(),                 // 巡業の初期所持=基本セット(クイック/オンの初期解放と同一)。ドラフトで増える
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
-      ban:{ ids:[], depth:1 }, banRecent:[],       // ★v0.22 メタ崩壊: この深度の封じ / 直近封じ履歴(連続で同じ対象に偏らせない)
+      ban:{ ids:[], depth:1 }, banRecent:[], discount:null,   // ★深度ごとの揺さぶり: 封じ / 直近封じ履歴 / 半額対象
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
       log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
       inMatch:false,                                // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
@@ -5124,6 +5299,7 @@ const AUDIO = (function(){
     store.clearRun();   // 新規開始は保存データを破棄
     MODE.curNode=null;
     MODE.run.ban = decideBan(MODE.run, MODE.run.depth);   // 深度1は基本ban無し
+    ensureRunDiscount(MODE.run);
     store.saveRun(MODE.run, null);   // 開始直後(まだ1戦目前)でも再開できるよう即保存
     pactScreen('start');   // ★v0.28 まず誓約(任意)を選んでから巡業マップへ(積めば段位↑＝報酬↑)
   }
@@ -5137,6 +5313,7 @@ const AUDIO = (function(){
     MODE.run.nextBonus = Math.min(MODE.run.nextBonus || 0, RUN_WIN_BONUS);  // 旧セーブ互換: 旧版の封じ上乗せ(+40)を通常ボーナス(+25)へ丸める
     MODE.run.banRecent = Array.isArray(MODE.run.banRecent) ? MODE.run.banRecent.filter(id=>RL.emblem(id)).slice(0,6) : [];
     MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth && saved.run.ban.ver===BAN_RULE_VER) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致/旧封じルールは決め直す
+    ensureRunDiscount(MODE.run);
     MODE.run.act = MODE.run.act || 1;   // 旧セーブ互換
     MODE.run.log = Array.isArray(MODE.run.log) ? MODE.run.log : [];   // 旧セーブ互換: 物語ログ枠
     MODE.run.pact = (MODE.run.pact && Array.isArray(MODE.run.pact.ids)) ? MODE.run.pact : { ids:[], heat:0 };   // ★v0.28 旧セーブ互換: 誓約枠
@@ -5623,6 +5800,43 @@ const AUDIO = (function(){
     const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
     return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta());   // お題＋誓約(p_budget)の予算増減を反映(下限30・100系)
   }
+  function currentDiscountId(){
+    return (MODE.kind==='run' && MODE.run && MODE.run.discount && MODE.run.discount.depth===MODE.run.depth) ? MODE.run.discount.id : null;
+  }
+  function runSlotCost(id, slotType){
+    const base = RL.slotCost(id, slotType);
+    return id===currentDiscountId() ? Math.max(1, Math.ceil(base/2)) : base;
+  }
+  function runBuildCost(build){
+    if(MODE.kind!=='run') return RL.buildCost(build);
+    let c=0;
+    for(const r in build.rankSlots) build.rankSlots[r].forEach(id=> c+=runSlotCost(id,'rank'));
+    for(const s in build.suitSlots) build.suitSlots[s].forEach(id=> c+=runSlotCost(id,'suit'));
+    (build.ruleSlots||[]).forEach(id=> c+=runSlotCost(id,'rule'));
+    return c;
+  }
+  function incMatchAction(){ if(MODE.matchStats) MODE.matchStats.actions = (MODE.matchStats.actions||0) + 1; }
+  function resultTags(me){
+    if(NET.active || !me || !MODE.matchStats) return [];
+    const st=MODE.matchStats, out=[];
+    const win = me.place===1;
+    if(win && (st.actions||0)>0 && st.actions<=30) out.push({ico:'⚡', key:'fast'});
+    if(win && MODE.kind==='run' && MODE.matchBanNames && MODE.matchBanNames.length) out.push({ico:'🚫', key:'ban'});
+    if(win && st.budget && st.cost <= Math.max(35, Math.floor(st.budget*0.78))) out.push({ico:'🪙', key:'budget'});
+    if(MODE.kind==='run' && st.livesAtStart<=1 && me.place<=2) out.push({ico:'🔥', key:'clutch'});
+    return out;
+  }
+  function resultTagKeys(me){ return resultTags(me).map(t=>t.key); }
+  function resultTagIco(key){ return ({fast:'⚡', ban:'🚫', budget:'🪙', clutch:'🔥'})[key] || '★'; }
+  function renderResultTags(me){
+    const host=$('#result-tags'); if(!host) return;
+    const tags=resultTags(me);
+    if(!tags.length){ host.innerHTML=''; host.classList.remove('show'); return; }
+    host.innerHTML='<div class="tg-h">'+T('result_tags_head')+'</div><div class="tg-list">'
+      +tags.map(t=>'<div class="tg"><span class="ic">'+uiMark(t.ico, t.key.toUpperCase())+'</span><span><b>'+T('tag_'+t.key)+'</b><span class="ds">'+T('tag_'+t.key+'_ds')+'</span></span></div>').join('')
+      +'</div>';
+    host.classList.add('show');
+  }
   function ownedList(){
     const ids = MODE.kind==='run' ? MODE.run.owned.slice() : store.unlocked.slice();
     const order = RL.EMBLEMS.map(e=>e.id);            // カタログ順に整列(表示安定)
@@ -5688,11 +5902,18 @@ const AUDIO = (function(){
     host.className='banbar show';
     host.innerHTML='<span class="btag">'+uiMark('🚫','BAN')+' '+T('ban_banner')+'</span><span class="bds">'+T('ban_banner_ds', names.join('・'))+'</span>';
   }
+  function renderDiscountBanner(host){
+    if(!host) return;
+    const nm=discountName();
+    if(!nm){ host.className='banbar discount'; host.innerHTML=''; return; }
+    host.className='banbar discount show';
+    host.innerHTML='<span class="btag">'+uiMark('💸','HALF')+' '+T('discount_banner')+'</span><span class="bds">'+T('discount_banner_ds', nm)+'</span>';
+  }
   // おすすめ構成オーバーレイ：初心者がワンタップで完成形を入れられる近道。常時表示はせず、必要な時だけ開く。
   function openRecommend(){
     const host=$('#reco-cards'); if(!host||!buildState) return; host.innerHTML='';
     RL.PRESETS.forEach(p=>{
-      const cost=RL.buildCost(RL.presetBuild(p.id));
+      const cost=runBuildCost(RL.presetBuild(p.id));
       const card=el('div','recocard foc');
       card.innerHTML='<div class="rico">'+p.ico+'</div>'
         +'<div class="rnm">'+presetName(p)+'</div>'
@@ -5750,8 +5971,9 @@ const AUDIO = (function(){
     // お題バナー(今回の対戦に掛かる共通ルール)＋宿敵の標的宣言(メタ崩壊)
     renderMutatorBanner($('#build-mutator'));
     renderBanBanner($('#build-ban'));
+    renderDiscountBanner($('#build-discount'));
     // コスト
-    const cost=RL.buildCost(b), max=buildState.budget;
+    const cost=runBuildCost(b), max=buildState.budget;
     $('#build-cost').textContent=cost+' / '+max;
     $('#build-meter').style.width=Math.min(100, cost/max*100)+'%';
     $('#build-cost').style.color = cost>max ? '#ff8a80' : '#ffcf4d';
@@ -5902,7 +6124,7 @@ const AUDIO = (function(){
     const cur = arr.length ? arr.map(id=>{ const e=RL.emblem(id); return embMark(e)+' '+embName(e); }).join('・') : T('emblem_cur_none');
     $('#emblem-cur').textContent = cur;
     // 現在コスト / 予算 と「コストオーバーです」表示。
-    const cost=RL.buildCost(b), max=buildState.budget, over=cost>max;
+    const cost=runBuildCost(b), max=buildState.budget, over=cost>max;
     const cn=$('#ep-cost-num'); if(cn) cn.textContent = cost+' / '+max;
     const cb=$('#ep-cost');    if(cb) cb.classList.toggle('over', over);
     const ov=$('#ep-over');    if(ov) ov.classList.toggle('show', over);
@@ -5967,10 +6189,11 @@ const AUDIO = (function(){
       const card=el('div','emb foc'+(here?' equipped':''));
       card.dataset.eid=id;
       card.style.borderLeft='10px solid '+col.hex;   // 左の色帯＝カテゴリ(色で一目／言葉は詳細ペイン)
-      const cst = RL.slotCost(id, sel.type);
+      const cst = runSlotCost(id, sel.type);
       let badge='';
       if(here) badge='<span class="badge on">'+T('badge_on')+'</span>';
       else if(elsewhere) badge='<span class="badge elsewhere">'+T('badge_elsewhere', (elsewhere.type==='suit'?RL.SUIT_SYM[elsewhere.key]:elsewhere.type==='rule'?T('elsewhere_rule_label'):elsewhere.key))+'</span>';
+      if(id===currentDiscountId()) badge += '<span class="badge elsewhere">'+T('badge_discount')+'</span>';
       // タイルは「アイコン＋コスト／名前」だけ。短く＝選択肢として見せる(効果説明は右の詳細ペイン)。
       card.innerHTML =
         badge+
@@ -6009,7 +6232,7 @@ const AUDIO = (function(){
     const allowed=RL.canScope(id, sel.type, sel.key);
     const arr = sel.type==='rule' ? b.ruleSlots : (sel.type==='rank'? b.rankSlots[sel.key] : b.suitSlots[sel.key]);
     const here = arr.includes(id);
-    const cst = RL.slotCost(id, sel.type), pl=RL.placeOf(id);
+    const cst = runSlotCost(id, sel.type), pl=RL.placeOf(id);
     const placeTxt = e.suitOnly ? T('place_suit_only') : e.rankLock ? T('slot_disp_rank', e.rankLock.join('/'))+'のみ' : pl==='whole' ? T('place_whole') : pl==='suitRun' ? T('place_suitRun') : T('place_card');
     const where = sel.type==='suit'?RL.SUIT_SYM[sel.key]:sel.type==='rule'?T('where_rule'):sel.key;
     const banned=bannedIdSet().has(id);   // ★v0.22 メタ崩壊: 封じ中は効果を読めるが装備不可
@@ -6068,7 +6291,7 @@ const AUDIO = (function(){
       const arr=b.ruleSlots;
       if(arr.includes(id)){ arr.splice(arr.indexOf(id),1); AUDIO.back(); renderBuild(); refocusPaletteOn(id); return; }
       if(!RL.canScope(id,'rule')){ AUDIO.bad(); toast(T('toast_cannot_whole', embName(RL.emblem(id))),'#ff7043'); return; }
-      if(RL.buildCost(b)+RL.slotCost(id,'rule') > buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over'),'#ff7043'); return; }
+      if(runBuildCost(b)+runSlotCost(id,'rule') > buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over'),'#ff7043'); return; }
       arr.push(id); AUDIO.emb(); renderBuild(); closeEmblemPicker(); return;   // 付けたら自動で閉じてビルド画面へ
     }
     if(!RL.canScope(id, sel.type, sel.key)){
@@ -6082,7 +6305,7 @@ const AUDIO = (function(){
     }
     // 自由度MAX(v0.7): 同じエンブレムを複数スロットに付けられ、1スロットに複数の能力を重ねられる。
     // 制限はせず、追加コストぶんだけ予算判定する(強さは全部コストで管理)。
-    if(RL.buildCost(b) + RL.slotCost(id, sel.type) > buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over'),'#ff7043'); return; }
+    if(runBuildCost(b) + runSlotCost(id, sel.type) > buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over'),'#ff7043'); return; }
     arr.push(id); AUDIO.emb();
     renderBuild(); closeEmblemPicker();   // 付けたら自動で閉じてビルド画面へ（3タップ以内・確認ダイアログなし）
   }
@@ -6106,7 +6329,7 @@ const AUDIO = (function(){
   // 編成→対戦開始(けってい)。ボタンとキー設定の「対戦開始」両方から呼ぶ。
   function startMatchFromBuild(){
     if(!buildState || currentScreen!=='s-build') return;
-    if(RL.buildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
+    if(runBuildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
     if(MODE.kind==='online'){ store.saveBuild(buildState.build); AUDIO.confirm(); NET.afterBuild(buildState.build); return; }  // オンライン=ロビーへ反映
     if(MODE.kind==='quick') store.saveBuild(buildState.build);   // クイックの自分ビルドを永続化(次回の既定になる)
     AUDIO.confirm(); beginMatch();
@@ -6297,7 +6520,6 @@ const AUDIO = (function(){
        → 強ビルドの再利用を内的に阻止＝メタが自己崩壊し、毎深度ビルドを組み替えさせる。
      ・封じても基本ビルド(素の大富豪＋残りの所持)は常に成立＝詰み無し。深度1は無し。負け越し中は mercy で無し。
      ============================================================ */
-  const BAN_WIN_BONUS = 0;    // 封じ下で1位通過しても予算上乗せはしない。報酬の差はランダムエンブレム側に寄せる。
   const BAN_RULE_VER = 2;     // 封じ選定ルールの互換番号。旧セーブは再開時に選び直す。
   function decideBan(run, depth){
     if(depth<=1) return { ids:[], depth, ver:BAN_RULE_VER };      // 序盤(データ蓄積前)はban無し
@@ -6327,6 +6549,25 @@ const AUDIO = (function(){
     return set;
   }
   function banNames(){ return (Array.from(bannedIdSet())).map(id=> RL.emblem(id)? embName(RL.emblem(id)) : id); }
+  function chooseRunDiscount(run, avoidId){
+    const ban = new Set((run.ban && run.ban.depth===run.depth) ? (run.ban.ids||[]) : []);
+    let ids = (run.owned||[]).filter(id=> RL.emblem(id) && !RL.emblem(id).hidden && !ban.has(id));
+    if(avoidId && ids.length>1) ids = ids.filter(id=> id!==avoidId);
+    if(!ids.length) return { id:null, depth:run.depth };
+    return { id:ids[(Math.random()*ids.length)|0], depth:run.depth };
+  }
+  function ensureRunDiscount(run){
+    if(!run) return;
+    const ban = new Set((run.ban && run.ban.depth===run.depth) ? (run.ban.ids||[]) : []);
+    const d = run.discount;
+    if(d && d.depth===run.depth && d.id && (run.owned||[]).includes(d.id) && RL.emblem(d.id) && !ban.has(d.id)) return;
+    run.discount = chooseRunDiscount(run);
+  }
+  function discountName(){
+    const id=currentDiscountId();
+    const e=id && RL.emblem(id);
+    return e ? embName(e) : '';
+  }
 
   /* ============================================================
      巡業ランダムエンブレム(その回限りのローグライク成長)
@@ -6464,6 +6705,12 @@ const AUDIO = (function(){
     // 参戦宿敵の最終席を控える(戦績記録・結果の種明かし用)。人間=席0。
     MODE.rivalSeats = [];
     cpuDefs.forEach((d,k)=>{ if(d._rivalIdx!=null) MODE.rivalSeats.push({ seat:1+k, idx:d._rivalIdx, boss:d._boss }); });
+    MODE.matchStats = {
+      actions:0,
+      cost: MODE.kind==='run' ? runBuildCost(human.build) : RL.buildCost(human.build),
+      budget: currentBudget(),
+      livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0
+    };
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
@@ -6694,6 +6941,7 @@ const AUDIO = (function(){
     if(NET.active && !NET.isHost){ AUDIO.play(); NET.sendAction({k:'play', cards, next:(opts&&opts.nextPlayer)}); busy=true; renderMatch(); return; }
     AUDIO.play();
     const r=RL.applyPlay(G, meIdx(), cards, opts);
+    incMatchAction();
     renderMatch(); eventToast(r.events);
     if(NET.active && NET.isHost) NET.broadcast();
     afterStep();
@@ -6706,6 +6954,7 @@ const AUDIO = (function(){
     const me=G.players[meIdx()]; const chgBefore=(me&&me.charge)||0;            // 気フィードバック用にパス前の気を控える
     const wasContested=!!(G.field&&G.field.card);                               // 場に役がある＝主導権を譲るパス(気が貯まる対象)
     const r=RL.applyPass(G, meIdx());
+    incMatchAction();
     renderMatch(); eventToast(r.events);
     chargeFeedback(me, chgBefore, wasContested);   // 「気が溜まった／もう満タンだ」を本人にだけ知らせる
     if(NET.active && NET.isHost) NET.broadcast();
@@ -6730,6 +6979,7 @@ const AUDIO = (function(){
     if(NET.active && !NET.isHost){ AUDIO.flush(); NET.sendAction({k:'react'}); busy=true; renderMatch(); return; }
     AUDIO.flush();
     const r=RL.applyReact(G, meIdx());
+    incMatchAction();
     renderMatch(); eventToast(r.events);
     if(NET.active && NET.isHost) NET.broadcast();
     afterStep();
@@ -6805,6 +7055,7 @@ const AUDIO = (function(){
     if(mv.type==='pass'){ AUDIO.pass(); r=RL.applyPass(G, idx); }
     else if(mv.type==='react'){ AUDIO.flush(); r=RL.applyReact(G, idx); }
     else { AUDIO.play(); r=RL.applyPlay(G, idx, mv.cards, {nextPlayer:mv.nextPlayer}); }
+    incMatchAction();
     renderMatch(); eventToast(r.events);
     if(G.gameOver){ setTimeout(endMatch, 650); return; }
     const nxt=G.players[G.turn];
@@ -6834,6 +7085,7 @@ const AUDIO = (function(){
     }
     const mv=RL.cpuDecide(G, seat);
     let r; if(mv.type==='pass'){ r=RL.applyPass(G,seat); } else if(mv.type==='react'){ r=RL.applyReact(G,seat); } else { r=RL.applyPlay(G,seat,mv.cards,{nextPlayer:mv.nextPlayer}); }
+    incMatchAction();
     AUDIO.play(); renderMatch(); eventToast(r.events);
     NET.broadcast();
     if(G.gameOver){ setTimeout(endMatch, 650); return; }
@@ -6854,6 +7106,7 @@ const AUDIO = (function(){
       if(mustSpade3 && !(action.cards||[]).some(c=> c.rank==='3'&&c.suit==='S')){ NET.sendStateTo(seat); return; } // ♠3欠落→再同期
       r=RL.applyPlay(G, seat, action.cards, {nextPlayer:action.next});
     }
+    incMatchAction();
     renderMatch(); eventToast(r.events);
     NET.broadcast();
     if(G.gameOver){ setTimeout(endMatch, 650); return; }
@@ -6905,6 +7158,7 @@ const AUDIO = (function(){
       if(reward){ rew.innerHTML='<div class="rwd-h">'+reward.head+'</div><div class="rwd-l">'+reward.line+'</div>'; rew.classList.add('show'); }
       else { rew.innerHTML=''; rew.classList.remove('show'); }
     }
+    renderResultTags(me);
     // 宿敵レポート(種明かし): オフライン時のみ、宿敵が何を学習し今戦どう対策したか＋因縁の戦績を開示。
     //   公開情報(過去ビルド傾向)だけで対策した、と明示してチート感を消す。
     const riv=$('#result-rival');
@@ -6972,18 +7226,13 @@ const AUDIO = (function(){
     const run=MODE.run;
     run.inMatch=false;   // ★対戦を最後まで完了=クリア扱い(以降の中断ペナルティ対象外)。両分岐の saveRun で永続化される
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
-    MODE.lastOutcome={ place, depth:playedDepth };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
+    MODE.lastOutcome={ place, depth:playedDepth, tags:resultTagKeys(G.players[meIdx()]) };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
     // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
     //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
-    // ★v0.18: 1位だけでなく3位にも+25。1位は前進(残機維持)・3位は残機-1という不利を、次戦の予算+25で補って4位と差をつける。
-    // ★v0.22 メタ崩壊: 封じが掛かった深度を1位通過 → 「裏をかいた」演出。予算ボーナスは通常の+25に揃える。
-    const banWasActive = !!(run.ban && run.ban.depth===playedDepth && (run.ban.ids||[]).length);
+    // ★v0.32: コストボーナスは1位のみ。3位は残機-1、4位は残機-2。
     let reward=null;
-    if(place===1 && banWasActive){
-      run.nextBonus = RUN_WIN_BONUS;
-      reward={ head:T('reward_outwit_head'), line:T('reward_outwit_line', RUN_WIN_BONUS) };
-    } else if(place===1 || place===3){
+    if(place===1){
       run.nextBonus = RUN_WIN_BONUS; reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) };
     }
     // ★v0.23 強敵/ボス撃破の上乗せ報酬＝ランダムエンブレムを厚めに付与(無双スノーボールを"過程の選択"で加速・[[project_ru_le_muso_process]])。
@@ -7007,9 +7256,23 @@ const AUDIO = (function(){
         reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
       }
     }
-    // ★v0.16: 深度は勝っても負けても何位でも毎戦+1(=予算も毎戦+5)。3位/4位は残機-1のみ。
+    const gamble = run.gamble;
+    if(gamble){
+      run.gamble = null;   // 賭場は次の戦闘1回で必ず解消
+      if(place===1){
+        let gg=0; for(let i=0;i<2;i++){ if(grantRandomEmblem(run)) gg++; }
+        if(gg>0){
+          const gline=T('reward_gamble_line', gg);
+          reward = reward ? { head:reward.head, line:reward.line+'<br>'+gline } : { head:T('reward_gamble_head'), line:gline };
+        }
+      }
+    }
+    // ★v0.16: 深度は勝っても負けても何位でも毎戦+1(=予算も毎戦+5)。3位は残機-1、4位は残機-2。
     const advanced = place<=2;
-    if(!advanced) run.lives--;
+    const gambleLoss = (gamble && place>=2) ? 1 : 0;
+    const lifeLoss = (place===4 ? 2 : (place===3 ? 1 : 0)) + gambleLoss;
+    if(lifeLoss) run.lives -= lifeLoss;
+    if(gambleLoss && !reward) reward={ head:T('reward_gamble_loss_head'), line:T('reward_gamble_loss_line') };
     if(run.lives<0){
       // 終了: 残機尽きた巡業は復帰させない(中断セーブを破棄)。
       logNode(run, MODE.lastOutcome); MODE.lastOutcome=null;   // ★v0.25 最後の一戦も物語ログへ(この経路は advanceMap を通らない)
@@ -7024,9 +7287,10 @@ const AUDIO = (function(){
     recordHeatBest(heatN, run.depth);   // ★v0.28 Heat段位ごとの最高到達深度も前進で記録
     run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(深度予算。1位ボーナス+25は nextBonus で別管理)
     run.ban = decideBan(run, run.depth);   // ★v0.22 次深度の封じを宿敵が決め直す(観測が増えるほど鋭く)
+    ensureRunDiscount(run);   // ★深度ごとに所持エンブレム1つを半額化し、編成の組み替え動機を作る
     // ★v0.23 お題は次ノードが各自で予告保持するので、ここでの per-depth ロールは廃止(MODE.mutator はノード入場時に設定)。
     store.saveRun(run, MODE.mutator);
-    const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : T('next_lifedown');
+    const label = advanced ? (place===1?T('next_loot_win'):T('next_loot')) : (lifeLoss>=3 ? T('next_lifedown3') : (lifeLoss>=2 ? T('next_lifedown2') : T('next_lifedown')));
     showResult(label, ()=> openDraft(), reward, playedDepth);   // すすむ→ドラフト→(takeDraft/skip)→advanceMap→マップ
   }
   // 最高到達深度を記録(深度が進むたびに更新＝死亡時だけでなく中断/再開でも反映される)。
@@ -7039,6 +7303,12 @@ const AUDIO = (function(){
     if(depth>(store.heatBest[k]||0)){ store.heatBest[k]=depth; store.save(); return true; }
     return false;
   }
+  function recordTitleBest(titleKey, depth){
+    if(!titleKey) return false;
+    store.titleBest = store.titleBest || {};
+    if(depth>(store.titleBest[titleKey]||0)){ store.titleBest[titleKey]=depth; store.save(); return true; }
+    return false;
+  }
   function runOver(){
     stopMatchLoop();   // ★巡業終了=進行中の対戦ループを止める(残機尽き/中断のどちらの経路でも内部進行を残さない)
     const run=MODE.run;
@@ -7047,16 +7317,36 @@ const AUDIO = (function(){
     if(recordBestDepth(reached)) rec=T('runover_best');
     const heatN=heatOf(run);
     const heatRec = recordHeatBest(heatN, reached);   // ★v0.28 Heat段位の名誉記録
+    const titleKey = runTitleFromLog(run.log||[]);
+    const titleRec = recordTitleBest(titleKey, reached);
     store.clearRun();   // 巡業終了時に保存データを消去
     $('#runover-head').textContent=T('runover_head');
     let body = T('runover_body', reached, rec, store.bestDepth);
     if(heatN>0) body += '<div class="runover-heat">'+T('runover_heat', heatN, store.heatBest[String(heatN)]||reached)+(heatRec?' '+T('runover_best'):'')+'</div>';   // 🔥 Heat N で最高到達深度
+    body += '<div class="runover-heat">'+T('digest_title_best', store.titleBest[titleKey]||reached, titleRec?' '+T('runover_best'):'')+'</div>';
     $('#runover-body').innerHTML=body;
     $('#runover-digest').innerHTML=runDigestHTML(run);   // ★v0.25 通った道のダイジェスト/物語ログ
     show('s-runover');
   }
   // ★v0.25 走り終わりダイジェスト: 通った道(物語ログ)＋集計(撃破ボス/集めたエンブレム/宿敵戦績)を描く。
-  const NODE_ICO={ battle:'⚔️', elite:'🔥', mutator:'🎲', loot:'🎁', rest:'🛏️', boss:'👑' };
+  const NODE_ICO={ battle:'⚔️', elite:'🔥', mutator:'🎲', gamble:'🎰', loot:'🎁', rest:'🛏️', boss:'👑' };
+  function runTitleFromLog(log){
+    const counts={fast:0, ban:0, budget:0, clutch:0};
+    (log||[]).forEach(e=> (e.tags||[]).forEach(k=>{ if(counts[k]!=null) counts[k]++; }));
+    let best='none', bestN=0;
+    ['ban','clutch','fast','budget'].forEach(k=>{ if(counts[k]>bestN){ best=k; bestN=counts[k]; } });
+    return best;
+  }
+  function runTitleHTML(log){
+    const k=runTitleFromLog(log);
+    return '<div class="dg-title"><span class="ic">'+uiMark(resultTagIco(k), k.toUpperCase())+'</span><span><div class="tx">'+T('digest_title_'+k)+'</div><div class="ds">'+T('digest_title_'+k+'_ds')+'</div></span></div>';
+  }
+  function titleBestSummary(){
+    const tb=store.titleBest||{};
+    const keys=['ban','clutch','fast','budget','none'].filter(k=>tb[k]>0);
+    if(!keys.length) return T('set_title_best_none');
+    return keys.map(k=>T('set_title_best_item', T('digest_title_'+k), tb[k])).join(' / ');
+  }
   function runDigestHTML(run){
     const log=run.log||[];
     // 道のり: ノードを順にチップ化(幕の頭で区切り)。戦闘は順位、ボスは異名を付す。
@@ -7068,6 +7358,9 @@ const AUDIO = (function(){
       let label=ico;
       if(e.type==='boss'){ const b=bossById(e.boss); label+=' '+(b?bossTitle(b):T('node_boss')); }
       if(e.place){ label+=' <span class="dg-pl'+(won?' win':'')+'">'+placeLabel(e.place)+'</span>'; }
+      if(Array.isArray(e.tags) && e.tags.length){
+        label+=' <span class="dg-tags">'+e.tags.map(k=>'<span class="dg-tag">'+uiMark(resultTagIco(k), k.toUpperCase())+' '+T('tag_'+k)+'</span>').join('')+'</span>';
+      }
       path+='<span class="dg-node '+e.type+(won?' win':'')+'">'+label+'</span>';
     });
     if(!path) path='<div class="dg-act">'+T('digest_none')+'</div>';
@@ -7084,7 +7377,7 @@ const AUDIO = (function(){
       +'<span>'+T('digest_emblems', ownedGain, rndN)+'</span>'
       +rivalStats
       +'</div>';
-    return '<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path">'+path+'</div>'+stats;
+    return runTitleHTML(log)+'<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path">'+path+'</div>'+stats;
   }
   $('#runover-ok').onclick=()=>{ AUDIO.confirm(); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
   $('#rest-ok').onclick=()=> restContinue();   // ★v0.25 休憩→マップへ進む
@@ -7192,16 +7485,29 @@ const AUDIO = (function(){
      ============================================================ */
   function buildItems(build){
     const items=[];
-    (build.ruleSlots||[]).forEach(id=> items.push({type:'rule', key:'全', e:RL.emblem(id)}));
-    RL.DISPLAY_RANKS.forEach(r=> (build.rankSlots[r]||[]).forEach(id=> items.push({type:'rank', key:r, e:RL.emblem(id)})));
-    RL.SUITS.forEach(s=> (build.suitSlots[s]||[]).forEach(id=> items.push({type:'suit', key:s, e:RL.emblem(id)})));
-    return items;
+    (build.ruleSlots||[]).forEach((id,i)=> items.push({type:'rule', key:'全', e:RL.emblem(id), ord:i}));
+    RL.SUITS.forEach((s,si)=> (build.suitSlots[s]||[]).forEach((id,i)=> items.push({type:'suit', key:s, e:RL.emblem(id), ord:100+si*10+i})));
+    RL.DISPLAY_RANKS.forEach((r,ri)=> (build.rankSlots[r]||[]).forEach((id,i)=> items.push({type:'rank', key:r, e:RL.emblem(id), ord:300+ri*10+i})));
+    return items.filter(it=>it.e).sort((a,b)=>a.ord-b.ord);
+  }
+  function inspectPlayerOrder(players){
+    const handScore = p=> p.finished ? 99 : (p.hand ? p.hand.length : 99);
+    return players.slice().sort((a,b)=>{
+      const at = (G.turn===a.id && !G.gameOver && !a.finished) ? 0 : 1;
+      const bt = (G.turn===b.id && !G.gameOver && !b.finished) ? 0 : 1;
+      if(at!==bt) return at-bt;
+      const af = a.finished ? 1 : 0, bf = b.finished ? 1 : 0;
+      if(af!==bf) return af-bf;
+      const ah = handScore(a), bh = handScore(b);
+      if(ah!==bh) return ah-bh;
+      return a.id-b.id;
+    });
   }
   function openInspect(){
     if(!G) return;
     AUDIO.confirm();
     const host=$('#inspect-body'); host.innerHTML='';
-    G.players.forEach(p=>{
+    inspectPlayerOrder(G.players).forEach(p=>{
       const box=el('div','inspplayer'+(p.isHuman?' you':''));
       const turnTag = (G.turn===p.id && !G.gameOver && !p.finished) ? '<span class="turnnow">'+T('inspect_turnnow')+'</span>' : '';
       const done = p.finished ? '<span class="cnt">'+placeLabel(p.place)+'</span>' : '<span class="cnt">'+p.hand.length+T('cards_unit')+'</span>';
@@ -7212,8 +7518,8 @@ const AUDIO = (function(){
           const col=RL.COLORS[it.e.color];
           const red = it.type==='suit' && RL.SUIT_RED[it.key];
           const label = it.type==='suit' ? RL.SUIT_SYM[it.key] : it.key;
-          return '<div class="inspe foc"><div class="ehd"><span class="eslot'+(red?' red':'')+'">'+label+'</span>'+
-            '<span class="ebadge '+col.cls+'">'+embMark(it.e)+' '+embName(it.e)+'</span></div>'+
+          return '<div class="inspe foc"><span class="eslot'+(red?' red':'')+'">'+label+'</span>'+
+            '<span class="ebadge '+col.cls+'">'+embMark(it.e)+' '+embName(it.e)+'</span>'+
             '<div class="eds">'+embDesc(it.e)+'</div></div>';
         }).join('');
       } else {
@@ -7260,6 +7566,7 @@ const AUDIO = (function(){
       { nm:T('set_rival_name'), val:()=> T('set_rival_val', RIVAL.count()), act:()=>{ AUDIO.confirm(); show('s-rivals'); }, btn:T('set_open') },
       { nm:T('set_unlocked'), val:()=> T('set_unlocked_val', store.unlocked.length, VISIBLE_EMB_TOTAL), act:null },
       { nm:T('set_best'), val:()=> T('set_best_val', store.bestDepth), act:null },
+      { nm:T('set_title_best'), val:()=> titleBestSummary(), act:null },
     ];
     rows.forEach(r=>{
       const row=el('div','setrow'+(r.act?' foc':''));
