@@ -1221,13 +1221,13 @@
   /* ===== i18n：タイトルの「せってい＋言語切替」行 ===== */
   .title-setrow{ display:flex; gap:18px; justify-content:center; align-items:center; }
   #title-lang{ background:linear-gradient(180deg,#7ec8ff,#3a8de0); color:#06233f; border-color:#1f5e96; }
-  /* タイトル共通ロゴ: 描画優先/高画質とも、形状・重心は同じにする。 */
+  /* タイトルの重心調整: 描画優先/高画質で同じロゴ構図にし、ロゴ下の空白を詰める。 */
   #stage #s-title .logo{
-    top:62px; transform:skewX(-8deg) rotate(-2deg); transform-origin:center top;
+    top:58px; transform:skewX(-8deg) rotate(-2deg); transform-origin:center top;
   }
   #stage #s-title .logo .big{
-    position:relative; display:inline-block; padding:0 32px 8px;
-    font-size:220px; line-height:.9; letter-spacing:14px; filter:none;
+    position:relative; display:inline-block; padding:0 34px 8px;
+    font-size:232px; line-height:.9; letter-spacing:14px; filter:none;
     background:linear-gradient(180deg,
       rgba(255,255,255,.98) 0%,
       rgba(205,238,255,.92) 28%,
@@ -1248,7 +1248,7 @@
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
   }
   #stage #s-title .logo .sub{
-    margin-top:20px; padding:6px 20px; letter-spacing:12px;
+    margin-top:18px; padding:6px 20px; letter-spacing:12px;
     transform:translateX(42px) skewX(8deg);
     background:linear-gradient(90deg,#9fe4ff,#ffffff 50%,#b8f0ff);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
@@ -1256,7 +1256,7 @@
   }
   #stage #s-title .logo .sub::before,
   #stage #s-title .logo .sub::after{ display:none; }
-  #stage #s-title .menu{ top:482px; }
+  #stage #s-title .menu{ top:426px; }
   #stage #title-lang{
     background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.12) 48%), linear-gradient(180deg,#ffffff,#e7ecff);
     color:#1f2440; border-color:#394161;
