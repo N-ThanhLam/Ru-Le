@@ -5124,8 +5124,14 @@ const AUDIO = (function(){
   function pactMut(){ const p=runPacts().find(p=>p.kind==='mut'); return p ? mutById(p.mut) : null; }
   // run.pact から Heat を算出(MODE 非依存・resume/記録用)。
   function heatOf(run){ return run && run.pact ? (run.pact.ids||[]).map(pactById).filter(Boolean).reduce((s,p)=>s+p.heat,0) : 0; }
-  // boss 戦後の"追い焚き"で提示する誓約(p_life は開始時のみ＝途中追加で残機が即減るのを避けるため除外)。
-  function pactsForMode(mode){ return mode==='boss' ? PACTS.filter(p=>p.kind!=='life') : PACTS; }
+  // boss 戦後の"追い焚き"で提示する誓約。
+  // p_life(薄氷)は残機3以上なら途中追加可。すでに誓っている場合は「効き続けている誓約」としてロック表示する。
+  function pactsForMode(mode){
+    if(mode!=='boss') return PACTS;
+    const run = MODE.run || {};
+    const ids = (run.pact && run.pact.ids) || [];
+    return PACTS.filter(p=> p.kind!=='life' || ids.includes(p.id) || (run.lives||0)>=3);
+  }
   function checkPacts(){
     const bad=[];
     PACTS.forEach(p=>{ if(p.kind==='mut' && !mutById(p.mut)) bad.push(p.id+': 不明な mut '+p.mut); });
@@ -5282,9 +5288,8 @@ const AUDIO = (function(){
   function pactConfirm(){
     const run=MODE.run; if(!run) return;
     run.pact.heat = pactHeat();
-    if(pactMode!=='boss'){   // 開始時のみ: 残機を誓約後の上限に揃える。薄氷はこの巡業中ずっと最大2。
-      run.lives = runLifeMax(run);
-    }
+    // 薄氷を誓った瞬間から残機上限を適用する。追い焚きで追加した場合も 3→2 に丸める。
+    run.lives = Math.min(run.lives, runLifeMax(run));
     store.saveRun(run, MODE.mutator);
     AUDIO.confirm();
     if(pactMode==='boss') enterMap();   // 追い焚き後は新しい幕のマップへ
