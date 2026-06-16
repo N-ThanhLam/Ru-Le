@@ -1832,7 +1832,7 @@ const RL = (function(){
   const SUIT_SURCHARGE = 7;   // 後方互換フォールバック（suitCost 未設定の card エンブレム用）。現行は全 card に suitCost を明示。
   // ★コストは v0.11 でユーザー指定値へ再校正。恒久原則は project_ru_le_balance / 開発メモ。
   //   この値で 日本式(jp)プリセット=ちょうど100 / ベトナム式(vn)=ちょうど100 にアンカーされる(同コスト同強度)。
-  //   ① 日本式canon(連火×1+3返し×1+縛り×4+同種階段×4+2/3カード可+革命)=ちょうど100=アンカー。
+  //   ① 日本式canon(8切り×4+3返し×1+縛り×4+同種階段×4+2/3カード可+革命)=ちょうど100=アンカー。
   //   ② どの card エンブレムも「予算100で全部盛り(=maxBuild)」して均衡(平均順位2.5周辺)になるよう cost/suitCost を決定。
   //   ③ card エンブレムは数字スロット(cost)とマークスロット(suitCost)で別コスト。マーク装備は発動頻度13/52で強く、
   //      雪だるま系(連火/連撃)は suitCost を思いっきり高く(連火マーク32等)＝4マークに積めない＝糞ゲー化を防止。
@@ -1842,10 +1842,10 @@ const RL = (function(){
     //   並び順: 赤(場操作) → 青(ターン操作) → 緑(役追加) → 黄(手札操作)。
     //   cost = 数字(rank)スロットのコスト / suitCost = マーク(suit)スロットのコスト(place:'card' のみ意味を持つ)。
     // ───────── 赤 (aka) — 場操作 ─────────
-    { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:27, suitCost:45, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
+    { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:32, suitCost:43, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:11, suitCost:32, ico:'🪽', effect:'WILD',         place:'card', desc:'場の役と同じ種類・同じ枚数で出すとき、数字（強弱）だけ無視して重ねて出せる。出す札すべてに越境が必要（例：2に越境3／77に越境ペア33／JQKAに全部越境の5678）。縛り・階段の形は通常どおり守る（縛りは貫通しない）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Khi đánh bộ cùng loại và cùng số lá với bãi, được đè bằng cách bỏ qua riêng phần số (mạnh/yếu). Mọi lá đánh ra đều phải có Vượt Biên (vd: heo ← 3 vượt biên; đôi 77 ← đôi 33 vượt biên; JQKA ← 5678 toàn vượt biên). Vẫn phải theo khóa chất và hình sảnh (không xuyên khóa chất).' },
     { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:42, ico:'↕️', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
-    { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:3, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
+    { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:2, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     { id:'aka05',code:'赤05', color:'aka',    name:'革命',     cost:4, ico:'🚩', effect:'REVOLUTION', place:'whole', desc:'同じ数字を4枚出すと強弱が逆転し、次の革命まで続く（革命があれば4枚出しも可）。自分だけが起こせる。', nameVi:'Cách Mạng', abbrVi:'Cm', codeVi:'Đ05', descVi:'Đánh 4 lá cùng số sẽ đảo ngược mạnh/yếu, kéo dài đến lần Cách mạng kế tiếp (có Cách mạng thì được đánh tứ quý). Chỉ mình mới phát động được.' },
     { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。さらに、ボムで場を切るたび、そこまで積み上がった“罰カード”を切った相手（直前の人）へ押し付ける（2単騎・弱ボム＝1枚／22・強ボム＝2枚ぶんが積み上がる）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình. Ngoài ra, mỗi lần chặt bằng bom, dồn hết "lá phạt" đã tích lên người vừa bị chặt (người liền trước) — heo lẻ / bom yếu = 1 lá, đôi heo / bom mạnh = 2 lá tích dồn.' },
     //   弱ボム(aka06b): ボム(aka06)と同コストの“再現専用・隠し”エンブレム。罰カード押し付けを持たない＝本来のティエンレン忠実版。
@@ -1853,10 +1853,10 @@ const RL = (function(){
     { id:'aka06b',code:'赤06b',color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB_PURE',  place:'whole', hidden:true, desc:'4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる（本来のティエンレン＝罰カードの押し付けは無し）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" để chặt con heo (lá 2) trên bãi — đúng luật Tiến Lên gốc (không dồn lá phạt).' },
     //   3返し(aka07): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「3」で場の2を切り返す。
     //   マーク枠にしか置けないので使われるコストは suitCost のみ(rank の cost は持たない)。
-    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:2, suitCost:2, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
+    { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:1, suitCost:1, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
     { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に「2が4枚」または「ペア5階段／ペア6階段（445566778899など連続する数字のペア）」がそろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có "tứ quý heo (bốn lá 2)" hoặc "5/6 đôi thông (các đôi số liên tiếp như 445566778899)" thì vô điều kiện về Nhất (thoát ngay).' },
     { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:2, suitCost:3, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その札は場の単騎と同じマークなら数字に関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, nếu cùng chất với lá lẻ trên bãi thì đánh được bất kể số (qua được cả con 2 mạnh nhất).' },
-    { id:'aka11', code:'赤11', color:'aka', name:'偽装', cost:2, suitCost:4, ico:'🥸', effect:'DISGUISE', place:'card', desc:'単騎で出すと数字が1つ上の札に化ける（8♠→9♠／マークは同じ）。最強の2が上限（A→2・2→2）。革命中は逆に弱くなるリスクあり。', nameVi:'Ngụy Trang', abbrVi:'N.Trang', codeVi:'Đ11', descVi:'Khi đánh lẻ, lá biến thành lá lớn hơn 1 bậc (8♠→9♠, giữ nguyên chất). Tối đa là con 2 mạnh nhất (A→2, 2→2). Khi Cách mạng thì ngược lại sẽ yếu đi (rủi ro).' },
+    { id:'aka11', code:'赤11', color:'aka', name:'偽装', cost:3, suitCost:8, ico:'🥸', effect:'DISGUISE', place:'card', desc:'単騎で出すと数字が1つ上の札に化ける（8♠→9♠／マークは同じ）。最強の2が上限（A→2・2→2）。革命中は逆に弱くなるリスクあり。', nameVi:'Ngụy Trang', abbrVi:'N.Trang', codeVi:'Đ11', descVi:'Khi đánh lẻ, lá biến thành lá lớn hơn 1 bậc (8♠→9♠, giữ nguyên chất). Tối đa là con 2 mạnh nhất (A→2, 2→2). Khi Cách mạng thì ngược lại sẽ yếu đi (rủi ro).' },
     // ── リアクション(後出し)。自分の手番の第3の選択肢＝「返せない場でも、たまったチャージを切って場を吹き飛ばし手番を奪う」。
     //    試合“中”の能動判断(撃つ/溜める/読む)を生む。★チャージは「場に返さずパスした」ときに貯まる(出した時ではない＝主導権を譲った見返り)。
     //    ★正調ミラー不変の要: これはオプトイン専用で jp/vn プリセットには入れない。盤面に1枚も無ければ applyReact の出番ゼロ＝ターン進行は現状と同一。
@@ -1864,6 +1864,8 @@ const RL = (function(){
     { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:11, suitCost:29, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その単騎を場の単騎にマーク・数字を無視して重ねて出せる（最強の2も超える＝劣勢版の越境）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá lẻ đó đè được lên lá lẻ trên bãi bất kể chất/số (qua cả con 2 mạnh nhất = Vượt Biên bản yếu thế).' },
     //   ★v0.21 溜め撃ち(activated): 気を払って自分の手番に発動する能動エンブレム。反撃(aka12)の攻め版＝相手の場を能動的に流す。
     { id:'aka14', code:'赤14', color:'aka', name:'溜め火', cost:32, ico:'🎆', effect:'ACT_CLEAR', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、相手の場を流して続けて出せる（後出しの能動仕切り直し）。自分だけに適用。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Tích Hỏa', abbrVi:'T.Hỏa', codeVi:'Đ14', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để dọn sạch bãi của đối thủ rồi đánh tiếp (chủ động lật lại thế cờ). Chỉ áp dụng cho mình. Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
+    //   8切り(aka15): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「8」で場を流す。
+    { id:'aka15', code:'赤15', color:'aka', name:'8切り', cost:5, suitCost:5, ico:'8️⃣', effect:'CUT_EIGHT', place:'card', suitOnly:true, condRank:'8', desc:'装備したマークの「8」を出すと場を流して、続けてもう一度出せる。', nameVi:'Chặt 8', abbrVi:'C.8', codeVi:'Đ15', descVi:'Đánh lá "8" thuộc chất đã gắn sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     // ───────── 青 (ao) — ターン操作 ─────────
     { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:15, suitCost:40, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được).' },
     { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:23, suitCost:38, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
@@ -1871,11 +1873,11 @@ const RL = (function(){
     { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:22, suitCost:32, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
-    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:1, ico:'🪃', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
+    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:4, ico:'🪃', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
     // ───────── 緑 (midori) — 役追加 ─────────
     //   2/3/4カード可(set2-4)・革命/ボム/スート順などは place:'whole'(自分だけに効く全体ルール枠=ruleSlots)。
-    { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:43, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
-    { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:8, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
+    { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:45, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
+    { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:6, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
     { id:'set4', code:'役4', color:'midori', name:'4カード可', cost:1, ico:'4️⃣', effect:'SET4', place:'whole', desc:'同じ数字を4枚でまとめて出せる（革命・ボムを持っていれば自動で可）。', nameVi:'Cho Tứ Quý', abbrVi:'Tứ', codeVi:'B4', descVi:'Được đánh 4 lá cùng số (tứ quý) cùng lúc (có Cách mạng / Chặt Heo thì tự động được).' },
     { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:15, suitCost:27, ico:'🔢', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
     { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:21, suitCost:51, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
@@ -1988,11 +1990,18 @@ const RL = (function(){
   function emblemsForCard(build, card){
     return [].concat(build.rankSlots[card.rank]||[], build.suitSlots[card.suit]||[]);
   }
-  function effectsForCard(build, card){ return emblemsForCard(build,card).reduce((a,id)=>{ const e=emblem(id); if(e.condSuit && e.condSuit!==card.suit) return a; if(e.condRank && e.condRank!==card.rank) return a; return a.concat(effList(e)); }, []); }
+  function emblemFiresOnCard(id, card){
+    const e = emblem(id);
+    if(!e) return false;
+    if(e.condSuit && e.condSuit!==card.suit) return false;
+    if(e.condRank && e.condRank!==card.rank) return false;
+    return true;
+  }
+  function effectsForCard(build, card){ return emblemsForCard(build,card).reduce((a,id)=> emblemFiresOnCard(id, card) ? a.concat(effList(emblem(id))) : a, []); }
   function hasEffect(build, card, eff){ return effectsForCard(build,card).includes(eff); }
   // その札で eff を発火させているエンブレムidを返す(トースト表示を実際のエンブレムに正しく対応させる)。
   function embIdForEffect(build, card, eff){
-    for(const id of emblemsForCard(build,card)){ if(effList(emblem(id)).includes(eff)) return id; }
+    for(const id of emblemsForCard(build,card)){ if(emblemFiresOnCard(id, card) && effList(emblem(id)).includes(eff)) return id; }
     return null;
   }
 
@@ -2334,7 +2343,7 @@ const RL = (function(){
     return b;
   }
   // 実在ルールの忠実な要素分解(per-seat=本人専用)。v0.8 sim校正でコスト=実力。
-  //   日本式canon=連火×1+3返し×1+縛り×4+同種階段×4+2/3カード可+革命=ちょうど予算100=基準。
+  //   日本式canon=8切り×4+3返し×1+縛り×4+同種階段×4+2/3カード可+革命=ちょうど予算100=基準。
   //   5本とも予算100近くまで使い、5人総当りの平均順位は2.89〜3.17(均衡3.0の±0.17内・同強度)。出発点で編成画面から改造可。
   const PRESETS = [
     { id:'balance', name:'バランス型', ico:'⚖️', desc:'ペア・革命に、場を流す連火と続けて出す連撃。場とターンを攻めで支配する万能型。', nameVi:'Cân Bằng', descVi:'Đôi, Cách mạng, cùng Liên Hỏa dọn bãi và Liên Kích đánh tiếp. Áp đảo cả bãi lẫn lượt.',
@@ -2344,8 +2353,8 @@ const RL = (function(){
     { id:'tidy', name:'手札整理型', ico:'🧹', desc:'三重で同じ数字を巻き込み、ためた気で投棄を発動して弱札を処分、共鳴で1枚多く捨てる。手札を一気に削り切る。', nameVi:'Dọn Bài', descVi:'Tam trùng kéo lá cùng số; nạp năng lượng rồi kích Vứt Bỏ xả lá yếu, cộng hưởng bỏ thêm 1 lá. Dọn sạch bài thật nhanh.',
       spec:{ rank:{'6':['mi03']}, rule:['mi09','ki01'] } },
     { id:'jp',   name:'日本式',     ico:'🎴', desc:'ペア/トリプル・革命・全マーク同種階段・8切り・スペ3返し・全マーク縛り。基準＝コスト100。', nameVi:'Kiểu Nhật', descVi:'Đôi/sám, Cách mạng, sảnh đồng chất mọi chất, chặt 8, bích 3 chặn 2, khóa mọi chất. Chuẩn = chi phí 100.',
-      spec:{ rule:['set2','set3','aka05'], rank:{'8':['aka01']},
-             suit:{'S':['mi06','aka04','aka07'], 'H':['mi06','aka04'], 'D':['mi06','aka04'], 'C':['mi06','aka04']} } },
+      spec:{ rule:['set2','set3','aka05'],
+             suit:{'S':['mi06','aka15','aka04','aka07'], 'H':['mi06','aka15','aka04'], 'D':['mi06','aka15','aka04'], 'C':['mi06','aka15','aka04']} } },
     { id:'vn',   name:'ベトナム式', ico:'🐉', desc:'ペア/トリプル・全マーク自由階段・ボム・スート順に、英雄(2四枚で即勝ち)と弱者(♠3で先手)を添えた本来のベトナムルール。', nameVi:'Kiểu Việt', descVi:'Đôi/sám, sảnh tự do mọi chất, chặt heo, thứ tự chất, thêm Anh Hùng (tứ quý heo thắng ngay) và Kẻ Yếu (♠3 đi trước). Luật Việt nguyên bản.',
       spec:{ rule:['set2','set3','aka06','ao05','aka08','ao06'],
              suit:{'S':['mi05'], 'H':['mi05'], 'D':['mi05'], 'C':['mi05']} } },
@@ -2573,7 +2582,7 @@ const RL = (function(){
 
     // 出した全札のエンブレムと効果(複数枚は union)
     const playedEmblems = [];
-    cards.forEach(c=> emblemsForCard(build, c).forEach(eid=> playedEmblems.push({eid, card:c})));
+    cards.forEach(c=> emblemsForCard(build, c).forEach(eid=>{ if(emblemFiresOnCard(eid, c)) playedEmblems.push({eid, card:c}); }));
     const effs = []; playedEmblems.forEach(pe=> effList(emblem(pe.eid)).forEach(eff=>{ if(!effs.includes(eff)) effs.push(eff); }));
     const firstWith = (eff)=>{ const pe=playedEmblems.find(x=> effList(emblem(x.eid)).includes(eff)); return pe? pe.eid : null; };
 
@@ -2601,20 +2610,25 @@ const RL = (function(){
     // 両方あれば無条件側を優先。
     const playedSuits = combo.cards.map(c=> c.suit);
     if(combo.type!=='single') playedSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0)); // set/run とも並び順非依存で照合
+    let nextSuitLock = state.field.suitLock ? (Array.isArray(state.field.suitLock) ? state.field.suitLock.slice() : [state.field.suitLock]) : null;
+    let lockFired = false;
     if(fieldCombo2.split){
-      state.field.suitLock = null;   // 分裂(疑似ペア)は実在しないスート構成＝縛りを掛けると誰も照合できないため発生させない
+      // 分裂(疑似ペア)は実在しないスート構成＝新しい縛りは掛けない。既存の縛りは場流しまで維持する。
     } else if(effs.includes('LOCK_SUIT_PLAYED')){
-      state.field.suitLock = playedSuits;
+      nextSuitLock = playedSuits;
+      lockFired = true;
     } else if(effs.includes('LOCK_SUIT') && prevFieldCombo){
       const fieldSuits = prevFieldCombo.cards.map(c=> c.suit);
       if(combo.type!=='single') fieldSuits.sort((a,b)=> (SUIT_STRENGTH[a]||0)-(SUIT_STRENGTH[b]||0));
       const suitsMatch = playedSuits.length===fieldSuits.length && playedSuits.every((s,i)=> s===fieldSuits[i]);
-      state.field.suitLock = suitsMatch ? playedSuits : null;
-    } else {
-      state.field.suitLock = null;
+      if(suitsMatch){
+        nextSuitLock = playedSuits;
+        lockFired = true;
+      }
     }
+    state.field.suitLock = nextSuitLock;
     state.field.reverseCompare = effs.includes('REVERSE_CMP');
-    if(state.field.suitLock)           events.push({kind:'emb', emb:firstWith('LOCK_SUIT_PLAYED')||firstWith('LOCK_SUIT')});
+    if(lockFired)                      events.push({kind:'emb', emb:firstWith('LOCK_SUIT_PLAYED')||firstWith('LOCK_SUIT')});
     if(effs.includes('REVERSE_CMP'))   events.push({kind:'emb', emb:firstWith('REVERSE_CMP')});
 
     // 2.5) 革命: ルール有効かつ4枚役(クアッド)で強弱反転(次の革命まで持続)
@@ -2682,8 +2696,10 @@ const RL = (function(){
 
     // 5) フラグ
     // 3返し(CUT_TOP): 自分の単騎で場の最強単騎(2)を切り返したら、場を流して続けて出せる。
+    // 8切り(CUT_EIGHT): 装備スートの8を出したら、場を流して続けて出せる。
     const cutWin = effs.includes('CUT_TOP') && combo.type==='single' && wasTopSingleField;
-    const fClear = (effs.includes('CLEAR_FIELD') || cutWin) && !finishedNow;
+    const cutEight = effs.includes('CUT_EIGHT');
+    const fClear = (effs.includes('CLEAR_FIELD') || cutWin || cutEight) && !finishedNow;
     const fExtra = effs.includes('EXTRA_TURN')  && !finishedNow;
     const fSkip  = effs.includes('SKIP');
     const fRev   = effs.includes('REVERSE_DIR');
@@ -2692,6 +2708,7 @@ const RL = (function(){
     if(fieldCombo2.split)                events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
     if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
     if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
+    else if(cutEight)                    events.push({kind:'emb', emb:firstWith('CUT_EIGHT')});    // 8切りの場流し
     else if(cutWin)                      events.push({kind:'emb', emb:firstWith('CUT_TOP')});      // 3返しの場流し
     if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
@@ -2928,7 +2945,7 @@ const RL = (function(){
         if(eff.includes('SHED_STRONG')) bo-=0.6;                                // 最強札を失うコスト(放出)。場流しの得を一部相殺＝弱札への盲目的な放出を抑止
         if(eff.includes('CARRY_SAME')||eff.includes('CARRY_NEIGHBOR')) bo+=0.8; // 関連札を1枚同時に手放す
         if(eff.includes('CARRY_TWO_SAME')||eff.includes('CARRY_RUN')) bo+=1.5;  // 最大2枚同時に手放す
-        if(eff.includes('CLEAR_FIELD')||eff.includes('EXTRA_TURN')) bo+=1.2; // 場流し/連撃で主導権
+        if(eff.includes('CLEAR_FIELD')||eff.includes('CUT_EIGHT')||eff.includes('EXTRA_TURN')) bo+=1.2; // 場流し/連撃で主導権
         if(eff.includes('SKIP')) bo+=0.5;                                       // 飛ばし
         if(eff.includes('CHOOSE_NEXT')) bo+=0.4;                                // 指名: 次に出す人を選べる主導権
         if(eff.includes('CUT_TOP')) bo+=2.2;                                    // 3返し: 最強単騎を奪える価値は大
@@ -2952,7 +2969,7 @@ const RL = (function(){
       // リード: 連火/連撃を持つ“実効的に最弱”の単騎でテンポを取る → なければ評価関数で最良の役。ボムは温存。
       //   放出(CLEAR_FIELD+SHED_STRONG)は最強札を失うデメリット付きなので“純テンポ”扱いから除外し、leadScore で損得を込みで評価。
       const tempo = moves.filter(m=> m.type==='single'
-        && (hasEffect(build,m.cards[0],'CLEAR_FIELD')||hasEffect(build,m.cards[0],'EXTRA_TURN'))
+        && (hasEffect(build,m.cards[0],'CLEAR_FIELD')||hasEffect(build,m.cards[0],'CUT_EIGHT')||hasEffect(build,m.cards[0],'EXTRA_TURN'))
         && !hasEffect(build,m.cards[0],'SHED_STRONG'));
       if(tempo.length){
         chosen = tempo.slice().sort((a,b)=> comboRank(a)-comboRank(b))[0];
@@ -3021,8 +3038,16 @@ const RL = (function(){
       const g=newGame(defs.map(x=>({...x})),3);
       g.players[0].build.rankSlots['5']=['aka04'];
       g.field.combo=singleCombo({rank:'3',suit:'S'}); g.field.card={rank:'3',suit:'S'};
+      g.players[1].hand=[{rank:'K',suit:'S'},{rank:'K',suit:'H'}];
       const c5s=g.players[0].hand.find(c=>c.rank==='5'&&c.suit==='S');
-      if(c5s){ applyPlay(g,0,c5s,{}); ok('同スート上に出す→縛り発生', Array.isArray(g.field.suitLock)&&g.field.suitLock[0]==='S'); }
+      if(c5s){
+        applyPlay(g,0,c5s,{});
+        ok('同スート上に出す→縛り発生', Array.isArray(g.field.suitLock)&&g.field.suitLock[0]==='S');
+        applyPlay(g,1,{rank:'K',suit:'S'},{});
+        ok('縛り: 同スートで返しても場流しまで継続', Array.isArray(g.field.suitLock)&&g.field.suitLock[0]==='S');
+        g.turn=2; applyPass(g,2); applyPass(g,3); applyPass(g,0);
+        ok('縛り: 場が流れると解除', g.field.suitLock===null && fieldCombo(g)===null);
+      }
       else ok('縛り発動テスト(5♠なしスキップ)', true);
       // ♥の場に♠で返す → 縛り不発
       const g2=newGame(defs.map(x=>({...x})),3);
@@ -3271,6 +3296,33 @@ const RL = (function(){
     ok('3返しはsuitスロット可', RL.canScope('aka07','suit')===true);
     ok('3返しはrank=3スロット不可(suitOnly)', RL.canScope('aka07','rank','3')===false);
     ok('3返しはrule枠不可', RL.canScope('aka07','rule')===false);
+    // 37c 8切り(CUT_EIGHT): 装備したマークの8を出すと場を流して自分が続行
+    (()=>{ const b=buildFrom({suit:{S:['aka15']}});
+      const g=newGame(seat0(b), 232);
+      g.players[0].hand=[{rank:'8',suit:'S'},{rank:'K',suit:'S'}];
+      g.field.combo=singleCombo({rank:'7',suit:'H'}); g.field.card=g.field.combo.key; g.field.ownerIndex=1; g.turn=0; g.passed=[];
+      applyPlay(g,0,{rank:'8',suit:'S'},{});
+      ok('8切り: 装備スートの8で場が流れる', g.field.card===null);
+      ok('8切り: 場流し後は自分が続けてリード', g.turn===0);
+      const g2=newGame(seat0(b), 233);
+      g2.players[0].hand=[{rank:'8',suit:'H'},{rank:'K',suit:'S'}];
+      g2.field.combo=singleCombo({rank:'7',suit:'S'}); g2.field.card=g2.field.combo.key; g2.field.ownerIndex=1; g2.turn=0; g2.passed=[];
+      applyPlay(g2,0,{rank:'8',suit:'H'},{});
+      ok('8切り: 未装備スートの8では場が流れない', g2.field.card!==null);
+      const g3=newGame(seat0(b), 234);
+      g3.players[0].hand=[{rank:'K',suit:'S'},{rank:'A',suit:'S'}];
+      g3.field.combo=singleCombo({rank:'Q',suit:'H'}); g3.field.card=g3.field.combo.key; g3.field.ownerIndex=1; g3.turn=0; g3.passed=[];
+      applyPlay(g3,0,{rank:'K',suit:'S'},{});
+      ok('8切り: 装備スートでも8以外では場が流れない', g3.field.card!==null);
+      ok('8切りはsuitスロット専用', RL.canScope('aka15','suit')===true && RL.canScope('aka15','rank','8')===false && RL.canScope('aka15','rule')===false);
+    })();
+    (()=>{ const jp=presetBuild('jp'), ids=[];
+      for(const r in jp.rankSlots) jp.rankSlots[r].forEach(id=>ids.push(id));
+      for(const s in jp.suitSlots) jp.suitSlots[s].forEach(id=>ids.push(id));
+      (jp.ruleSlots||[]).forEach(id=>ids.push(id));
+      ok('日本式: 連火を外して8切りを採用', !ids.includes('aka01') && ids.filter(id=>id==='aka15').length===4);
+      ok('日本式: コスト100維持', buildCost(jp)===100);
+    })();
     // 38 プリセット: 妥当な役構成 & 予算内
     ok('プリセット全種が予算内', PRESETS.every(p=> buildCost(presetBuild(p.id))<=CONFIG.MAX_BUILD_COST));
     // 39 全役入りビルドの自己対戦が完走(決定論)
@@ -3836,7 +3888,7 @@ const AUDIO = (function(){
   };
   // エンブレムid → ボイス。未登録は 'set'(軽い確定音)へフォールバックするので全idを安全にカバー。
   const EMB_VOICE = {
-    aka01:'fire', aka14:'fire', ki02:'fire',
+    aka01:'fire', aka14:'fire', aka15:'fire', ki02:'fire',
     aka03:'flip', ao03:'flip',
     aka04:'lock', ao04:'aim',
     aka05:'revolution',
@@ -3884,7 +3936,7 @@ const AUDIO = (function(){
   const SAVE_KEY = 'rule_v1';
   // ★v0.17: クイック/オンの初期解放 と 巡業の初期所持 を同一セットへ統一(=巡業の初期エンブレムを「獲得済み」として扱う)。
   //   残りはエンブレム巡業のドラフトで永続解放する＝「巡業で取得したエンブレムだけクイック/オンで使える」。
-  const BASE_UNLOCKED = ['aka01','ki01','ao01','aka04'];
+  const BASE_UNLOCKED = ['aka01','aka15','ki01','ao01','aka04'];
   // 隠しエンブレム(弱ボム aka06b 等)を除いた「収集可能な」エンブレム総数。コレクション率の分母に使う
   //   (隠しは解放経路に乗らない＝分母に含めると永久に100%へ到達できないため)。
   const VISIBLE_EMB_TOTAL = RL.EMBLEMS.filter(e=>!e.hidden).length;
