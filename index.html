@@ -406,6 +406,8 @@
   .palette .emb.rndfix::after{ content:'🎲'; position:absolute; top:-14px; left:-10px; font-size:34px; font-weight:900; line-height:1;
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
   .palette .emb.rndfix .nm{ color:#6b4d00; }
+  .palette .emb.rndfix.off{ background:linear-gradient(180deg,#f0f1f6,#dadde8); border-color:#8e94aa; box-shadow:0 0 0 4px rgba(120,126,150,.32), 0 4px 10px rgba(0,0,0,.12); opacity:.86; }
+  .palette .emb.rndfix.off .nm{ color:#626879; }
   .palette .emb .badge.rnd{ background:#b8860b; }
 
   /* 詳細ペイン：フォーカス中の“ひとつ”だけを大きく説明する＝選択した時だけ情報を出す。 */
@@ -458,6 +460,7 @@
   .bchip .sk{ background:#fff; color:var(--ink); border-radius:8px; padding:1px 8px; font-size:29px; }
   .bchip .bi{ font-size:32px; font-weight:900; letter-spacing:0; }
   .bchip.more{ background:#3a4170; padding:3px 12px; }
+  .slot .e.rnd.off{ filter:grayscale(1); opacity:.45; text-decoration:line-through; }
   .opp .builds .no-emb, #s-match .selfbar .builds .no-emb{ color:#cdd6ff; font-size:24px; font-weight:800; }
   .opp .place{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:46px; font-weight:900; color:#fff; text-shadow:0 3px 8px #000; }
 
@@ -4113,11 +4116,14 @@ const AUDIO = (function(){
       /* 確認ダイアログ(新規巡業で中断データを上書きする前) */
       confirm_newrun_title:'新しい巡業をはじめる？', confirm_cancel:'やめる', confirm_newrun_ok:'新しくはじめる',
       confirm_newrun_body:'中断中の巡業（深度{0}・残機{1}）があります。<br>新しくはじめると、この中断データは<b style="color:#d34;">消えます</b>。<br><span style="font-size:25px;">※ 続きをやるなら「やめる」→「巡業再開」から</span>',
-      rnd_tag:'ランダム',
+      rnd_tag:'ランダム', rnd_off_tag:'ランダムOFF',
       toast_rand_dup:'この枠にはランダムで付与済み（別の数字／マークには付けられます）',
       toast_rand_fixed:'🎲 巡業で獲得したランダム枠。この枠に固定で、はずせません',
       act_rand_fixed:'🎲 ランダム獲得（この枠に固定・操作不可）',
-      row_cost_rnd:'コスト：なし（ランダム獲得）',
+      act_rand_remove:'🎲 ランダム獲得を外す（{0}）',
+      act_rand_equip:'🎲 ランダム獲得を入れる（{0}）',
+      row_cost_rnd:'コスト：なし（ランダム獲得・ON）',
+      row_cost_rnd_off:'コスト：なし（ランダム獲得・OFF）',
       /* オンライン: スタイル装填(未解放でも選べる) */
       style_pick:'スタイルを選ぶ（未解放でもOK）', style_jp:'日本式', style_vn:'ベトナム式', style_note:'※ ワンタップで装填・自分で編成も可',
       /* 巡業しゅうりょう */
@@ -4161,7 +4167,7 @@ const AUDIO = (function(){
       rest_choose:'休憩：ひとつ選ぶ',
       rest_pick_heal:'残機を回復', rest_pick_heal_ds:'残機 +1（上限まで）',
       rest_pick_budget:'次戦コスト +10', rest_pick_budget_ds:'次の対戦だけ編成容量を増やす',
-      rest_pick_discount:'半額を引き直す', rest_pick_discount_ds:'今だけ半額の対象を変える',
+      rest_pick_discount:'半額を引き直す', rest_pick_discount_ds:'現在：{0} ／ 半額の対象を変える',
       rest_healed:'🛏 休憩：残機 +1（残機 {0}）', rest_full:'🛏 ひと息ついた（残機は満タン）',
       rest_budget:'🪙 次の対戦だけ コスト容量 +10',
       rest_discount:'💸 半額対象を「{0}」に変更',
@@ -4350,11 +4356,14 @@ const AUDIO = (function(){
       /* Hộp thoại xác nhận (trước khi ghi đè dữ liệu lữ hành đang tạm dừng) */
       confirm_newrun_title:'Bắt đầu lữ hành mới?', confirm_cancel:'Hủy', confirm_newrun_ok:'Bắt đầu mới',
       confirm_newrun_body:'Đang có lữ hành tạm dừng (Tầng {0} · Mạng {1}).<br>Nếu bắt đầu mới, dữ liệu này sẽ <b style="color:#d34;">bị xóa</b>.<br><span style="font-size:25px;">※ Muốn chơi tiếp thì chọn “Hủy” → “Tiếp tục”</span>',
-      rnd_tag:'Ngẫu nhiên',
+      rnd_tag:'Ngẫu nhiên', rnd_off_tag:'Ngẫu nhiên OFF',
       toast_rand_dup:'Ô này đã có biểu tượng ngẫu nhiên (ô khác vẫn gắn được)',
       toast_rand_fixed:'🎲 Ô ngẫu nhiên nhận khi lữ hành. Cố định ở ô này, không gỡ được',
       act_rand_fixed:'🎲 Nhận ngẫu nhiên (cố định ô này · không thao tác được)',
-      row_cost_rnd:'Chi phí: không (nhận ngẫu nhiên)',
+      act_rand_remove:'🎲 Tắt biểu tượng ngẫu nhiên ({0})',
+      act_rand_equip:'🎲 Bật biểu tượng ngẫu nhiên ({0})',
+      row_cost_rnd:'Chi phí: không (ngẫu nhiên · ON)',
+      row_cost_rnd_off:'Chi phí: không (ngẫu nhiên · OFF)',
       /* Trực tuyến: nạp phong cách (chưa mở khóa vẫn chọn được) */
       style_pick:'Chọn phong cách (chưa mở khóa vẫn được)', style_jp:'Kiểu Nhật', style_vn:'Kiểu Việt', style_note:'※ Nạp 1 chạm · vẫn tự cấu hình được',
       runover_best:' 🎉 Kỷ lục mới!', runover_head:'Kết thúc Lữ hành', runover_ok:'Về Menu',
@@ -4395,7 +4404,7 @@ const AUDIO = (function(){
       rest_choose:'Nghỉ: chọn 1',
       rest_pick_heal:'Hồi mạng', rest_pick_heal_ds:'Mạng +1 (tới giới hạn)',
       rest_pick_budget:'Ngân sách +10 trận kế', rest_pick_budget_ds:'Chỉ trận kế tăng sức chứa cấu hình',
-      rest_pick_discount:'Đổi mục nửa giá', rest_pick_discount_ds:'Đổi biểu tượng được nửa giá lúc này',
+      rest_pick_discount:'Đổi mục nửa giá', rest_pick_discount_ds:'Hiện tại: {0} / đổi biểu tượng nửa giá',
       rest_healed:'🛏 Nghỉ: Mạng +1 (Mạng {0})', rest_full:'🛏 Nghỉ ngơi (mạng đã đầy)',
       rest_budget:'🪙 Riêng trận kế: ngân sách +10',
       rest_discount:'💸 Đổi nửa giá sang "{0}"',
@@ -5350,7 +5359,8 @@ const AUDIO = (function(){
     };
     if(run.lives<maxLives) add('heal', T('rest_pick_heal'), T('rest_pick_heal_ds'));
     add('budget', T('rest_pick_budget'), T('rest_pick_budget_ds'));
-    add('discount', T('rest_pick_discount'), T('rest_pick_discount_ds'));
+    const dn=discountName() || '-';
+    add('discount', T('rest_pick_discount'), T('rest_pick_discount_ds', dn));
   }
   function restPick(kind){
     const run=MODE.run; if(!run || restResolved) return;
@@ -6150,7 +6160,7 @@ const AUDIO = (function(){
         ids.forEach(id=>{ const e=RL.emblem(id);
           wrap.appendChild(el('div','e '+RL.COLORS[e.color].cls, embMark(e)+' '+embName(e))); });
         rnd.forEach(id=>{ const e=RL.emblem(id);
-          const c=el('div','e rnd '+RL.COLORS[e.color].cls, embMark(e)+' '+embName(e));
+          const c=el('div','e rnd '+RL.COLORS[e.color].cls+(isRandomOff(MODE.run,id,type,key)?' off':''), embMark(e)+' '+embName(e));
           c.appendChild(el('span','rndtag', T('rnd_tag')));   // 役ルール枠は幅があるので「ランダム」表記も添える
           wrap.appendChild(c); });
       } else {
@@ -6160,7 +6170,7 @@ const AUDIO = (function(){
           es.appendChild(el('div','e '+RL.COLORS[e.color].cls, embMark(e))); });
         if(ids.length > SLOT_ICON_MAX) es.appendChild(el('div','e more', '+'+(ids.length-SLOT_ICON_MAX)));
         rnd.forEach(id=>{ const e=RL.emblem(id);                         // ランダムは金枠で常に表示(少数なので丸めない)
-          es.appendChild(el('div','e rnd '+RL.COLORS[e.color].cls, embMark(e))); });
+          es.appendChild(el('div','e rnd '+RL.COLORS[e.color].cls+(isRandomOff(MODE.run,id,type,key)?' off':''), embMark(e))); });
         wrap.appendChild(es);
       }
     } else {
@@ -6241,7 +6251,7 @@ const AUDIO = (function(){
     AUDIO.move();
     // 付けられるエンブレムの先頭へフォーカス(キーボード/パッドでも即操作)
     setTimeout(()=>{
-      const first = focusables().find(x=> x.classList.contains('emb') && !x.classList.contains('locked') && !x.classList.contains('rndfix')) || focusables()[0];
+      const first = focusables().find(x=> x.classList.contains('emb') && !x.classList.contains('locked')) || focusables()[0];
       setFocus(first||null);
     }, 0);
   }
@@ -6291,15 +6301,16 @@ const AUDIO = (function(){
     // ★この枠に付いている巡業ランダムエンブレムは金色タイルで先頭に表示(名前・効果を読める)。選択は不可。
     randHere.forEach(id=>{
       const e=RL.emblem(id); const col=RL.COLORS[e.color];
-      const card=el('div','emb foc rndfix');
+      const off=isRandomOff(MODE.run,id,sel.type,sel.key);
+      const card=el('div','emb foc rndfix'+(off?' off':''));
       card.dataset.eid=id; card.dataset.rndfix='1';
       card.style.borderLeft='10px solid '+col.hex;
       card.innerHTML =
-        '<span class="badge rnd">'+T('rnd_tag')+'</span>'+
+        '<span class="badge rnd">'+T(off?'rnd_off_tag':'rnd_tag')+'</span>'+
         '<div class="thd"><span class="ico">'+embMark(e)+'</span></div>'+
         '<div class="nm">'+embName(e)+'</div>';
       card.onclick=()=>{
-        if(focusedEl===card){ AUDIO.bad(); toast(T('toast_rand_fixed'),'#b8860b'); }
+        if(focusedEl===card) toggleEquip(id);
         else { setFocus(card); AUDIO.move(); }
       };
       p.appendChild(card);
@@ -6380,8 +6391,9 @@ const AUDIO = (function(){
     const placeTxt = e.suitOnly ? T('place_suit_only') : e.rankLock ? T('slot_disp_rank', e.rankLock.join('/'))+'のみ' : pl==='whole' ? T('place_whole') : pl==='suitRun' ? T('place_suitRun') : T('place_card');
     const where = sel.type==='suit'?RL.SUIT_SYM[sel.key]:sel.type==='rule'?T('where_rule'):sel.key;
     const banned=bannedIdSet().has(id);   // ★v0.22 メタ崩壊: 封じ中は効果を読めるが装備不可
+    const rndOff = rndFixed && isRandomOff(MODE.run,id,sel.type,sel.key);
     let act, actCls='';
-    if(rndFixed){ act=T('act_rand_fixed'); actCls=' rnd'; }   // 巡業ランダム獲得分: 効果は読めるが操作不可
+    if(rndFixed){ act=T(rndOff?'act_rand_equip':'act_rand_remove', actKey('decide')); actCls=' rnd'; }   // 巡業ランダム獲得分: ON/OFFできる
     else if(banned){ act=T('act_banned'); actCls=' no'; }
     else if(!allowed){ const rlk=e.rankLock; act=rlk ? T('act_cannot', T('slot_disp_rank', rlk.join('/'))) : T('act_cannot', placeTxt); actCls=' no'; }
     else if(here){ act=T('act_equipped', actKey('decide')); }
@@ -6392,16 +6404,16 @@ const AUDIO = (function(){
       +'<div class="dt-name">'+embName(e)+'</div>'
       +'<div class="dt-desc">'+embDesc(e)+'</div>'
       +'<div class="dt-rows"><div class="dt-row">'+T('row_place', placeTxt)+'</div>'
-        +'<div class="dt-row">'+(rndFixed ? T('row_cost_rnd') : T('row_cost', cst))+'</div></div>'
+        +'<div class="dt-row">'+(rndFixed ? T(rndOff?'row_cost_rnd_off':'row_cost_rnd') : T('row_cost', cst))+'</div></div>'
       +'<div class="dt-spacer"></div>'
       +'<div class="dt-act'+actCls+'" id="dt-act">'+act+'</div>';
-    const hint = (rndFixed || banned)
+    const hint = banned
       ? T('hint_emb_no', actKey('back'))
       : allowed
-      ? T('hint_emb_ok', here?T('emb_remove'):T('emb_equip'), actKey('decide'), actKey('back'))
+      ? T('hint_emb_ok', rndFixed ? T(rndOff?'emb_equip':'emb_remove') : (here?T('emb_remove'):T('emb_equip')), actKey('decide'), actKey('back'))
       : T('hint_emb_no', actKey('back'));
-    // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない/ランダム固定/封じ中は null。
-    return {html, hint, actId: (allowed && !rndFixed && !banned) ? id : null};
+    // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない/封じ中は null。
+    return {html, hint, actId: (allowed && !banned) ? id : null};
   }
   function detailForSlot(type,key){
     const b=buildState.build;
@@ -6428,8 +6440,12 @@ const AUDIO = (function(){
     const sel=buildState.selSlot, b=buildState.build;
     // ★v0.22 メタ崩壊: この深度で封じられたエンブレムは装備できない(別の枠でも不可)。
     if(bannedIdSet().has(id)){ AUDIO.bad(); toast(T('toast_banned', embName(RL.emblem(id))),'#ff5252'); return; }
-    // 巡業のランダムが「この枠」に付いている同idだけ手で重ねられない(別レイヤー固定枠)。別の枠には付けられる。
-    if(randIdsFor(sel.type, sel.key).includes(id)){ AUDIO.bad(); toast(T('toast_rand_dup'),'#ff7043'); return; }
+    // 巡業のランダムが「この枠」に付いている同idは、獲得自体は残したままON/OFFを切り替える。
+    if(randIdsFor(sel.type, sel.key).includes(id)){
+      if(toggleRandomEmblemSlot(MODE.run, id, sel.type, sel.key)){
+        AUDIO.back(); renderBuild(); refocusPaletteOn(id); return;
+      }
+    }
     // 全体ルール枠(whole): 複数装備可(1枠に並べる)。
     if(sel.type==='rule'){
       const arr=b.ruleSlots;
@@ -6736,6 +6752,18 @@ const AUDIO = (function(){
     const rb=MODE.run.randomBuild;
     return type==='rule' ? (rb.ruleSlots||[]) : type==='rank' ? (rb.rankSlots[key]||[]) : (rb.suitSlots[key]||[]);
   }
+  function randomSlotKey(id, type, key){ return type+':'+key+':'+id; }
+  function randomOffSet(run){ return new Set((run && Array.isArray(run.randomOff)) ? run.randomOff : []); }
+  function isRandomOff(run, id, type, key){ return randomOffSet(run).has(randomSlotKey(id, type, key)); }
+  function toggleRandomEmblemSlot(run, id, type, key){
+    if(!run) return false;
+    const k=randomSlotKey(id, type, key);
+    const set=randomOffSet(run);
+    if(set.has(k)) set.delete(k); else set.add(k);
+    run.randomOff=Array.from(set);
+    store.saveRun(run, MODE.mutator);
+    return true;
+  }
   // 通常ビルドの「指定スロットだけ」から同idをはずす(per-slot方針＝別の枠に手で付けた同idは残す)。
   function removeIdFromSlot(build, id, type, key){
     const arr = type==='rule' ? build.ruleSlots : (type==='rank' ? (build.rankSlots[key]||[]) : (build.suitSlots[key]||[]));
@@ -6781,6 +6809,7 @@ const AUDIO = (function(){
     removeIdFromSlot(run.build, id, slot.type, slot.key);                 // 「同じ枠」に手で付けていた同idだけ外す(別の枠は残す)
     const arr=slot.type==='rule' ? rb.ruleSlots : (slot.type==='rank' ? rb.rankSlots[slot.key] : rb.suitSlots[slot.key]);
     arr.push(id);
+    run.randomOff=(run.randomOff||[]).filter(k=>k!==randomSlotKey(id, slot.type, slot.key));
     return {id, slot};
   }
   // 報酬演出用ラベル「J に ⚡ クリティ…」(スロット表記＋アイコン＋名前)。
@@ -6795,9 +6824,9 @@ const AUDIO = (function(){
     const b=cloneBuild(MODE.run.build);
     const rb=MODE.run.randomBuild;
     if(rb){
-      RL.DISPLAY_RANKS.forEach(r=> b.rankSlots[r]=(b.rankSlots[r]||[]).concat(rb.rankSlots[r]||[]));
-      RL.SUITS.forEach(s=> b.suitSlots[s]=(b.suitSlots[s]||[]).concat(rb.suitSlots[s]||[]));
-      b.ruleSlots=(b.ruleSlots||[]).concat(rb.ruleSlots||[]);
+      RL.DISPLAY_RANKS.forEach(r=> b.rankSlots[r]=(b.rankSlots[r]||[]).concat((rb.rankSlots[r]||[]).filter(id=>!isRandomOff(MODE.run,id,'rank',r))));
+      RL.SUITS.forEach(s=> b.suitSlots[s]=(b.suitSlots[s]||[]).concat((rb.suitSlots[s]||[]).filter(id=>!isRandomOff(MODE.run,id,'suit',s))));
+      b.ruleSlots=(b.ruleSlots||[]).concat((rb.ruleSlots||[]).filter(id=>!isRandomOff(MODE.run,id,'rule','rule')));
     }
     // ★v0.22 メタ崩壊: 封じられたエンブレムは対戦ビルドから除去(エンジンは封じ札を一切見ない＝決定論/正調ミラー不変)。
     const ban=bannedIdSet();
@@ -6934,7 +6963,7 @@ const AUDIO = (function(){
     const myTag=(typeof NET!=='undefined'&&NET.active)?(' <span style="font-size:22px;color:#9fd9a8;">('+me.name+')</span>'):'';
     const myLow = (!me.finished && me.hand.length<=3) ? ' low' : '';
     $('#self-name').innerHTML=T('you')+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+chargeHTML(me)+(me.finished?paren(placeLabel(me.place)):'');
-    const sb=$('#self-builds'); sb.innerHTML = buildChipsHTML(me.build, 16);   // 自分バーは1行・幅広め(16個まで、残りは +N)
+    const sb=$('#self-builds'); sb.innerHTML = buildChipsHTML(me.build, 6);   // 自分バーも相手枠と同じく 6 個まで、残りは +N
     renderHand();
     renderActions();
   }
