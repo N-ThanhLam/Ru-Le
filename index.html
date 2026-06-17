@@ -7422,8 +7422,8 @@ const AUDIO = (function(){
     // ★v0.28 Heat×昂りの追加報酬＝ランダムエンブレムを"足すだけ"(基本報酬は不変・無双スノーボールを加速[[project_ru_le_muso_process]])。
     //   1位のみ発火。extra = floor(Heat/2)+floor(昂り/2) を上限3で付与。reward 行に🔥バナーを追記。
     const heatN = heatOf(run);
-    if(place===1 && (heatN>0 || (run.momentum||0)>=2)){
-      const extra = Math.min(HEAT_REWARD_CAP, Math.floor(heatN/2) + Math.floor((run.momentum||0)/2));
+    if(place===1 && (heatN>0 || (run.momentum||0)>=4)){
+      const extra = Math.min(HEAT_REWARD_CAP, Math.floor(heatN/2) + Math.floor((run.momentum||0)/4));
       let hg=0; for(let i=0;i<extra;i++){ if(grantRandomEmblem(run)) hg++; }
       if(hg>0){
         const hline = T('reward_heat_line', heatN, run.momentum||0, hg);
