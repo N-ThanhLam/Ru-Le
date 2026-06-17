@@ -1871,9 +1871,9 @@ const RL = (function(){
     //   8切り(aka15): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「8」で場を流す。
     { id:'aka15', code:'赤15', color:'aka', name:'8切り', cost:5, suitCost:5, ico:'8️⃣', effect:'CUT_EIGHT', place:'card', suitOnly:true, condRank:'8', desc:'装備したマークの「8」を出すと場を流して、続けてもう一度出せる。', nameVi:'Chặt 8', abbrVi:'C.8', codeVi:'Đ15', descVi:'Đánh lá "8" thuộc chất đã gắn sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     // ───────── 青 (ao) — ターン操作 ─────────
-    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:15, suitCost:40, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được).' },
+    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:15, suitCost:40, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。気を使える構成なら、出したときに気+1。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được). Nếu cấu hình dùng năng lượng, khi đánh sẽ +1 năng lượng.' },
     { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:23, suitCost:38, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
-    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:24, suitCost:35, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi.' },
+    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:24, suitCost:35, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。気を使える構成なら、出したときに気+2。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu cấu hình dùng năng lượng, khi đánh sẽ +2 năng lượng.' },
     { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:22, suitCost:32, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
@@ -2393,7 +2393,7 @@ const RL = (function(){
     const players = playerDefs.map((p,i)=>({
       id:i, name:p.name, isHuman:!!p.isHuman,
       build:normalizeBuild(p.build), hand:[], finished:false, place:null,
-      charge:0                                    // リアクション(後出し)用チャージ。札を出すと貯まる。反撃を持つ席のみ増える(他席は常に0)。
+      charge:0                                    // 気チャージ。基本はパスで貯まり、加速/逆流は気構成時だけ追加で貯まる。
     }));
     // 配札: 通常は全52枚を均等。SHORT(短期決戦)は各自 handCount 枚で残りは場外(未使用)。
     const handCount = mutatorHandCount(mut);
@@ -2717,6 +2717,10 @@ const RL = (function(){
     if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
     if(fRev)  events.push({kind:'emb', emb:firstWith('REVERSE_DIR')});
+    if(rules.usesCharge && (fSkip || fRev)){
+      const gain = (fSkip ? 1 : 0) + (fRev ? 2 : 0);
+      p.charge = Math.min(rules.chargeCap||0, (p.charge||0) + gain);
+    }
     if(fSilence){ state.emblemSilence = { owner:playerIndex, armed:false }; events.push({kind:'emb', emb:firstWith('SILENCE_OTHERS')}); }
 
     // 弱者: 最初の1手(♠3込み)を出したら開始制約を解除。
@@ -2752,7 +2756,7 @@ const RL = (function(){
     setTurn(state, next);
     if(state.players[next]) state.players[next].freeActed = false;   // ★新しい手番に入る席=無料アクション(発動)の枠をリセット
     state.passCount = passedSet(state).length;   // 後方互換(表示用)。判定は passed/trickAlive に一本化。
-    // ★気(チャージ)は「出した時」ではなく「パスした時」に貯まる(applyPass を参照)。出すと貯まる旧仕様は廃止＝勝者(出せる人)が更に得をするスノーボールを避け、詰まった側に資源を回す。
+    // ★気(チャージ)は基本「パスした時」に貯まる(applyPass)。例外として加速/逆流は、気構成ならシナジーで少し貯まる。
     return { events, finishedNow };
   }
 
@@ -3608,6 +3612,18 @@ const RL = (function(){
       ok('受動撤去: 三重=CARRY_TWO_SAMEのみ', effList(emblem('mi03')).join()==='CARRY_TWO_SAME');
       ok('受動撤去: 流星=CARRY_RUNのみ', effList(emblem('mi04')).join()==='CARRY_RUN');
       ok('受動撤去: 掃除=SHED_WEAKのみ', effList(emblem('ki03')).join()==='SHED_WEAK');
+      const syn=buildFrom({rank:{'3':['ao01'],'4':['ao03']}, rule:['aka12']});
+      const sy=newGame(seat0(syn), 350);
+      sy.players[0].hand=[{rank:'3',suit:'S'},{rank:'4',suit:'S'},{rank:'K',suit:'S'}]; sy.players[0].charge=0;
+      applyPlay(sy,0,{rank:'3',suit:'S'},{});
+      ok('加速: 気構成なら出した時に気+1', sy.players[0].charge===1);
+      sy.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sy.passed=[]; sy.players[0].charge=0;
+      applyPlay(sy,0,{rank:'4',suit:'S'},{});
+      ok('逆流: 気構成なら出した時に気+2', sy.players[0].charge===2);
+      const syNo=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 351);
+      syNo.players[0].hand=[{rank:'3',suit:'S'},{rank:'K',suit:'S'}]; syNo.players[0].charge=0;
+      applyPlay(syNo,0,{rank:'3',suit:'S'},{});
+      ok('加速: 気なし構成ではチャージしない', (syNo.players[0].charge||0)===0);
       // 投棄/軽身/溜め火 = 溜め撃ち(activated, place=whole)
       ok('投棄=activated/whole', emblem('ki01').activated===true && placeOf('ki01')==='whole');
       ok('軽身=activated/whole', emblem('ki04').activated===true && placeOf('ki04')==='whole');
