@@ -1006,18 +1006,19 @@
   .mapnode.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; box-shadow:0 10px 28px rgba(0,0,0,.35); }
 
   /* ---- 休憩(宿敵レポート) ---- */
-  .rest-card{ width:min(1100px,92%); background:linear-gradient(160deg,#fff,#eef4ff); border:5px solid #26a69a; border-radius:24px; padding:30px 40px 34px; text-align:center; box-shadow:0 18px 40px rgba(0,0,0,.4); }
+  #s-rest .rest-card{ position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); max-height:calc(100% - 148px); overflow:auto; }
+  .rest-card{ width:min(1240px,94%); background:linear-gradient(160deg,#fff,#eef4ff); border:5px solid #26a69a; border-radius:24px; padding:30px 42px 34px; text-align:center; box-shadow:0 18px 40px rgba(0,0,0,.4); }
   .rest-card .rest-ico{ font-size:64px; line-height:1; }
-  .rest-card .rest-heal{ font-size:34px; font-weight:900; color:#1c7a6a; margin:8px 0 18px; }
-  .rest-choices{ display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin:0 auto 20px; max-width:980px; }
-  .rest-choice{ width:300px; min-height:108px; background:#fff; border:4px solid #26a69a; border-radius:14px; padding:12px 14px; color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; box-shadow:0 5px 0 #15746a; }
-  .rest-choice .rc-h{ font-size:27px; font-weight:900; }
-  .rest-choice .rc-d{ font-size:20px; font-weight:800; color:#4a557e; line-height:1.25; }
+  .rest-card .rest-heal{ font-size:38px; font-weight:900; color:#1c7a6a; margin:8px 0 18px; line-height:1.18; }
+  .rest-choices{ display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin:0 auto 20px; max-width:1120px; }
+  .rest-choice{ width:344px; min-height:128px; background:#fff; border:4px solid #26a69a; border-radius:14px; padding:13px 16px; color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; box-shadow:0 5px 0 #15746a; }
+  .rest-choice .rc-h{ font-size:31px; font-weight:900; line-height:1.08; }
+  .rest-choice .rc-d{ font-size:25px; font-weight:800; color:#4a557e; line-height:1.22; }
   .rest-choice.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; }
-  .rest-report{ background:#2a3055; border:3px solid #3c447a; border-radius:16px; padding:18px 24px; margin:0 auto 22px; max-width:860px; text-align:left; }
-  .rest-report .rr-h{ font-size:30px; font-weight:900; color:#ffd0c8; }
-  .rest-report .rr-rec{ font-size:26px; font-weight:800; color:#ffb4a0; margin:2px 0 10px; }
-  .rest-report .rr-l{ font-size:25px; color:#dfe5ff; line-height:1.4; margin:6px 0; }
+  .rest-report{ background:#2a3055; border:3px solid #3c447a; border-radius:16px; padding:20px 28px; margin:0 auto 22px; max-width:1040px; text-align:left; }
+  .rest-report .rr-h{ font-size:34px; font-weight:900; color:#ffd0c8; line-height:1.12; }
+  .rest-report .rr-rec{ font-size:29px; font-weight:800; color:#ffb4a0; margin:3px 0 10px; line-height:1.2; }
+  .rest-report .rr-l{ font-size:28px; color:#dfe5ff; line-height:1.34; margin:6px 0; }
 
   /* ---- ★v0.28 誓約(Pact / Heat)画面 ---- */
   .pactgrid{ display:flex; flex-wrap:wrap; gap:20px; align-items:stretch; justify-content:center; max-width:1540px; }
