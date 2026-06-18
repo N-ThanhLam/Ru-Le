@@ -967,7 +967,7 @@
   #s-result #result-btns{ margin-top:0; align-self:center; }
 
   /* ドラフト */
-  .draft{ display:flex; gap:26px; justify-content:center; }
+  .draft{ display:flex; flex-wrap:wrap; gap:26px; justify-content:center; }
   .draftcard{ width:380px; background:#fff; border:6px solid var(--line); border-radius:22px; padding:22px; display:flex; flex-direction:column; gap:12px; }
   .draftcard .code{ display:inline-flex; align-items:center; gap:10px; font-size:40px; font-weight:900; color:#fff; padding:6px 16px; border-radius:14px; align-self:flex-start; }
   .draftcard .nm{ font-size:36px; font-weight:900; }
@@ -1460,6 +1460,7 @@
         <h2 id="draft-head" data-i18n="draft_head">戦利品を1つ選ぶ</h2>
         <div class="draft" id="draft-cards"></div>
         <div class="rowbtns" style="margin-top:26px;">
+          <div class="btn small foc" id="draft-reroll" data-i18n="draft_reroll">リロード（残り0）</div>
           <div class="btn small ghost foc" id="draft-skip" data-i18n="draft_skip">受け取らずに進む</div>
         </div>
       </div>
@@ -4124,7 +4125,7 @@ const AUDIO = (function(){
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
       /* 巡業1位ボーナス(次戦のみコスト容量+25) */
-      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'次の対戦だけ コスト容量 +{0}',
+      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'ドラフト獲得 {0}枚',
       /* ドラフトの既得カード → ランダム獲得枠 */
       draft_random_code:'ランダム獲得', draft_random_nm:'ランダムなエンブレム',
       draft_random_ds:'所持済みのカードの代わりに、ランダムなエンブレムを1つ付与（この巡業だけ・コスト無関係）',
@@ -4156,7 +4157,7 @@ const AUDIO = (function(){
       digest_title_none:'名もなき旅路', digest_title_none_ds:'まだ色は薄い。でも次の一走で化ける。',
       digest_title_best:'この称号での最高：深度 {0}{1}',
       /* ドラフト */
-      draft_topbar:'エンブレム獲得 — 1つ選ぶ', draft_head:'戦利品を1つ選ぶ', draft_skip:'受け取らずに進む',
+      draft_topbar:'エンブレム獲得 — 1つ選ぶ', draft_topbar_n:'エンブレム獲得 — あと{0}枚', draft_head:'戦利品を1つ選ぶ', draft_head_n:'戦利品を選ぶ（あと{0}枚）', draft_skip:'受け取らずに進む', draft_reroll:'リロード（残り{0}）',
       draft_depth:'次は 深度 {0}{1}', draft_mut:'　／　お題 {0} {1}', draft_cost:'コスト {0} ／ {1} ／ {2}{3}',
       place_whole_short:'全体ルール', place_suitRun_short:'マーク階段', place_card_short:'数字/マーク',
       draft_owned:' ・所持済',
@@ -4165,9 +4166,9 @@ const AUDIO = (function(){
       map_hint:'分かれ道 — 次に進む先を選ぶ（先の道とボスも見える）',
       map_step_hd:'分岐 {0}', map_boss_hd:'★ ボス',
       node_battle:'通常戦', node_battle_ds:'ふつうの4人卓',
-      node_elite:'強敵戦', node_elite_ds:'宿敵が強化。勝てばランダム獲得＋次戦コスト+25',
+      node_elite:'強敵戦', node_elite_ds:'宿敵が強化。1位なら次戦の半額対象が2つになる',
       node_mutator:'お題戦', node_mutator_ds:'予告のお題で戦う',
-      node_gamble:'賭場', node_gamble_ds:'次の戦闘：1位ならランダムエンブレム+2、2位以下なら残機追加-1',
+      node_gamble:'賭場', node_gamble_ds:'次の戦闘：1位ならランダムエンブレム+1、2位以下なら残機追加-1',
       node_loot:'市（いち）', node_loot_ds:'戦わずにエンブレムを1つ獲得',
       node_rest:'休憩', node_rest_ds:'回復・次戦コスト+10・半額引き直しから1つ選ぶ',
       node_boss:'ボス', node_boss_ds:'宿敵の看板ルール＋強化。撃破で幕クリア・大報酬',
@@ -4190,8 +4191,8 @@ const AUDIO = (function(){
       rest_discount:'💸 半額対象を「{0}」に変更',
       rest_title:'休憩', rest_continue:'マップへすすむ ▶',
       rest_rival_tops:'宿敵が見たあなたの常用：{0}', rest_next_boss:'この幕のボス＝{0}〈{1}〉／看板：{2}', rest_boss_hint:'有効そう：{0}',
-      reward_elite_head:'🔥 強敵を撃破！', reward_elite_line:'ランダムエンブレム +{0}',
-      reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'ランダムエンブレム +{0} ／ 次戦コスト +25',
+      reward_elite_head:'🔥 強敵を撃破！', reward_elite_line:'次戦の半額対象 +{0}',
+      reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'ランダムエンブレム +{0}',
       reward_gamble_head:'🎰 賭場の勝ち分', reward_gamble_line:'ランダムエンブレム +{0}',
       reward_gamble_loss_head:'🎰 賭場のツケ', reward_gamble_loss_line:'残機 追加 -1',
       /* ヘルプ */
@@ -4257,13 +4258,13 @@ const AUDIO = (function(){
       net_kw_required:'合言葉を入れてください',
       /* ★v0.28 誓約(Pact / Heat) */
       pact_topbar:'誓約', pact_back:'◀ もどる',
-      pact_hint:'誓約を積むほど難度が上がり、その分ごほうび（ランダムエンブレム）が増える。積まなくてもよい。',
+      pact_hint:'誓約を積むほど難度が上がり、その分ドラフトのリロード回数と永続コストが増える。積まなくてもよい。',
       pact_heat:'🔥 段位 {0}',
-      pact_reward_prev:'段位 {0} ／ 1位ごとに ランダムエンブレム +{1}（連勝でさらに増）',
+      pact_reward_prev:'段位 {0} ／ 毎ドラフト リロード {1}回 ／ 永続コスト +{2}',
       pact_best:'（段位{0}の最高到達 深度{1}）',
       pact_start:'この誓約で巡業へ ▶', pact_start0:'誓約なしで巡業へ ▶', pact_add:'この誓約で次の幕へ ▶',
       pact_locked:'すでに誓った誓約は外せません',
-      reward_heat_head:'🔥 誓約のごほうび', reward_heat_line:'段位{0}＋昂り{1} → ランダムエンブレム +{2}',
+      reward_heat_head:'🔥 昂りボーナス', reward_heat_line:'昂り{1} → 次ドラフト選択肢 +{2}',
       runover_heat:'🔥 段位{0} で 深度{1} まで到達',
       pact_p_rev_ti:'天地無用',   pact_p_rev_ds:'毎戦ずっと逆位（弱い札しか出せない）。',
       pact_p_budget_ti:'緊縮',     pact_p_budget_ds:'編成コストが 12 減る。',
@@ -4364,7 +4365,7 @@ const AUDIO = (function(){
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
       /* Thưởng hạng 1 (chỉ trận kế: ngân sách +25) */
-      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Riêng trận kế: ngân sách +{0}',
+      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Nhận {0} lượt chọn draft',
       /* Thẻ đã có trong draft → ô Nhận ngẫu nhiên */
       draft_random_code:'Nhận ngẫu nhiên', draft_random_nm:'Biểu tượng ngẫu nhiên',
       draft_random_ds:'Thay cho thẻ đã có, nhận 1 biểu tượng ngẫu nhiên (chỉ lượt lữ hành này · không tính chi phí)',
@@ -4393,7 +4394,7 @@ const AUDIO = (function(){
       digest_title_clutch:'Người sống sót sát mép', digest_title_clutch_ds:'Đứng vững khi mạng chỉ còn rất ít.',
       digest_title_none:'Chuyến đi chưa đặt tên', digest_title_none_ds:'Màu sắc còn mờ, nhưng lượt sau có thể đổi khác.',
       digest_title_best:'Kỷ lục với danh hiệu này: Tầng {0}{1}',
-      draft_topbar:'Nhận Biểu Tượng — Chọn 1', draft_head:'Chọn 1 chiến lợi phẩm', draft_skip:'Bỏ qua, đi tiếp',
+      draft_topbar:'Nhận Biểu Tượng — Chọn 1', draft_topbar_n:'Nhận Biểu Tượng — còn {0} lượt', draft_head:'Chọn 1 chiến lợi phẩm', draft_head_n:'Chọn chiến lợi phẩm (còn {0} lượt)', draft_skip:'Bỏ qua, đi tiếp', draft_reroll:'Tải lại (còn {0})',
       draft_depth:'Kế tiếp: Tầng {0}{1}', draft_mut:'　/　Đề bài {0} {1}', draft_cost:'Chi phí {0} / {1} / {2}{3}',
       place_whole_short:'Luật bộ', place_suitRun_short:'Sảnh chất', place_card_short:'Số/Chất',
       draft_owned:' · Đã có',
@@ -4402,9 +4403,9 @@ const AUDIO = (function(){
       map_hint:'Ngã rẽ — Chọn nơi đi tiếp (thấy trước cả đường và boss)',
       map_step_hd:'Ngã rẽ {0}', map_boss_hd:'★ Boss',
       node_battle:'Trận thường', node_battle_ds:'Bàn 4 người thường',
-      node_elite:'Cường địch', node_elite_ds:'Địch thủ mạnh hơn. Thắng: nhận ngẫu nhiên + ngân sách trận kế +25',
+      node_elite:'Cường địch', node_elite_ds:'Địch thủ mạnh hơn. Hạng 1: trận kế có 2 mục nửa giá',
       node_mutator:'Trận đề bài', node_mutator_ds:'Đấu với đề bài đã báo trước',
-      node_gamble:'Sòng cược', node_gamble_ds:'Trận kế: hạng 1 nhận biểu tượng ngẫu nhiên +2, hạng 2 trở xuống mất thêm 1 mạng',
+      node_gamble:'Sòng cược', node_gamble_ds:'Trận kế: hạng 1 nhận biểu tượng ngẫu nhiên +1, hạng 2 trở xuống mất thêm 1 mạng',
       node_loot:'Chợ', node_loot_ds:'Không đấu, nhận 1 biểu tượng',
       node_rest:'Nghỉ', node_rest_ds:'Chọn 1: hồi mạng, ngân sách trận kế +10, hoặc đổi nửa giá',
       node_boss:'Boss', node_boss_ds:'Luật đặc trưng của địch thủ + mạnh hơn. Hạ được = qua màn, thưởng lớn',
@@ -4427,8 +4428,8 @@ const AUDIO = (function(){
       rest_discount:'💸 Đổi nửa giá sang "{0}"',
       rest_title:'Nghỉ ngơi', rest_continue:'Tới bản đồ ▶',
       rest_rival_tops:'Địch thủ thấy bạn hay dùng: {0}', rest_next_boss:'Boss màn này = {0}〈{1}〉/ Đặc trưng: {2}', rest_boss_hint:'Có vẻ hữu hiệu: {0}',
-      reward_elite_head:'🔥 Hạ cường địch!', reward_elite_line:'Biểu tượng ngẫu nhiên +{0}',
-      reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Biểu tượng ngẫu nhiên +{0} / Ngân sách trận kế +25',
+      reward_elite_head:'🔥 Hạ cường địch!', reward_elite_line:'Mục nửa giá trận kế +{0}',
+      reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Biểu tượng ngẫu nhiên +{0}',
       reward_gamble_head:'🎰 Thắng cược', reward_gamble_line:'Biểu tượng ngẫu nhiên +{0}',
       reward_gamble_loss_head:'🎰 Trả giá sòng cược', reward_gamble_loss_line:'Mạng mất thêm -1',
       help_topbar:'Cách Chơi', help_close:'◀ Quay lại', help_prev:'◀ Trước', help_next:'Sau ▶',
@@ -4491,13 +4492,13 @@ const AUDIO = (function(){
       net_kw_required:'Hãy nhập mật khẩu',
       /* ★v0.28 Lời Thề (Pact / Heat) */
       pact_topbar:'Lời Thề', pact_back:'◀ Quay lại',
-      pact_hint:'Càng thề nhiều, độ khó càng cao và phần thưởng (huy hiệu ngẫu nhiên) càng nhiều.',
+      pact_hint:'Càng thề nhiều, độ khó càng cao; mỗi draft có thêm lượt tải lại và ngân sách vĩnh viễn.',
       pact_heat:'🔥 Cấp {0}',
-      pact_reward_prev:'Cấp {0} ／ mỗi lần Nhất +{1} huy hiệu ngẫu nhiên (thắng liên tiếp còn tăng)',
+      pact_reward_prev:'Cấp {0} / mỗi draft tải lại {1} lần / ngân sách vĩnh viễn +{2}',
       pact_best:'(Cấp {0}: sâu nhất tầng {1})',
       pact_start:'Lên đường với lời thề ▶', pact_start0:'Lên đường không thề ▶', pact_add:'Vào màn sau với lời thề ▶',
       pact_locked:'Lời thề đã lập không thể bỏ',
-      reward_heat_head:'🔥 Thưởng lời thề', reward_heat_line:'Cấp {0}＋khí thế {1} → +{2} huy hiệu ngẫu nhiên',
+      reward_heat_head:'🔥 Thưởng khí thế', reward_heat_line:'Khí thế {1} → lựa chọn draft +{2}',
       runover_heat:'🔥 Cấp {0}: đạt đến tầng {1}',
       pact_p_rev_ti:'Đảo Lộn',     pact_p_rev_ds:'Luôn đảo vị mỗi trận (chỉ đánh được lá yếu hơn).',
       pact_p_budget_ti:'Thắt Lưng', pact_p_budget_ds:'Ngân sách cấu hình giảm 12.',
@@ -4949,7 +4950,7 @@ const AUDIO = (function(){
         else if(MODE.kind==='quick'){ show('s-title'); }
         // 巡業の結果は「すすむ」専用ボタンのみ＝ESC では先に進めない(誤操作防止)
         break;
-      case 's-draft':   if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); } break;
+      case 's-draft':   if(MODE.run){ clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); } break;
       case 's-map':     if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); } MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;   // ★v0.23 マップで戻る=中断してタイトル
       case 's-rest':    restContinue(); break;   // ★v0.25 休憩は引き返せない＝Esc も「すすむ」に寄せる
       case 's-pact':    pactBack(); break;       // ★v0.28 誓約: 開始時=取りやめてタイトル / ボス後=現状で確定して進む
@@ -5146,7 +5147,8 @@ const AUDIO = (function(){
   function pactHeat(){ return runPacts().reduce((s,p)=>s+p.heat,0); }
   function hasPact(kind){ return runPacts().some(p=>p.kind===kind); }
   function runLifeMax(run){ return (run && run.pact && (run.pact.ids||[]).includes('p_life')) ? 2 : 3; }
-  function pactBudgetDelta(){ return runPacts().filter(p=>p.kind==='budget').reduce((s,p)=>s+(p.d||0),0); }
+  function pactCount(run){ return run && run.pact && Array.isArray(run.pact.ids) ? run.pact.ids.length : runPacts().length; }
+  function pactBudgetDelta(){ return runPacts().filter(p=>p.kind==='budget').reduce((s,p)=>s+(p.d||0),0) + pactCount(MODE.run)*5; }
   function pactMut(){ const p=runPacts().find(p=>p.kind==='mut'); return p ? mutById(p.mut) : null; }
   // run.pact から Heat を算出(MODE 非依存・resume/記録用)。
   function heatOf(run){ return run && run.pact ? (run.pact.ids||[]).map(pactById).filter(Boolean).reduce((s,p)=>s+p.heat,0) : 0; }
@@ -5304,10 +5306,10 @@ const AUDIO = (function(){
   function updatePactHead(){
     const h=pactHeat();
     $('#pact-heat').textContent = T('pact_heat', h);
-    const extra = Math.min(HEAT_REWARD_CAP, Math.floor(h/2));   // 報酬プレビュー(昂り抜きの基礎ぶん)
+    const extra = (run0().pact.ids||[]).length;   // 誓約数ぶん、毎ドラフトでリロードできる
     const best = store.heatBest && store.heatBest[String(h)];
     const bestTxt = (h>0 && best) ? ' '+T('pact_best', h, best) : '';
-    $('#pact-reward').innerHTML = T('pact_reward_prev', h, extra) + bestTxt;
+    $('#pact-reward').innerHTML = T('pact_reward_prev', h, extra, extra*5) + bestTxt;
     $('#pact-go').textContent = (pactMode==='boss') ? T('pact_add') : ((run0().pact.ids||[]).length ? T('pact_start') : T('pact_start0'));
   }
   function run0(){ return MODE.run || {pact:{ids:[]}}; }
@@ -5335,7 +5337,7 @@ const AUDIO = (function(){
   }
   function enterNode(node){
     const run=MODE.run;
-    if(node.type==='loot'){ MODE.mutator=mutById('m_none'); openDraft(); return; }   // 戦わずドラフト
+    if(node.type==='loot'){ MODE.mutator=mutById('m_none'); prepareDraft(1, 0); openDraft(); return; }   // 戦わずドラフト
     if(node.type==='gamble'){ enterGamble(); return; }
     if(node.type==='rest'){ enterRest(); return; }
     MODE.mutator = node.mut || pactMut() || mutById('m_none');   // 戦闘: 素なら誓約(天地無用常時)を注入／ボス・お題ノードは各自の看板を優先
@@ -5390,8 +5392,8 @@ const AUDIO = (function(){
       run.nextBonus = (run.nextBonus||0) + 10;
       msg=T('rest_budget');
     } else if(kind==='discount'){
-      const old=currentDiscountId();
-      run.discount=chooseRunDiscount(run, old);
+      const old=currentDiscountIds();
+      run.discount=chooseRunDiscount(run, old, Math.max(1, old.length||run.discountSlots||1));
       msg=T('rest_discount', discountName()||'-');
     }
     restResolved=true;
@@ -5446,7 +5448,7 @@ const AUDIO = (function(){
       owned:BASE_UNLOCKED.slice(),                 // 巡業の初期所持=基本セット(クイック/オンの初期解放と同一)。ドラフトで増える
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
-      ban:{ ids:[], depth:1 }, banRecent:[], discount:null,   // ★深度ごとの揺さぶり: 封じ / 直近封じ履歴 / 半額対象
+      ban:{ ids:[], depth:1 }, banRecent:[], discount:null, discountSlots:1,   // ★深度ごとの揺さぶり: 封じ / 直近封じ履歴 / 半額対象
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
       log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
       inMatch:false,                                // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
@@ -5490,6 +5492,7 @@ const AUDIO = (function(){
     MODE.run.pact = (MODE.run.pact && Array.isArray(MODE.run.pact.ids)) ? MODE.run.pact : { ids:[], heat:0 };   // ★v0.28 旧セーブ互換: 誓約枠
     MODE.run.pact.ids = MODE.run.pact.ids.filter(pactById);   // 不明な誓約 id を掃除
     MODE.run.pact.heat = heatOf(MODE.run);                     // Heat を再算出(定義変更に追従)
+    MODE.run.discountSlots = Math.max(1, MODE.run.discountSlots||1);
     MODE.run.lives = Math.min(MODE.run.lives, runLifeMax(MODE.run));   // 旧セーブ互換: 薄氷中は回復済みでも上限2へ丸める
     MODE.run.momentum = MODE.run.momentum || 0;               // ★v0.28 旧セーブ互換: 昂り
     recordBestDepth(MODE.run.depth);   // 再開時にも到達深度を記録(旧セーブ救済)
@@ -5971,12 +5974,16 @@ const AUDIO = (function(){
     const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
     return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta());   // お題＋誓約(p_budget)の予算増減を反映(下限30・100系)
   }
+  function currentDiscountIds(){
+    return (MODE.kind==='run' && MODE.run) ? discountIdsFor(MODE.run) : [];
+  }
   function currentDiscountId(){
-    return (MODE.kind==='run' && MODE.run && MODE.run.discount && MODE.run.discount.depth===MODE.run.depth) ? MODE.run.discount.id : null;
+    const ids=currentDiscountIds();
+    return ids[0]||null;
   }
   function runSlotCost(id, slotType){
     const base = RL.slotCost(id, slotType);
-    return id===currentDiscountId() ? Math.max(1, Math.ceil(base/2)) : base;
+    return currentDiscountIds().includes(id) ? Math.max(1, Math.ceil(base/2)) : base;
   }
   function runBuildCost(build){
     if(MODE.kind!=='run') return RL.buildCost(build);
@@ -6365,7 +6372,7 @@ const AUDIO = (function(){
       let badge='';
       if(here) badge='<span class="badge on">'+T('badge_on')+'</span>';
       else if(elsewhere) badge='<span class="badge elsewhere">'+T('badge_elsewhere', (elsewhere.type==='suit'?RL.SUIT_SYM[elsewhere.key]:elsewhere.type==='rule'?T('elsewhere_rule_label'):elsewhere.key))+'</span>';
-      if(id===currentDiscountId()) badge += '<span class="badge elsewhere">'+T('badge_discount')+'</span>';
+      if(currentDiscountIds().includes(id)) badge += '<span class="badge elsewhere">'+T('badge_discount')+'</span>';
       // タイルは「アイコン＋コスト／名前」だけ。短く＝選択肢として見せる(効果説明は右の詳細ペイン)。
       card.innerHTML =
         badge+
@@ -6726,24 +6733,31 @@ const AUDIO = (function(){
     return set;
   }
   function banNames(){ return (Array.from(bannedIdSet())).map(id=> RL.emblem(id)? embName(RL.emblem(id)) : id); }
-  function chooseRunDiscount(run, avoidId){
+  function chooseRunDiscount(run, avoidId, count){
     const ban = new Set((run.ban && run.ban.depth===run.depth) ? (run.ban.ids||[]) : []);
     let ids = (run.owned||[]).filter(id=> RL.emblem(id) && !RL.emblem(id).hidden && !ban.has(id));
-    if(avoidId && ids.length>1) ids = ids.filter(id=> id!==avoidId);
-    if(!ids.length) return { id:null, depth:run.depth };
-    return { id:ids[(Math.random()*ids.length)|0], depth:run.depth };
+    const avoid = new Set(Array.isArray(avoidId) ? avoidId : (avoidId ? [avoidId] : []));
+    if(avoid.size && ids.length>avoid.size) ids = ids.filter(id=> !avoid.has(id));
+    const n = Math.max(1, count||1);
+    if(!ids.length) return { id:null, ids:[], depth:run.depth };
+    const pick = pick3(ids, n);
+    return { id:pick[0]||null, ids:pick, depth:run.depth };
+  }
+  function discountIdsFor(run){
+    if(!run || !run.discount || run.discount.depth!==run.depth) return [];
+    const d=run.discount, raw=Array.isArray(d.ids) ? d.ids : (d.id ? [d.id] : []);
+    const ban = new Set((run.ban && run.ban.depth===run.depth) ? (run.ban.ids||[]) : []);
+    return raw.filter(id=> (run.owned||[]).includes(id) && RL.emblem(id) && !RL.emblem(id).hidden && !ban.has(id));
   }
   function ensureRunDiscount(run){
     if(!run) return;
-    const ban = new Set((run.ban && run.ban.depth===run.depth) ? (run.ban.ids||[]) : []);
-    const d = run.discount;
-    if(d && d.depth===run.depth && d.id && (run.owned||[]).includes(d.id) && RL.emblem(d.id) && !ban.has(d.id)) return;
-    run.discount = chooseRunDiscount(run);
+    const want = Math.max(1, run.discountSlots||1);
+    const ids = discountIdsFor(run);
+    if(ids.length>=want) return;
+    run.discount = chooseRunDiscount(run, ids, want);
   }
   function discountName(){
-    const id=currentDiscountId();
-    const e=id && RL.emblem(id);
-    return e ? embName(e) : '';
+    return discountIdsFor(MODE.run).map(id=> embName(RL.emblem(id))).join('・');
   }
 
   /* ============================================================
@@ -7418,39 +7432,40 @@ const AUDIO = (function(){
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
     MODE.lastOutcome={ place, depth:playedDepth, tags:resultTagKeys(G.players[meIdx()]) };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
-    // ★v0.17: 1位通過 → ランダムエンブレム付与は廃止。代わりに「次の対戦だけ」コスト容量+25(100上限を超えてよい)。
-    //   ランダムエンブレムは対戦後ドラフトで“既得カードを選んだ時”に付与される方式へ移行(openDraft/takeDraft)。
-    // ★v0.32: コストボーナスは1位のみ。3位は残機-1、4位は残機-2。
+    // 通常成長はドラフト獲得枚数に集約。1位=2枚、2位以下=1枚。
     let reward=null;
+    const draftGain = place===1 ? 2 : 1;
+    run.draftRemain = draftGain;
+    run.draftRerolls = pactCount(run);
+    run.draftChoiceBonus = 0;
     if(place===1){
-      run.nextBonus = RUN_WIN_BONUS; reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) };
+      reward={ head:T('reward_budget_get'), line:T('reward_budget_line', draftGain) };
     }
-    // ★v0.23 強敵/ボス撃破の上乗せ報酬＝ランダムエンブレムを厚めに付与(無双スノーボールを"過程の選択"で加速・[[project_ru_le_muso_process]])。
-    //   1位で発火。reward メッセージはこの撃破報酬で上書き(より高揚するため)。nextBonus(+25)は上の分岐で既に確定済み。
     const _nodeT = MODE.curNode ? MODE.curNode.type : null;
-    if(place===1 && (_nodeT==='elite' || _nodeT==='boss')){
-      const want = _nodeT==='boss' ? 2 : 1;
-      let got=0; for(let i=0;i<want;i++){ if(grantRandomEmblem(run)) got++; }
-      reward = _nodeT==='boss'
-        ? { head:T('reward_boss_head'), line:T('reward_boss_line', got) }
-        : { head:T('reward_elite_head'), line:T('reward_elite_line', got) };
+    let nextDiscountSlots = 1;
+    if(place===1 && _nodeT==='elite'){
+      nextDiscountSlots = 2;
+      const eline=T('reward_elite_line', 2);
+      reward = reward ? { head:reward.head, line:reward.line+'<br>'+eline } : { head:T('reward_elite_head'), line:eline };
     }
-    // ★v0.28 Heat×昂りの追加報酬＝ランダムエンブレムを"足すだけ"(基本報酬は不変・無双スノーボールを加速[[project_ru_le_muso_process]])。
-    //   1位のみ発火。extra = floor(Heat/2)+floor(昂り/2) を上限3で付与。reward 行に🔥バナーを追記。
+    if(place===1 && _nodeT==='boss'){
+      const want = 1;
+      let got=0; for(let i=0;i<want;i++){ if(grantRandomEmblem(run)) got++; }
+      const bline=T('reward_boss_line', got);
+      reward = reward ? { head:T('reward_boss_head'), line:reward.line+'<br>'+bline } : { head:T('reward_boss_head'), line:bline };
+    }
     const heatN = heatOf(run);
-    if(place===1 && (heatN>0 || (run.momentum||0)>=4)){
-      const extra = Math.min(HEAT_REWARD_CAP, Math.floor(heatN/2) + Math.floor((run.momentum||0)/4));
-      let hg=0; for(let i=0;i<extra;i++){ if(grantRandomEmblem(run)) hg++; }
-      if(hg>0){
-        const hline = T('reward_heat_line', heatN, run.momentum||0, hg);
-        reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
-      }
+    if(place===1 && (run.momentum||0)>=4){
+      const extra = Math.min(HEAT_REWARD_CAP, Math.floor((run.momentum||0)/4));
+      run.draftChoiceBonus = extra;
+      const hline = T('reward_heat_line', heatN, run.momentum||0, extra);
+      reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
     }
     const gamble = run.gamble;
     if(gamble){
       run.gamble = null;   // 賭場は次の戦闘1回で必ず解消
       if(place===1){
-        let gg=0; for(let i=0;i<2;i++){ if(grantRandomEmblem(run)) gg++; }
+        let gg=0; for(let i=0;i<1;i++){ if(grantRandomEmblem(run)) gg++; }
         if(gg>0){
           const gline=T('reward_gamble_line', gg);
           reward = reward ? { head:reward.head, line:reward.line+'<br>'+gline } : { head:T('reward_gamble_head'), line:gline };
@@ -7477,6 +7492,8 @@ const AUDIO = (function(){
     recordHeatBest(heatN, run.depth);   // ★v0.28 Heat段位ごとの最高到達深度も前進で記録
     run.budget = runBudget(run.depth);   // 予算=55+5×(深度-1)・100で頭打ち(深度予算。1位ボーナス+25は nextBonus で別管理)
     run.ban = decideBan(run, run.depth);   // ★v0.22 次深度の封じを宿敵が決め直す(観測が増えるほど鋭く)
+    run.discountSlots = nextDiscountSlots;
+    run.discount = null;
     ensureRunDiscount(run);   // ★深度ごとに所持エンブレム1つを半額化し、編成の組み替え動機を作る
     // ★v0.23 お題は次ノードが各自で予告保持するので、ここでの per-depth ロールは廃止(MODE.mutator はノード入場時に設定)。
     store.saveRun(run, MODE.mutator);
@@ -7574,15 +7591,39 @@ const AUDIO = (function(){
 
   /* ----- ドラフト(戦利品) ----- */
   let draftPicks=[];
+  function clearDraftState(run){
+    if(!run) return;
+    delete run.draftRemain;
+    delete run.draftRerolls;
+    delete run.draftChoiceBonus;
+  }
+  function prepareDraft(remain, choiceBonus){
+    const run=MODE.run; if(!run) return;
+    run.draftRemain = Math.max(1, remain||1);
+    run.draftRerolls = Math.max(0, pactCount(run));
+    run.draftChoiceBonus = Math.max(0, choiceBonus||0);
+    store.saveRun(run, MODE.mutator);
+  }
+  function draftChoiceCount(run){
+    const base = hasPact('draft') ? 2 : 3;
+    return Math.max(1, base + (run.draftChoiceBonus||0));
+  }
   function openDraft(){
     const run=MODE.run;
     const m=MODE.mutator;
+    if(!run.draftRemain) prepareDraft(1, 0);
+    const remain = Math.max(1, run.draftRemain||1);
     const mTxt = (m && m.effect!=='NONE') ? T('draft_mut', m.ico, mutName(m)) : '';
     $('#draft-depth').textContent=T('draft_depth', run.depth, mTxt);
+    const top = remain>1 ? T('draft_topbar_n', remain) : T('draft_topbar');
+    const head = remain>1 ? T('draft_head_n', remain) : T('draft_head');
+    const topEl=$('#s-draft .topbar .title');
+    if(topEl) topEl.textContent=top;
+    $('#draft-head').textContent=head;
     // ★v0.17: 全エンブレムから3枚抽選。引いたカードが「その巡業で既に獲得済み(run.owned)」なら、
     //   そのカードは『ランダム獲得』枠に変わる＝選ぶと巡業限定のランダムエンブレムを1個付与(run.randomBuild)。
     //   未所持カードは従来通り、選ぶと永続獲得(run.owned + store.unlock)。
-    draftPicks = pick3(RL.EMBLEMS.filter(e=>!e.hidden).map(e=>e.id), hasPact('draft')?2:3);   // 隠しエンブレム(弱ボム等)は除外／誓約(p_draft)で 3→2 に絞る
+    draftPicks = pick3(RL.EMBLEMS.filter(e=>!e.hidden).map(e=>e.id), draftChoiceCount(run));   // 隠しエンブレム(弱ボム等)は除外／誓約(p_draft)で 3→2 に絞る
     const wrap=$('#draft-cards'); wrap.innerHTML='';
     draftPicks.forEach(id=>{
       const dup = run.owned.includes(id);          // 既得 → ランダム獲得カードへ差し替え
@@ -7605,6 +7646,12 @@ const AUDIO = (function(){
       c.onclick=()=>{ AUDIO.confirm(); takeDraft(id, dup); };
       wrap.appendChild(c);
     });
+    const rr=$('#draft-reroll');
+    if(rr){
+      const n=Math.max(0, run.draftRerolls||0);
+      rr.textContent=T('draft_reroll', n);
+      rr.style.display = n>0 ? '' : 'none';
+    }
     show('s-draft');
   }
   function pick3(arr, n){
@@ -7623,10 +7670,21 @@ const AUDIO = (function(){
     } else {
       run.owned.push(id); store.unlock(id);   // 未所持 → 巡業所持に追加＋永続解放(クイック/オンでも使える)
     }
+    run.draftRemain = Math.max(0, (run.draftRemain||1)-1);
     store.saveRun(run, MODE.mutator);   // ドラフトの戦利品を中断セーブに反映
+    if(run.draftRemain>0){ openDraft(); return; }
+    clearDraftState(run);
     afterDraftNode();   // ★v0.23 ドラフト後はマップへ戻る(現在地を進める)。編成は次ノード入場時に行う
   }
-  $('#draft-skip').onclick=()=>{ AUDIO.back(); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); };
+  function rerollDraft(){
+    const run=MODE.run; if(!run || (run.draftRerolls||0)<=0){ AUDIO.bad(); return; }
+    run.draftRerolls--;
+    AUDIO.confirm();
+    store.saveRun(run, MODE.mutator);
+    openDraft();
+  }
+  $('#draft-reroll').onclick=()=> rerollDraft();
+  $('#draft-skip').onclick=()=>{ AUDIO.back(); clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); };
   // 巡業マップの「中断してタイトル」(=onBack の s-map と同じ。状態は保存して再開可能に)
   $('#map-back').onclick=()=>{ AUDIO.back(); if(MODE.run) store.saveRun(MODE.run, MODE.mutator); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
   // ★v0.28 誓約画面のボタン
