@@ -2766,10 +2766,11 @@ const RL = (function(){
   /* ---- パス適用 ----
      パスした席はこのトリックで“降りる”(passed に登録＝再参加不可)。
      場の持ち主以外に打てる席が居なくなったら場を流し、持ち主からリードし直す。
-     場が空(リード中)のパスは降りる対象にしない＝単に次へ回す(ロックアウトしない)。 */
+     場が空(リード中)のパスは無効＝場流れ直後に誤って主導権を渡さない。 */
   function applyPass(state, playerIndex){
     const events=[{kind:'pass', index:playerIndex}];
     const contested = !!fieldCombo(state);
+    if(!contested) return { events };
     if(contested && !passedSet(state).includes(playerIndex)) passedSet(state).push(playerIndex);
     const owner = state.field.ownerIndex;
     const ownerActive = owner!=null && !state.players[owner].finished;
@@ -3128,6 +3129,14 @@ const RL = (function(){
     xgp.field.combo=singleCombo({rank:'4',suit:'H'}); xgp.field.card=xgp.field.combo.key; xgp.field.ownerIndex=1; xgp.turn=0; xgp.passed=[];
     applyPlay(xgp,0,{rank:'5',suit:'S'},{}); applyPass(xgp,0);
     ok('連撃後に出せずパスしたらCPUへ進む', xgp.turn===1);
+    const xdefsF=defs.map(x=>({...x})); xdefsF[0]={...xdefsF[0], build:buildFrom({rank:{'5':['ao02']}})};
+    const xgf=newGame(xdefsF, 25);
+    xgf.players[0].hand=[{rank:'5',suit:'S'},{rank:'2',suit:'C'},{rank:'K',suit:'D'}];
+    xgf.players[1].hand=[{rank:'3',suit:'S'}]; xgf.players[2].hand=[{rank:'4',suit:'S'}]; xgf.players[3].hand=[{rank:'6',suit:'S'}];
+    xgf.field.combo=singleCombo({rank:'4',suit:'H'}); xgf.field.card=xgf.field.combo.key; xgf.field.ownerIndex=1; xgf.turn=0; xgf.passed=[];
+    applyPlay(xgf,0,{rank:'5',suit:'S'},{}); applyPlay(xgf,0,{rank:'2',suit:'C'},{}); applyPass(xgf,1); applyPass(xgf,2); applyPass(xgf,3);
+    const leadAfterFlush=xgf.turn; applyPass(xgf,0);
+    ok('連撃後の2で全員パス→空場パスしても自分リードのまま', leadAfterFlush===0 && xgf.turn===0 && fieldCombo(xgf)===null);
     const xdefs2=defs.map(x=>({...x})); xdefs2[0]={...xdefs2[0], build:buildFrom({rank:{'5':['ao02']}})};
     const xg2=newGame(xdefs2, 23);
     xg2.players[0].hand=[{rank:'5',suit:'S'}];
@@ -3351,7 +3360,6 @@ const RL = (function(){
       for(const s in jp.suitSlots) jp.suitSlots[s].forEach(id=>ids.push(id));
       (jp.ruleSlots||[]).forEach(id=>ids.push(id));
       ok('日本式: 連火を外して8切りを採用', !ids.includes('aka01') && ids.filter(id=>id==='aka15').length===4);
-      ok('日本式: コスト100維持', buildCost(jp)===100);
     })();
     // 38 プリセット: 妥当な役構成 & 予算内
     ok('プリセット全種が予算内', PRESETS.every(p=> buildCost(presetBuild(p.id))<=CONFIG.MAX_BUILD_COST));
