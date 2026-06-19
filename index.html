@@ -399,6 +399,7 @@
   .palette .emb .badge{ position:absolute; top:-8px; right:-8px; font-size:28px; font-weight:900; color:#fff; padding:3px 14px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.4); }
   .palette .emb .badge.on{ background:#2e7d32; }
   .palette .emb .badge.elsewhere{ background:#8a6d00; }
+  .palette .emb .badge.discount{ left:-8px; right:auto; background:#c28b00; }
   .palette .emb.equipped{ background:linear-gradient(180deg,#fff7d8,#ffeea6); box-shadow:0 0 0 5px #ffcf4d, 0 5px 12px rgba(0,0,0,.16); }
   /* 巡業ランダム獲得分: 金色+🎲で一目で分かる(読めるが選択不可) */
   .palette .emb.rndfix{ background:linear-gradient(135deg,#fff6d8,#ffe08a); border-color:#d4a017;
@@ -2750,6 +2751,7 @@ const RL = (function(){
         // 加速(SKIP): 次の1席の手番を1回だけ飛ばす(指名があれば指名先を優先)。
         next = nextTurnFrom(state, playerIndex, fSkip ? 2 : 1);
       }
+      if(fSkip && next===playerIndex && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
       // 自分以外に打てる席が居なくなった(全員パス/上がり/飛ばし)→ 場を流して自分がリードし直す。
       const others = trickAlive(state).filter(i=> i!==playerIndex);
       if(others.length===0 && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
@@ -3368,6 +3370,14 @@ const RL = (function(){
       ok('加速: 飛ばされた席に手番が回ってくる(再参加)', sb.turn===1);
       applyPass(sb,1);                                                               // 最後のP1もパス→場流し
       ok('加速+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+    })();
+    (function(){
+      const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 56);
+      sb.players.forEach((p,i)=> p.hand=[{rank:'3',suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
+      sb.players[2].finished=true; sb.players[3].finished=true;
+      sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
+      applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P1を飛ばすと残りはP0のみ
+      ok('加速: 自分に戻る時は場流ししてリード継続', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
     })();
     // 43 3返し: 単騎2を切り返したら場を流して自分が続行
     const c3=newGame(seat0(buildFrom({suit:{S:['aka07']}})), 210);
@@ -4125,7 +4135,7 @@ const AUDIO = (function(){
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
       /* 巡業1位ボーナス(次戦のみコスト容量+25) */
-      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'ドラフト獲得 {0}枚',
+      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'ドラフトのリロード +{0}',
       /* ドラフトの既得カード → ランダム獲得枠 */
       draft_random_code:'ランダム獲得', draft_random_nm:'ランダムなエンブレム',
       draft_random_ds:'所持済みのカードの代わりに、ランダムなエンブレムを1つ付与（この巡業だけ・コスト無関係）',
@@ -4191,8 +4201,8 @@ const AUDIO = (function(){
       rest_discount:'💸 半額対象を「{0}」に変更',
       rest_title:'休憩', rest_continue:'マップへすすむ ▶',
       rest_rival_tops:'宿敵が見たあなたの常用：{0}', rest_next_boss:'この幕のボス＝{0}〈{1}〉／看板：{2}', rest_boss_hint:'有効そう：{0}',
-      reward_elite_head:'🔥 強敵を撃破！', reward_elite_line:'次戦の半額対象 +{0}',
-      reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'ランダムエンブレム +{0}',
+      reward_elite_head:'🔥 強敵を撃破！', reward_elite_line:'次戦の半額対象が2つになる',
+      reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'誓約報酬：ランダムエンブレム +{0}',
       reward_gamble_head:'🎰 賭場の勝ち分', reward_gamble_line:'ランダムエンブレム +{0}',
       reward_gamble_loss_head:'🎰 賭場のツケ', reward_gamble_loss_line:'残機 追加 -1',
       /* ヘルプ */
@@ -4258,19 +4268,19 @@ const AUDIO = (function(){
       net_kw_required:'合言葉を入れてください',
       /* ★v0.28 誓約(Pact / Heat) */
       pact_topbar:'誓約', pact_back:'◀ もどる',
-      pact_hint:'誓約を積むほど難度が上がり、その分ドラフトのリロード回数と永続コストが増える。積まなくてもよい。',
-      pact_heat:'🔥 段位 {0}',
-      pact_reward_prev:'段位 {0} ／ 毎ドラフト リロード {1}回 ／ 永続コスト +{2}',
-      pact_best:'（段位{0}の最高到達 深度{1}）',
+      pact_hint:'誓約を積むほど巡業が厳しくなる。ボスを1位で倒すと、誓約1つにつきランダムエンブレム+1。',
+      pact_heat:'',
+      pact_reward_prev:'誓約 {0}つ ／ ボス1位で ランダムエンブレム +{1}',
+      pact_best:'（誓約{0}つの最高到達 深度{1}）',
       pact_start:'この誓約で巡業へ ▶', pact_start0:'誓約なしで巡業へ ▶', pact_add:'この誓約で次の幕へ ▶',
       pact_locked:'すでに誓った誓約は外せません',
-      reward_heat_head:'🔥 昂りボーナス', reward_heat_line:'昂り{1} → 次ドラフト選択肢 +{2}',
-      runover_heat:'🔥 段位{0} で 深度{1} まで到達',
+      reward_heat_head:'🔥 昂りボーナス', reward_heat_line:'昂り{1} → ドラフトリロード +{2}',
+      runover_heat:'🔥 誓約{0}つで 深度{1} まで到達',
       pact_p_rev_ti:'天地無用',   pact_p_rev_ds:'毎戦ずっと逆位（弱い札しか出せない）。',
       pact_p_budget_ti:'緊縮',     pact_p_budget_ds:'編成コストが 12 減る。',
       pact_p_life_ti:'薄氷',       pact_p_life_ds:'この巡業中、残機の上限が 2 になる（回復しても2まで）。',
       pact_p_rival_ti:'宿敵常駐',  pact_p_rival_ds:'宿敵が毎戦かならず参戦する。',
-      pact_p_ban_ti:'常時封じ',    pact_p_ban_ds:'宿敵が毎深度、あなたの常用エンブレムを容赦なく封じる。',
+      pact_p_ban_ti:'常時封じ',    pact_p_ban_ds:'宿敵が毎深度、あなたの常用エンブレムを2種封じる（負けていても容赦なし）。',
       pact_p_draft_ti:'選択減',    pact_p_draft_ds:'ドラフトの選択肢が 3→2 に減る。',
       pact_p_boss_ti:'強豪',       pact_p_boss_ds:'強敵・ボスの宿敵予算が 1.5 倍になる。',
     },
@@ -4365,7 +4375,7 @@ const AUDIO = (function(){
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
       /* Thưởng hạng 1 (chỉ trận kế: ngân sách +25) */
-      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Nhận {0} lượt chọn draft',
+      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Tải lại draft +{0}',
       /* Thẻ đã có trong draft → ô Nhận ngẫu nhiên */
       draft_random_code:'Nhận ngẫu nhiên', draft_random_nm:'Biểu tượng ngẫu nhiên',
       draft_random_ds:'Thay cho thẻ đã có, nhận 1 biểu tượng ngẫu nhiên (chỉ lượt lữ hành này · không tính chi phí)',
@@ -4428,8 +4438,8 @@ const AUDIO = (function(){
       rest_discount:'💸 Đổi nửa giá sang "{0}"',
       rest_title:'Nghỉ ngơi', rest_continue:'Tới bản đồ ▶',
       rest_rival_tops:'Địch thủ thấy bạn hay dùng: {0}', rest_next_boss:'Boss màn này = {0}〈{1}〉/ Đặc trưng: {2}', rest_boss_hint:'Có vẻ hữu hiệu: {0}',
-      reward_elite_head:'🔥 Hạ cường địch!', reward_elite_line:'Mục nửa giá trận kế +{0}',
-      reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Biểu tượng ngẫu nhiên +{0}',
+      reward_elite_head:'🔥 Hạ cường địch!', reward_elite_line:'Trận kế có 2 mục nửa giá',
+      reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Thưởng lời thề: biểu tượng ngẫu nhiên +{0}',
       reward_gamble_head:'🎰 Thắng cược', reward_gamble_line:'Biểu tượng ngẫu nhiên +{0}',
       reward_gamble_loss_head:'🎰 Trả giá sòng cược', reward_gamble_loss_line:'Mạng mất thêm -1',
       help_topbar:'Cách Chơi', help_close:'◀ Quay lại', help_prev:'◀ Trước', help_next:'Sau ▶',
@@ -4492,19 +4502,19 @@ const AUDIO = (function(){
       net_kw_required:'Hãy nhập mật khẩu',
       /* ★v0.28 Lời Thề (Pact / Heat) */
       pact_topbar:'Lời Thề', pact_back:'◀ Quay lại',
-      pact_hint:'Càng thề nhiều, độ khó càng cao; mỗi draft có thêm lượt tải lại và ngân sách vĩnh viễn.',
-      pact_heat:'🔥 Cấp {0}',
-      pact_reward_prev:'Cấp {0} / mỗi draft tải lại {1} lần / ngân sách vĩnh viễn +{2}',
-      pact_best:'(Cấp {0}: sâu nhất tầng {1})',
+      pact_hint:'Càng thề nhiều, lữ hành càng khó. Hạ Boss hạng 1: mỗi lời thề cho +1 biểu tượng ngẫu nhiên.',
+      pact_heat:'',
+      pact_reward_prev:'Lời thề {0} / hạng 1 trước Boss: biểu tượng ngẫu nhiên +{1}',
+      pact_best:'({0} lời thề: sâu nhất tầng {1})',
       pact_start:'Lên đường với lời thề ▶', pact_start0:'Lên đường không thề ▶', pact_add:'Vào màn sau với lời thề ▶',
       pact_locked:'Lời thề đã lập không thể bỏ',
-      reward_heat_head:'🔥 Thưởng khí thế', reward_heat_line:'Khí thế {1} → lựa chọn draft +{2}',
-      runover_heat:'🔥 Cấp {0}: đạt đến tầng {1}',
+      reward_heat_head:'🔥 Thưởng khí thế', reward_heat_line:'Khí thế {1} → tải lại draft +{2}',
+      runover_heat:'🔥 {0} lời thề: đạt đến tầng {1}',
       pact_p_rev_ti:'Đảo Lộn',     pact_p_rev_ds:'Luôn đảo vị mỗi trận (chỉ đánh được lá yếu hơn).',
       pact_p_budget_ti:'Thắt Lưng', pact_p_budget_ds:'Ngân sách cấu hình giảm 12.',
       pact_p_life_ti:'Băng Mỏng',  pact_p_life_ds:'Trong lượt lữ hành này, mạng tối đa là 2 (hồi cũng chỉ tới 2).',
       pact_p_rival_ti:'Kẻ Thù Thường Trực', pact_p_rival_ds:'Kẻ thù luôn tham chiến mỗi trận.',
-      pact_p_ban_ti:'Cấm Vĩnh Viễn', pact_p_ban_ds:'Mỗi tầng kẻ thù cấm thẳng tay huy hiệu bạn hay dùng.',
+      pact_p_ban_ti:'Cấm Vĩnh Viễn', pact_p_ban_ds:'Mỗi tầng kẻ thù cấm 2 huy hiệu bạn hay dùng, không nương tay.',
       pact_p_draft_ti:'Bớt Lựa Chọn', pact_p_draft_ds:'Lựa chọn khi bốc thưởng giảm 3→2.',
       pact_p_boss_ti:'Cường Địch', pact_p_boss_ds:'Ngân sách kẻ tinh nhuệ/trùm tăng 1.5 lần.',
     }
@@ -4512,7 +4522,7 @@ const AUDIO = (function(){
   function T(key){
     const d = I18N[LANG] || I18N.ja;
     let s = (key in d) ? d[key] : (I18N.ja[key]!==undefined ? I18N.ja[key] : key);
-    for(let i=1;i<arguments.length;i++) s = s.replace('{'+(i-1)+'}', String(arguments[i]));
+    for(let i=1;i<arguments.length;i++) s = s.split('{'+(i-1)+'}').join(String(arguments[i]));
     return s;
   }
   function paren(s){ return LANG==='vi' ? (' ('+s+')') : ('（'+s+'）'); }
@@ -5133,13 +5143,13 @@ const AUDIO = (function(){
      ・mutator-backed は1種(p_rev=天地無用)のみ＝エンジンの MODE.mutator は1枠なので競合させない。残りは run パラメータ変更。
      ============================================================ */
   const PACTS = [
-    { id:'p_rev',    heat:2, kind:'mut', mut:'m_rev', ico:'🙃' },   // 天地無用を毎戦適用(素卓のみ・ボス/お題ノードは各自の看板を優先)
+    { id:'p_rev',    heat:1, kind:'mut', mut:'m_rev', ico:'🙃' },   // 天地無用を毎戦適用(素卓のみ・ボス/お題ノードは各自の看板を優先)
     { id:'p_budget', heat:1, kind:'budget', d:-12,    ico:'🪙' },   // 編成予算 -12
     { id:'p_life',   heat:1, kind:'life',             ico:'💔' },   // 残機上限 3→2(巡業中ずっと。回復しても2まで)
     { id:'p_rival',  heat:1, kind:'rival',            ico:'🔥' },   // 宿敵が毎戦かならず参戦(席が埋まるまで)
-    { id:'p_ban',    heat:2, kind:'ban',              ico:'🚫' },   // 封じ常時(mercy 無し・鋭く2種)
+    { id:'p_ban',    heat:1, kind:'ban',              ico:'🚫' },   // 封じ常時(mercy 無し・鋭く2種)
     { id:'p_draft',  heat:1, kind:'draft',            ico:'✂️' },   // ドラフトの選択肢 3→2
-    { id:'p_boss',   heat:2, kind:'boss',             ico:'👑' },   // 強敵/ボスの宿敵予算を1.5倍
+    { id:'p_boss',   heat:1, kind:'boss',             ico:'👑' },   // 強敵/ボスの宿敵予算を1.5倍
   ];
   const HEAT_REWARD_CAP = 3;   // ★v0.28 Heat×昂りの1戦あたり追加ランダムエンブレム上限(暴走防止・体感は走り込み後に微調整)
   function pactById(id){ return PACTS.find(p=>p.id===id) || null; }
@@ -5148,7 +5158,7 @@ const AUDIO = (function(){
   function hasPact(kind){ return runPacts().some(p=>p.kind===kind); }
   function runLifeMax(run){ return (run && run.pact && (run.pact.ids||[]).includes('p_life')) ? 2 : 3; }
   function pactCount(run){ return run && run.pact && Array.isArray(run.pact.ids) ? run.pact.ids.length : runPacts().length; }
-  function pactBudgetDelta(){ return runPacts().filter(p=>p.kind==='budget').reduce((s,p)=>s+(p.d||0),0) + pactCount(MODE.run)*5; }
+  function pactBudgetDelta(){ return runPacts().filter(p=>p.kind==='budget').reduce((s,p)=>s+(p.d||0),0); }
   function pactMut(){ const p=runPacts().find(p=>p.kind==='mut'); return p ? mutById(p.mut) : null; }
   // run.pact から Heat を算出(MODE 非依存・resume/記録用)。
   function heatOf(run){ return run && run.pact ? (run.pact.ids||[]).map(pactById).filter(Boolean).reduce((s,p)=>s+p.heat,0) : 0; }
@@ -5288,7 +5298,7 @@ const AUDIO = (function(){
       c.innerHTML='<div class="pt-ico">'+pactIco(p)+'</div>'
         +'<div class="pt-nm">'+T('pact_'+p.id+'_ti')+'</div>'
         +'<div class="pt-ds">'+T('pact_'+p.id+'_ds')+'</div>'
-        +'<div class="pt-heat">🔥+'+p.heat+'</div>'
+        +'<div class="pt-heat">🎁+1</div>'
         +(on?'<div class="pt-on">'+(locked?'🔒':'✓')+'</div>':'');
       c.onclick=()=>{ AUDIO.confirm(); togglePact(p.id); };
       wrap.appendChild(c);
@@ -5304,12 +5314,9 @@ const AUDIO = (function(){
     renderPactList();
   }
   function updatePactHead(){
-    const h=pactHeat();
-    $('#pact-heat').textContent = T('pact_heat', h);
-    const extra = (run0().pact.ids||[]).length;   // 誓約数ぶん、毎ドラフトでリロードできる
-    const best = store.heatBest && store.heatBest[String(h)];
-    const bestTxt = (h>0 && best) ? ' '+T('pact_best', h, best) : '';
-    $('#pact-reward').innerHTML = T('pact_reward_prev', h, extra, extra*5) + bestTxt;
+    $('#pact-heat').textContent = '';
+    const extra = (run0().pact.ids||[]).length;
+    $('#pact-reward').innerHTML = T('pact_reward_prev', extra, extra);
     $('#pact-go').textContent = (pactMode==='boss') ? T('pact_add') : ((run0().pact.ids||[]).length ? T('pact_start') : T('pact_start0'));
   }
   function run0(){ return MODE.run || {pact:{ids:[]}}; }
@@ -6372,7 +6379,7 @@ const AUDIO = (function(){
       let badge='';
       if(here) badge='<span class="badge on">'+T('badge_on')+'</span>';
       else if(elsewhere) badge='<span class="badge elsewhere">'+T('badge_elsewhere', (elsewhere.type==='suit'?RL.SUIT_SYM[elsewhere.key]:elsewhere.type==='rule'?T('elsewhere_rule_label'):elsewhere.key))+'</span>';
-      if(currentDiscountIds().includes(id)) badge += '<span class="badge elsewhere">'+T('badge_discount')+'</span>';
+      if(currentDiscountIds().includes(id)) badge += '<span class="badge discount">'+T('badge_discount')+'</span>';
       // タイルは「アイコン＋コスト／名前」だけ。短く＝選択肢として見せる(効果説明は右の詳細ペイン)。
       card.innerHTML =
         badge+
@@ -6709,6 +6716,7 @@ const AUDIO = (function(){
     if(depth<=1) return { ids:[], depth, ver:BAN_RULE_VER };      // 序盤(データ蓄積前)はban無し
     RIVAL.ensure();
     const pban = !!(run.pact && (run.pact.ids||[]).includes('p_ban'));   // ★v0.28 誓約(p_ban): mercy 無し・常時・鋭く2種
+    if(!pban && depth%2===1) return { ids:[], depth, ver:BAN_RULE_VER }; // 通常封じは隔深度。誓約時だけ毎深度。
     const agg=RIVAL.aggRecord();                                 // 全宿敵合算: l=あなたの勝ち / w=あなたの負け
     const w=agg.w, l=agg.l;
     if(!pban && w - l >= 2) return { ids:[], depth, ver:BAN_RULE_VER };   // あなたが負け越し → mercy(封じ無し・難易度自己調整)。誓約中は容赦なし
@@ -6800,7 +6808,7 @@ const AUDIO = (function(){
     const arr = type==='rule' ? build.ruleSlots : (type==='rank' ? (build.rankSlots[key]||[]) : (build.suitSlots[key]||[]));
     let i; while(arr && (i=arr.indexOf(id))>=0){ arr.splice(i,1); }
   }
-  const RANDOM_GRANT_COST_POWER = 1.35;   // 高コストのランダム獲得を薄くする係数。0=均等、上げるほど低コスト寄り。
+  const RANDOM_GRANT_COST_POWER = 1.15;   // 高コストのランダム獲得を薄くする係数。0=均等、上げるほど低コスト寄り。
   function randomGrantWeight(id, slotType){
     const cost = Math.max(1, RL.slotCost(id, slotType));
     return 1 / Math.pow(cost, RANDOM_GRANT_COST_POWER);
@@ -6834,7 +6842,19 @@ const AUDIO = (function(){
         RL.SUITS.forEach(s=>{ if(RL.canScope(id,'suit',s) && !(rb.suitSlots[s]||[]).includes(id)) candidates.push({id, slot:{type:'suit', key:s}}); });
       }
     });
-    if(!candidates.length) return null;                                    // 全組み合わせ埋まり(ほぼ起こらない)
+    if(!candidates.length){
+      // 長期巡業で全候補が埋まっても、ボス/賭場の報酬が +0 にならないよう最後は重複を許す。
+      RL.EMBLEMS.forEach(e=>{
+        if(e.hidden) return;
+        const id=e.id;
+        if(RL.placeOf(id)==='whole') candidates.push({id, slot:{type:'rule', key:'rule'}});
+        else {
+          RL.DISPLAY_RANKS.forEach(r=>{ if(RL.canScope(id,'rank',r)) candidates.push({id, slot:{type:'rank', key:r}}); });
+          RL.SUITS.forEach(s=>{ if(RL.canScope(id,'suit',s)) candidates.push({id, slot:{type:'suit', key:s}}); });
+        }
+      });
+    }
+    if(!candidates.length) return null;
     const pick=weightedPick(candidates, c=>randomGrantWeight(c.id, c.slot.type));   // (エンブレム, スロット)をまとめて重み付きランダム選択
     const {id, slot}=pick;
     removeIdFromSlot(run.build, id, slot.type, slot.key);                 // 「同じ枠」に手で付けていた同idだけ外す(別の枠は残す)
@@ -7432,34 +7452,31 @@ const AUDIO = (function(){
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
     MODE.lastOutcome={ place, depth:playedDepth, tags:resultTagKeys(G.players[meIdx()]) };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
-    // 通常成長はドラフト獲得枚数に集約。1位=2枚、2位以下=1枚。
+    // 通常成長は対戦後ドラフト1回のみ。連勝の昂りはリロード回数に変換する。
     let reward=null;
-    const draftGain = place===1 ? 2 : 1;
+    const draftGain = 1;
+    const heatN = heatOf(run);
+    const momentumRerolls = (place===1) ? Math.min(HEAT_REWARD_CAP, Math.floor((run.momentum||0)/4)) : 0;
     run.draftRemain = draftGain;
-    run.draftRerolls = pactCount(run);
+    run.draftRerolls = momentumRerolls;
     run.draftChoiceBonus = 0;
-    if(place===1){
-      reward={ head:T('reward_budget_get'), line:T('reward_budget_line', draftGain) };
+    if(momentumRerolls>0){
+      reward={ head:T('reward_heat_head'), line:T('reward_heat_line', heatN, run.momentum||0, momentumRerolls) };
     }
     const _nodeT = MODE.curNode ? MODE.curNode.type : null;
     let nextDiscountSlots = 1;
     if(place===1 && _nodeT==='elite'){
       nextDiscountSlots = 2;
-      const eline=T('reward_elite_line', 2);
+      const eline=T('reward_elite_line');
       reward = reward ? { head:reward.head, line:reward.line+'<br>'+eline } : { head:T('reward_elite_head'), line:eline };
     }
     if(place===1 && _nodeT==='boss'){
-      const want = 1;
+      const want = pactCount(run);
       let got=0; for(let i=0;i<want;i++){ if(grantRandomEmblem(run)) got++; }
-      const bline=T('reward_boss_line', got);
-      reward = reward ? { head:T('reward_boss_head'), line:reward.line+'<br>'+bline } : { head:T('reward_boss_head'), line:bline };
-    }
-    const heatN = heatOf(run);
-    if(place===1 && (run.momentum||0)>=4){
-      const extra = Math.min(HEAT_REWARD_CAP, Math.floor((run.momentum||0)/4));
-      run.draftChoiceBonus = extra;
-      const hline = T('reward_heat_line', heatN, run.momentum||0, extra);
-      reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
+      if(want>0){
+        const bline=T('reward_boss_line', want);
+        reward = reward ? { head:T('reward_boss_head'), line:reward.line+'<br>'+bline } : { head:T('reward_boss_head'), line:bline };
+      }
     }
     const gamble = run.gamble;
     if(gamble){
@@ -7597,10 +7614,10 @@ const AUDIO = (function(){
     delete run.draftRerolls;
     delete run.draftChoiceBonus;
   }
-  function prepareDraft(remain, choiceBonus){
+  function prepareDraft(remain, choiceBonus, rerolls){
     const run=MODE.run; if(!run) return;
     run.draftRemain = Math.max(1, remain||1);
-    run.draftRerolls = Math.max(0, pactCount(run));
+    run.draftRerolls = Math.max(0, rerolls||0);
     run.draftChoiceBonus = Math.max(0, choiceBonus||0);
     store.saveRun(run, MODE.mutator);
   }
@@ -7611,7 +7628,7 @@ const AUDIO = (function(){
   function openDraft(){
     const run=MODE.run;
     const m=MODE.mutator;
-    if(!run.draftRemain) prepareDraft(1, 0);
+    if(!run.draftRemain) prepareDraft(1, 0, 0);
     const remain = Math.max(1, run.draftRemain||1);
     const mTxt = (m && m.effect!=='NONE') ? T('draft_mut', m.ico, mutName(m)) : '';
     $('#draft-depth').textContent=T('draft_depth', run.depth, mTxt);
