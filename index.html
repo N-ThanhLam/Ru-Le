@@ -3115,6 +3115,25 @@ const RL = (function(){
     const has3 = cg.players[0].hand.find(c=>c.rank==='3');
     if(has3){ const r=applyPlay(cg,0,has3,{}); ok('連火で場が空', cg.field.card===null); ok('連火で同プレイヤー続行', cg.turn===0); }
     else ok('連火テスト(該当札なしスキップ)', true), ok('連火2(スキップ)', true);
+    const xdefs=defs.map(x=>({...x})); xdefs[0]={...xdefs[0], build:buildFrom({rank:{'5':['ao02']}})};
+    const xg=newGame(xdefs, 22);
+    xg.players[0].hand=[{rank:'5',suit:'S'},{rank:'3',suit:'C'},{rank:'K',suit:'C'}];
+    xg.field.combo=singleCombo({rank:'4',suit:'H'}); xg.field.card=xg.field.combo.key; xg.field.ownerIndex=1; xg.turn=0; xg.passed=[];
+    applyPlay(xg,0,{rank:'5',suit:'S'},{});
+    ok('連撃後も場は残るので弱札は出せない', comboBeats(xg, xg.players[0].build, singleCombo({rank:'3',suit:'C'}), xg.players[0].rules, xg.players[0].hand.length)===false);
+    ok('連撃後に強い札を出したらCPUへ進む', (applyPlay(xg,0,{rank:'K',suit:'C'},{}), xg.turn===1));
+    const xdefsP=defs.map(x=>({...x})); xdefsP[0]={...xdefsP[0], build:buildFrom({rank:{'5':['ao02']}})};
+    const xgp=newGame(xdefsP, 24);
+    xgp.players[0].hand=[{rank:'5',suit:'S'},{rank:'3',suit:'C'}];
+    xgp.field.combo=singleCombo({rank:'4',suit:'H'}); xgp.field.card=xgp.field.combo.key; xgp.field.ownerIndex=1; xgp.turn=0; xgp.passed=[];
+    applyPlay(xgp,0,{rank:'5',suit:'S'},{}); applyPass(xgp,0);
+    ok('連撃後に出せずパスしたらCPUへ進む', xgp.turn===1);
+    const xdefs2=defs.map(x=>({...x})); xdefs2[0]={...xdefs2[0], build:buildFrom({rank:{'5':['ao02']}})};
+    const xg2=newGame(xdefs2, 23);
+    xg2.players[0].hand=[{rank:'5',suit:'S'}];
+    xg2.field.combo=singleCombo({rank:'4',suit:'H'}); xg2.field.card=xg2.field.combo.key; xg2.field.ownerIndex=1; xg2.turn=0; xg2.passed=[];
+    applyPlay(xg2,0,{rank:'5',suit:'S'},{});
+    ok('連撃を最後に出しても上がり処理される', xg2.players[0].finished===true && xg2.turn!==0);
     // 10 加速(SKIP)で2人進む
     const sg=newGame(defs.map(x=>({...x})),55);
     sg.players[0].build.rankSlots['3']=['ao01'];
