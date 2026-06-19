@@ -4135,7 +4135,7 @@ const AUDIO = (function(){
       /* 巡業ランダムエンブレム報酬 */
       reward_random_get:'🎁 ランダムエンブレム獲得！', reward_random_line:'{0} に {1} {2} が付与された！',
       /* 巡業1位ボーナス(次戦のみコスト容量+25) */
-      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'ドラフトのリロード +{0}',
+      reward_budget_get:'🏆 1位ボーナス！', reward_budget_line:'次の対戦だけ コスト容量 +{0}',
       /* ドラフトの既得カード → ランダム獲得枠 */
       draft_random_code:'ランダム獲得', draft_random_nm:'ランダムなエンブレム',
       draft_random_ds:'所持済みのカードの代わりに、ランダムなエンブレムを1つ付与（この巡業だけ・コスト無関係）',
@@ -4375,7 +4375,7 @@ const AUDIO = (function(){
       /* Phần thưởng biểu tượng ngẫu nhiên (Lữ hành) */
       reward_random_get:'🎁 Nhận biểu tượng ngẫu nhiên!', reward_random_line:'Đã gắn {1} {2} vào {0}!',
       /* Thưởng hạng 1 (chỉ trận kế: ngân sách +25) */
-      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Tải lại draft +{0}',
+      reward_budget_get:'🏆 Thưởng hạng 1!', reward_budget_line:'Riêng trận kế: ngân sách +{0}',
       /* Thẻ đã có trong draft → ô Nhận ngẫu nhiên */
       draft_random_code:'Nhận ngẫu nhiên', draft_random_nm:'Biểu tượng ngẫu nhiên',
       draft_random_ds:'Thay cho thẻ đã có, nhận 1 biểu tượng ngẫu nhiên (chỉ lượt lữ hành này · không tính chi phí)',
@@ -7460,8 +7460,13 @@ const AUDIO = (function(){
     run.draftRemain = draftGain;
     run.draftRerolls = momentumRerolls;
     run.draftChoiceBonus = 0;
+    if(place===1){
+      run.nextBonus = (run.nextBonus||0) + RUN_WIN_BONUS;
+      reward={ head:T('reward_budget_get'), line:T('reward_budget_line', RUN_WIN_BONUS) };
+    }
     if(momentumRerolls>0){
-      reward={ head:T('reward_heat_head'), line:T('reward_heat_line', heatN, run.momentum||0, momentumRerolls) };
+      const hline=T('reward_heat_line', heatN, run.momentum||0, momentumRerolls);
+      reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
     }
     const _nodeT = MODE.curNode ? MODE.curNode.type : null;
     let nextDiscountSlots = 1;
