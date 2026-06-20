@@ -2820,16 +2820,9 @@ const RL = (function(){
       const skipped = Array.isArray(state.skipped) ? state.skipped : [];
       const pending = trickAlive(state).filter(i=> i!==owner);
       if(ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i))){
-        if(state.skipMode==='choose'){
-          clearField(state); state.passed=[]; state.passCount=0; setTurn(state, owner);
-          if(state.players[owner]) state.players[owner].freeActed = false;
-          events.push({kind:'flush', lead:owner});
-        } else {
-          const catchup = skipped.find(i=> pending.includes(i));
-          setTurn(state, catchup);
-          if(state.players[catchup]) state.players[catchup].freeActed = false;
-          state.passCount = passedSet(state).length;
-        }
+        clearField(state); state.passed=[]; state.passCount=0; setTurn(state, owner);
+        if(state.players[owner]) state.players[owner].freeActed = false;
+        events.push({kind:'flush', lead:owner});
       } else {
         setTurn(state, next);
         if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
@@ -3461,10 +3454,8 @@ const RL = (function(){
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
       ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
-      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→飛ばされたP1へ参加権が戻る
-      ok('加速: 飛ばされた席に手番が回ってくる(再参加)', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
-      applyPass(sb,1);                                                               // 最後のP1もパス→場流し
-      ok('加速+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→P1は補填せず、持ち主P0へ場流し
+      ok('加速: 俺→A→B→C→俺でAを飛ばしたらB→C→俺へ戻る', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'5':['ao01']}})), 57);
@@ -3474,8 +3465,8 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされるが、パス扱いではない
-      applyPass(sb,2); applyPass(sb,3);                                               // 場の持ち主P0へ戻る前に、P1へ補填ターン
-      ok('加速: 持ち主へ戻す前に飛ばされた席へ手番を回す', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      applyPass(sb,2); applyPass(sb,3);                                               // 補填ターンなしで持ち主P0へ場流し
+      ok('加速: 飛ばされた席だけが残っても補填せず場流し', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const b3=buildFrom({rank:{'5':['ao01']}});
