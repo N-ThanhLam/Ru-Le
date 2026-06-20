@@ -922,12 +922,21 @@
   .inspplayer .pnm .cnt{ font-size:39px; color:#b25a00; font-weight:900; }
   .inspplayer .pnm .turnnow{ font-size:36px; font-weight:900; color:#fff; background:#e6a700; border-radius:10px; padding:3px 16px; }
   .inspgrid{ display:flex; flex-direction:column; gap:10px; }
-  .inspe{ width:auto; min-height:76px; background:#f7f9ff; border:3px solid var(--line); border-radius:12px; padding:10px 16px; display:grid; grid-template-columns:102px 325px minmax(0,1fr); gap:14px; align-items:center; }
+  .inspe{ width:auto; min-height:76px; background:#f7f9ff; border:3px solid var(--line); border-radius:12px; padding:10px 16px; display:grid; grid-template-columns:102px 325px minmax(0,1fr); gap:14px; align-items:center;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease; }
   .inspe .ebadge{ font-size:39px; font-weight:900; color:#fff; padding:3px 14px; border-radius:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .inspe .eslot{ font-size:39px; font-weight:900; background:#1f2440; color:#fff; border-radius:10px; padding:1px 14px; text-align:center; white-space:nowrap; }
   .inspe .eslot.red{ color:#ff8f86; }
   .inspe .eds{ font-size:33px; color:#222; line-height:1.26; font-weight:650; min-width:0; }
   .inspe.none{ width:auto; color:#777; font-size:39px; font-weight:800; background:transparent; border-style:dashed; }
+  /* ★カーソル位置の行は背景がほぼ白(.you行は薄黄)なので、既定の細い金アウトラインだけでは馴染んで目立たない。
+     ここだけ背景ごと濃い金で塗り＋太縁＋浮き上がりにして、一瞬で「いまここ」と分かる強さにする。 */
+  .inspe.foc.focused{
+    background:linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 42%), linear-gradient(180deg,#ffe27a,#ffc94d);
+    border-color:#8a6310; outline:8px solid #ffcf4d; outline-offset:3px;
+    box-shadow:0 0 0 8px rgba(255,207,77,.55), 0 16px 32px rgba(0,0,0,.45) !important;
+    transform:translateY(-6px) scale(1.015); position:relative; z-index:2;
+  }
 
   /* ===== オーバーレイ(指名/メニュー/結果/ドラフト) ===== */
   .ovl{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(4,6,16,.72); z-index:40; }
@@ -4858,8 +4867,15 @@ const AUDIO = (function(){
     }
     if(sc && sc!==document.body){
       const stage=$('#stage'); const scale=(stage.getBoundingClientRect().width/1920)||1;
-      const er=e.getBoundingClientRect(), cr=sc.getBoundingClientRect(); const pad=18*scale;
-      if(er.top < cr.top+pad) sc.scrollTop -= (cr.top+pad - er.top)/scale;
+      // ★しらべる画面: プレイヤー欄の先頭エンブレム行へ戻ると、行の上端だけ合わせて名前見出し(.pnm)が画面外へ押し出されていた。
+      //   先頭行のときは名前見出しごと(=.inspplayer の上端)を基準にスクロールして、名前が隠れないようにする。
+      let topEl=e;
+      if(e.classList.contains('inspe')){
+        const grid=e.parentElement, player=e.closest('.inspplayer');
+        if(grid && player && grid.firstElementChild===e) topEl=player;
+      }
+      const tr=topEl.getBoundingClientRect(), er=e.getBoundingClientRect(), cr=sc.getBoundingClientRect(); const pad=18*scale;
+      if(tr.top < cr.top+pad) sc.scrollTop -= (cr.top+pad - tr.top)/scale;
       else if(er.bottom > cr.bottom-pad) sc.scrollTop += (er.bottom - (cr.bottom-pad))/scale;
     }
     updateScrollCue();
@@ -5363,7 +5379,8 @@ const AUDIO = (function(){
   }
   // 強敵/ボスは宿敵の予算を上振れ(歯ごたえ)。幕が進むほど僅かに上昇(無双の上限キャップではない)。
   function nodeRivalBudget(depth){
-    let b=runCpuBudget(depth);
+    // お題(大盤振舞/緊縮)の増減を宿敵にも反映(下限30。プレイヤーの currentBudget と同じ床)。
+    let b=Math.max(30, runCpuBudget(depth) + mutatorBudgetDelta());
     const n=MODE.curNode, act=Math.max(0,(((MODE.run&&MODE.run.act)||1)-1));
     // ★v0.25 _sim 校正: 予算は「効きはじめる膝」が +60 付近(下では雑魚と差がつかず spike≈0)。
     //   そこで elite=+40+幕×6 / boss=+60+幕×8 に引き上げ＝幕1から本物のボス(勝率>0.25)・幕で歯ごたえ上昇。
@@ -6850,7 +6867,8 @@ const AUDIO = (function(){
     const keys=['speed','control','tempo','vietnam'];
     let pool=CPU_ARCHE[keys[idx%3]].slice();                    // 名前(速攻/支配/翻弄)と一致
     if(depth>=4) pool=pool.concat(CPU_ARCHE[keys[3]]);          // 深いほどベトナム式の役も混ぜる
-    const budget=runCpuBudget(depth);   // 巡業CPUの予算=プレイヤーと同式だが上限なし(深度10超は+5し続けプレイヤーより強くなる)
+    // 巡業CPUの予算=プレイヤーと同式だが上限なし(深度10超は+5し続けプレイヤーより強くなる)。お題(大盤振舞/緊縮)の増減もCPUに反映(下限30)。
+    const budget=Math.max(30, runCpuBudget(depth) + mutatorBudgetDelta());
     return assembleCpuBuild(pool, budget);
   }
 
@@ -6948,7 +6966,7 @@ const AUDIO = (function(){
   // 宿敵 i のビルドを組む。{build, plan} を返す(plan は結果画面の種明かし用)。
   function rivalBuild(i, depth, bossNode){
     const plan=rivalPlan(i, bossNode);
-    const budget = MODE.kind==='run' ? nodeRivalBudget(depth) : (78+Math.floor(Math.random()*16));
+    const budget = MODE.kind==='run' ? nodeRivalBudget(depth) : Math.max(30, (78+Math.floor(Math.random()*16)) + mutatorBudgetDelta());
     return { build:assembleCpuBuild(plan.pool, budget, plan.priority), plan };
   }
   // 結果画面/休憩での宿敵の「流儀」一行(種明かし)。学習型は対策内容、固定型は流儀。
@@ -7532,8 +7550,8 @@ const AUDIO = (function(){
   }
   function cpuStep(){
     if(!G || G.gameOver){ return; }
+    if(anyMatchOvlActive()){ setTimeout(cpuStep, 250); return; }     // ★ポーズ/中断確認/しらべるなどのモーダル中はCPUを進めない(閉じたら再開)
     if(currentScreen!=='s-match'){ busy=false; return; }            // ★対戦を抜けた=自動進行を止める(内部で対戦が続いて音が鳴り続ける/勝手にリザルトへ飛ぶのを防ぐ)
-    if(anyMatchOvlActive()){ setTimeout(cpuStep, 250); return; }     // ★ポーズ/中断確認などのモーダル中はCPUを進めない(閉じたら再開)
     const idx=G.turn; const p=G.players[idx];
     if(p.isHuman){ busy=false; afterStep(); return; }
     // 気(チャージ)経済: 本手の前に無料アクション(発動)を1回だけ。手番は同席のまま → 同invocation内で続けて本手を打つ(ループ無し)。
