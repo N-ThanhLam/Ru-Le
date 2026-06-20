@@ -4110,7 +4110,7 @@ const AUDIO = (function(){
       place_suit_only:'マーク枠（そのマークの3に効く）',
       where_rule:'役ルール', elsewhere_rule_label:'役',
       act_equipped:'✓ 装備中 — タップ／{0}で はずす', act_equip:'タップ／{0}で「{1}」に入れる（C{2}）', act_cannot:'この枠には置けません（{0}）',
-      row_place:'置ける場所：{0}', row_cost:'コスト：<b>{0}</b>',
+      row_place:'置ける場所：{0}', row_cost:'コスト：<b>{0}</b>{1}',
       toast_cost_over:'コスト超過', toast_cannot_whole:'{0}は全体ルール枠に置けない',
       why_whole_only:'は全体ルール枠専用', why_suit_only:'はマークスロット専用（階段に使うマークを選ぶ）', why_here_no:'はここに置けない', why_rank_lock:'は指定された数字スロットのみに装備可', why_suit_card_only:'はマークスロット専用（そのマークの3に効く）',
       toast_cost_over_start:'コスト超過のまま開始できない',
@@ -4204,7 +4204,7 @@ const AUDIO = (function(){
       map_step_hd:'分岐 {0}', map_boss_hd:'★ ボス',
       node_battle:'通常戦', node_battle_ds:'ふつうの4人卓',
       node_elite:'強敵戦', node_elite_ds:'宿敵が強化。1位なら次戦の半額対象が2つになる',
-      node_mutator:'お題戦', node_mutator_ds:'予告のお題で戦う',
+      node_mutator:'お題戦', node_mutator_ds:'予告のお題で戦う。1位ならコスト平坦化',
       node_gamble:'賭場', node_gamble_ds:'次の戦闘：1位ならランダムエンブレム+1、2位以下なら残機追加-1',
       node_loot:'市（いち）', node_loot_ds:'戦わずにエンブレムを1つ獲得。次戦コスト-15',
       node_rest:'休憩', node_rest_ds:'回復・次戦コスト+10・半額引き直しから1つ選ぶ',
@@ -4232,6 +4232,7 @@ const AUDIO = (function(){
       reward_boss_head:'👑 ボス撃破！ 幕クリア', reward_boss_line:'誓約報酬：ランダムエンブレム +{0}',
       reward_gamble_head:'🎰 賭場の勝ち分', reward_gamble_line:'ランダムエンブレム +{0}',
       reward_gamble_loss_head:'🎰 賭場のツケ', reward_gamble_loss_line:'残機 追加 -1',
+      reward_mutator_head:'🎲 お題を制した！', reward_mutator_line:'高騰エンブレム {0}種の変動量を半減',
       /* ヘルプ */
       help_topbar:'あそびかた', help_close:'◀ もどる', help_prev:'◀ まえ', help_next:'つぎ ▶',
       help0_h:'Ru-Le とは',
@@ -4352,7 +4353,7 @@ const AUDIO = (function(){
       place_suit_only:'Ô chất (hiệu lực với lá 3 của chất đó)',
       where_rule:'Luật bộ', elsewhere_rule_label:'Bộ',
       act_equipped:'✓ Đang gắn — chạm/{0} để gỡ', act_equip:'Chạm/{0} để gắn vào「{1}」(C{2})', act_cannot:'Không gắn được vào ô này ({0})',
-      row_place:'Nơi gắn được: {0}', row_cost:'Chi phí: <b>{0}</b>',
+      row_place:'Nơi gắn được: {0}', row_cost:'Chi phí: <b>{0}</b>{1}',
       toast_cost_over:'Vượt chi phí', toast_cannot_whole:'{0} không gắn được vào ô luật bộ',
       why_whole_only:' chỉ dành cho ô luật bộ', why_suit_only:' chỉ dành cho ô chất (chọn chất dùng cho sảnh)', why_here_no:' không gắn được ở đây', why_rank_lock:' chỉ gắn được vào ô số chỉ định', why_suit_card_only:' chỉ dành cho ô chất (hiệu lực với lá 3 của chất đó)',
       toast_cost_over_start:'Còn vượt chi phí, không bắt đầu được',
@@ -4441,7 +4442,7 @@ const AUDIO = (function(){
       map_step_hd:'Ngã rẽ {0}', map_boss_hd:'★ Boss',
       node_battle:'Trận thường', node_battle_ds:'Bàn 4 người thường',
       node_elite:'Cường địch', node_elite_ds:'Địch thủ mạnh hơn. Hạng 1: trận kế có 2 mục nửa giá',
-      node_mutator:'Trận đề bài', node_mutator_ds:'Đấu với đề bài đã báo trước',
+      node_mutator:'Trận đề bài', node_mutator_ds:'Đấu với đề bài đã báo trước. Hạng 1 làm phẳng chi phí',
       node_gamble:'Sòng cược', node_gamble_ds:'Trận kế: hạng 1 nhận biểu tượng ngẫu nhiên +1, hạng 2 trở xuống mất thêm 1 mạng',
       node_loot:'Chợ', node_loot_ds:'Không đấu, nhận 1 biểu tượng. Trận kế ngân sách -15',
       node_rest:'Nghỉ', node_rest_ds:'Chọn 1: hồi mạng, ngân sách trận kế +10, hoặc đổi nửa giá',
@@ -4469,6 +4470,7 @@ const AUDIO = (function(){
       reward_boss_head:'👑 Hạ Boss! Qua màn', reward_boss_line:'Thưởng lời thề: biểu tượng ngẫu nhiên +{0}',
       reward_gamble_head:'🎰 Thắng cược', reward_gamble_line:'Biểu tượng ngẫu nhiên +{0}',
       reward_gamble_loss_head:'🎰 Trả giá sòng cược', reward_gamble_loss_line:'Mạng mất thêm -1',
+      reward_mutator_head:'🎲 Thắng đề bài!', reward_mutator_line:'Giảm nửa độ lệch chi phí của {0} biểu tượng đang tăng',
       help_topbar:'Cách Chơi', help_close:'◀ Quay lại', help_prev:'◀ Trước', help_next:'Sau ▶',
       help0_h:'Ru-Le là gì',
       help0_b:'<ul><li>52 lá bài <b>chung cho mọi người</b>.</li><li>Khác biệt chỉ đến từ <b>cấu hình Biểu Tượng</b>.</li><li>Gắn biểu tượng lên số/chất để tạo <b>luật của riêng mình</b>.</li><li>Nền tảng là "Tiến Lên thuần (đánh lẻ)".</li></ul>',
@@ -5482,6 +5484,7 @@ const AUDIO = (function(){
       owned:BASE_UNLOCKED.slice(),                 // 巡業の初期所持=基本セット(クイック/オンの初期解放と同一)。ドラフトで増える
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
+      costMods:{},                                  // 巡業限定: 使ったエンブレムは高く、使わなかったものは安くなる(平均100%維持)
       ban:{ ids:[], depth:1 }, banRecent:[], discount:null, discountSlots:1,   // ★深度ごとの揺さぶり: 封じ / 直近封じ履歴 / 半額対象
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
       log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
@@ -5516,6 +5519,7 @@ const AUDIO = (function(){
     MODE.run=JSON.parse(JSON.stringify(saved.run));
     // 旧セーブ互換: ランダムエンブレム枠が無ければ空で補完(中断復帰で獲得済みを失わないよう正規化)。
     MODE.run.randomBuild = MODE.run.randomBuild ? RL.normalizeBuild(MODE.run.randomBuild) : RL.emptyBuild();
+    normalizeRunCostMods(MODE.run);
     MODE.run.budget = runBudget(MODE.run.depth);   // 旧セーブ互換: 予算は加算値を捨て、常に深度から再計算
     MODE.run.nextBonus = Math.min(MODE.run.nextBonus || 0, RUN_WIN_BONUS);  // 旧セーブ互換: 旧版の封じ上乗せ(+40)を通常ボーナス(+25)へ丸める
     MODE.run.banRecent = Array.isArray(MODE.run.banRecent) ? MODE.run.banRecent.filter(id=>RL.emblem(id)).slice(0,6) : [];
@@ -6015,8 +6019,56 @@ const AUDIO = (function(){
     const ids=currentDiscountIds();
     return ids[0]||null;
   }
+  const RUN_COST_MOD_STEP = 0.10;
+  const RUN_COST_MOD_MIN = 0.50;
+  const RUN_COST_MOD_MAX = 2.00;
+  function runCostPoolIds(run){
+    if(!run) return [];
+    const seen=new Set(), out=[];
+    const add=id=>{ const e=RL.emblem(id); if(e && !e.hidden && !seen.has(id)){ seen.add(id); out.push(id); } };
+    (run.owned||[]).forEach(add);
+    collectBuildIds(run.randomBuild).forEach(add);
+    return out;
+  }
+  function normalizeRunCostMods(run){
+    if(!run) return {};
+    const ids=runCostPoolIds(run);
+    const mods={};
+    const src=(run.costMods && typeof run.costMods==='object') ? run.costMods : {};
+    ids.forEach(id=>{
+      const v=Number(src[id]);
+      mods[id]=Math.max(RUN_COST_MOD_MIN, Math.min(RUN_COST_MOD_MAX, isFinite(v)?v:1));
+    });
+    const sum=ids.reduce((s,id)=>s+mods[id],0);
+    const diff=ids.length - sum;
+    distributeCostModDelta(mods, ids, diff);
+    run.costMods=mods;
+    return mods;
+  }
+  function distributeCostModDelta(mods, ids, delta){
+    let pool=ids.slice(), remain=delta, guard=0;
+    while(pool.length && Math.abs(remain)>1e-9 && guard++<40){
+      const per=remain/pool.length;
+      const next=[];
+      pool.forEach(id=>{
+        const before=mods[id];
+        const after=Math.max(RUN_COST_MOD_MIN, Math.min(RUN_COST_MOD_MAX, before+per));
+        mods[id]=after;
+        remain -= (after-before);
+        if(remain>0 ? after<RUN_COST_MOD_MAX-1e-9 : after>RUN_COST_MOD_MIN+1e-9) next.push(id);
+      });
+      if(next.length===pool.length && Math.abs(per)<1e-9) break;
+      pool=next;
+    }
+  }
+  function runCostMod(id){
+    if(MODE.kind!=='run' || !MODE.run) return 1;
+    const mods=normalizeRunCostMods(MODE.run);
+    return mods[id] || 1;
+  }
+  function runCostModPct(id){ return Math.round(runCostMod(id)*100); }
   function runSlotCost(id, slotType){
-    const base = RL.slotCost(id, slotType);
+    let base = Math.max(1, Math.ceil(RL.slotCost(id, slotType) * runCostMod(id)));
     return currentDiscountIds().includes(id) ? Math.max(1, Math.ceil(base/2)) : base;
   }
   function runBuildCost(build){
@@ -6026,6 +6078,53 @@ const AUDIO = (function(){
     for(const s in build.suitSlots) build.suitSlots[s].forEach(id=> c+=runSlotCost(id,'suit'));
     (build.ruleSlots||[]).forEach(id=> c+=runSlotCost(id,'rule'));
     return c;
+  }
+  function buildUsedEmblemIds(build){
+    const out=[], seen=new Set();
+    const add=id=>{ const e=RL.emblem(id); if(e && !e.hidden && !seen.has(id)){ seen.add(id); out.push(id); } };
+    (build.ruleSlots||[]).forEach(add);
+    RL.DISPLAY_RANKS.forEach(r=> (build.rankSlots[r]||[]).forEach(add));
+    RL.SUITS.forEach(s=> (build.suitSlots[s]||[]).forEach(add));
+    return out;
+  }
+  function applyRunCostDrift(run, usedIds){
+    if(!run) return;
+    const ids=runCostPoolIds(run);
+    const mods=normalizeRunCostMods(run);
+    const usedSet=new Set((usedIds||[]).filter(id=>ids.includes(id)));
+    const used=ids.filter(id=>usedSet.has(id));
+    const unused=ids.filter(id=>!usedSet.has(id));
+    if(!used.length || !unused.length) return;
+    let incTotal=0;
+    const incs={};
+    used.forEach(id=>{
+      const inc=Math.min(RUN_COST_MOD_STEP, Math.max(0, RUN_COST_MOD_MAX-mods[id]));
+      incs[id]=inc; incTotal+=inc;
+    });
+    const downRoom=unused.reduce((s,id)=>s+Math.max(0, mods[id]-RUN_COST_MOD_MIN),0);
+    const scale=(incTotal>0 && downRoom<incTotal) ? (downRoom/incTotal) : 1;
+    incTotal=0;
+    used.forEach(id=>{ const inc=(incs[id]||0)*scale; mods[id]+=inc; incTotal+=inc; });
+    distributeCostModDelta(mods, unused, -incTotal);
+    distributeCostModDelta(mods, ids, ids.length - ids.reduce((s,id)=>s+mods[id],0));
+    run.costMods=mods;
+  }
+  function halveRunHighCostMods(run){
+    if(!run) return 0;
+    const ids=runCostPoolIds(run);
+    const mods=normalizeRunCostMods(run);
+    let freed=0, count=0;
+    ids.forEach(id=>{
+      if(mods[id] <= 1+1e-9) return;
+      const before=mods[id];
+      mods[id] = 1 + (before-1)/2;
+      freed += before-mods[id];
+      count++;
+    });
+    if(freed>0) distributeCostModDelta(mods, ids.filter(id=>mods[id]<1-1e-9), freed);
+    distributeCostModDelta(mods, ids, ids.length - ids.reduce((s,id)=>s+mods[id],0));
+    run.costMods=mods;
+    return count;
   }
   function incMatchAction(){ if(MODE.matchStats) MODE.matchStats.actions = (MODE.matchStats.actions||0) + 1; }
   function resultTags(me){
@@ -6462,7 +6561,7 @@ const AUDIO = (function(){
       +'<div class="dt-name">'+embName(e)+'</div>'
       +'<div class="dt-desc">'+embDesc(e)+'</div>'
       +'<div class="dt-rows"><div class="dt-row">'+T('row_place', placeTxt)+'</div>'
-        +'<div class="dt-row">'+(rndFixed ? T(rndOff?'row_cost_rnd_off':'row_cost_rnd') : T('row_cost', cst))+'</div></div>'
+        +'<div class="dt-row">'+(rndFixed ? T(rndOff?'row_cost_rnd_off':'row_cost_rnd') : T('row_cost', cst, ''))+'</div></div>'
       +'<div class="dt-spacer"></div>'
       +'<div class="dt-act'+actCls+'" id="dt-act">'+act+'</div>';
     const hint = banned
@@ -6960,7 +7059,8 @@ const AUDIO = (function(){
       actions:0,
       cost: MODE.kind==='run' ? runBuildCost(human.build) : RL.buildCost(human.build),
       budget: currentBudget(),
-      livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0
+      livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0,
+      usedEmblems: MODE.kind==='run' ? buildUsedEmblemIds(human.build) : []
     };
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
@@ -7479,6 +7579,9 @@ const AUDIO = (function(){
     const playedDepth = run.depth;   // 結果画面に出す「今プレイした深度」(前進処理で run.depth を進めても固定表示)
     MODE.lastOutcome={ place, depth:playedDepth, tags:resultTagKeys(G.players[meIdx()]) };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
+    const _nodeT = MODE.curNode ? MODE.curNode.type : null;
+    const mutatorCool = (place===1 && _nodeT==='mutator') ? halveRunHighCostMods(run) : 0;
+    if(!mutatorCool) applyRunCostDrift(run, (MODE.matchStats&&MODE.matchStats.usedEmblems)||[]);
     // 通常成長は対戦後ドラフト1回のみ。連勝の昂りはリロード回数に変換する。
     let reward=null;
     const draftGain = 1;
@@ -7495,8 +7598,11 @@ const AUDIO = (function(){
       const hline=T('reward_heat_line', heatN, run.momentum||0, momentumRerolls);
       reward = reward ? { head:reward.head, line:reward.line+'<br>'+hline } : { head:T('reward_heat_head'), line:hline };
     }
-    const _nodeT = MODE.curNode ? MODE.curNode.type : null;
     let nextDiscountSlots = 1;
+    if(mutatorCool>0){
+      const mline=T('reward_mutator_line', mutatorCool);
+      reward = reward ? { head:reward.head, line:reward.line+'<br>'+mline } : { head:T('reward_mutator_head'), line:mline };
+    }
     if(place===1 && _nodeT==='elite'){
       nextDiscountSlots = 2;
       const eline=T('reward_elite_line');
