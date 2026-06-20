@@ -395,6 +395,7 @@
   /* コスト＝右上のbadge(装備中/…にも)と重ならないよう、右下の独立ピルへ。常に読めるよう不透明背景。 */
   .palette .emb .cst{ position:absolute; right:14px; bottom:10px; font-size:28px; font-weight:900; color:#fff;
     background:#b25a00; padding:2px 14px; border-radius:11px; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+  .palette .emb .cst small{ font-size:18px; margin-left:5px; opacity:.9; vertical-align:baseline; }
   .palette .emb .nm{ font-size:42px; font-weight:900; color:var(--ink); line-height:1.05; }
   .palette .emb .badge{ position:absolute; top:-8px; right:-8px; font-size:28px; font-weight:900; color:#fff; padding:3px 14px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.4); }
   .palette .emb .badge.on{ background:#2e7d32; }
@@ -423,6 +424,7 @@
   .detailpane .dt-rows{ display:flex; flex-direction:column; gap:9px; margin-top:4px; }
   .detailpane .dt-row{ font-size:30px; font-weight:800; color:#3a3f63; }
   .detailpane .dt-row b{ color:#b25a00; }
+  .detailpane .dt-row .costmod{ margin-left:8px; color:#7a5480; font-weight:900; }
   .detailpane .dt-equip{ font-size:30px; font-weight:800; color:#2a2f55; line-height:1.3; }
   .detailpane .dt-equip .ev{ color:#1b5e20; font-weight:900; }
   .detailpane .dt-note{ font-size:28px; font-weight:700; color:#6b7099; line-height:1.32; }
@@ -905,10 +907,10 @@
   #s-match .actbar{ position:absolute; left:24px; right:24px; bottom:18px; height:96px; display:flex; align-items:center; justify-content:center; gap:24px; }
 
   /* ===== エンブレム閲覧 フルスクリーン画面 (s-inspect) ===== */
-  #s-inspect .inspect-body-wrap{ position:absolute; top:100px; left:24px; right:24px; bottom:18px; overflow-y:auto; }
+  #s-inspect .inspect-body-wrap{ position:absolute; top:116px; left:24px; right:24px; bottom:18px; overflow-y:auto; scroll-padding-top:16px; }
   #s-inspect .inspect-body-wrap::-webkit-scrollbar{ width:16px; }
   #s-inspect .inspect-body-wrap::-webkit-scrollbar-thumb{ background:#9aa3c8; border-radius:8px; }
-  #s-inspect .inspwrap{ min-width:unset; max-height:unset; overflow:visible; padding:0; }
+  #s-inspect .inspwrap{ min-width:unset; max-height:unset; overflow:visible; padding:6px 0 0; }
 
   /* ===== エンブレム閲覧オーバーレイ ===== */
   /* ★相手の能力説明＝とにかく読めることを優先。スクロールは伸ばしてよいので文字を大きく。 */
@@ -6183,6 +6185,16 @@ const AUDIO = (function(){
     return mods[id] || 1;
   }
   function runCostModPct(id){ return Math.round(runCostMod(id)*100); }
+  function runCostModHTML(id){
+    if(MODE.kind!=='run') return '';
+    const pct = runCostModPct(id);
+    return pct===100 ? '' : '<small>'+pct+'%</small>';
+  }
+  function runCostModRowHTML(id){
+    if(MODE.kind!=='run') return '';
+    const pct = runCostModPct(id);
+    return pct===100 ? '' : '<span class="costmod">×'+pct+'%</span>';
+  }
   function runSlotCost(id, slotType){
     let base = Math.max(1, Math.ceil(RL.slotCost(id, slotType) * runCostMod(id)));
     return currentDiscountIds().includes(id) ? Math.max(1, Math.ceil(base/2)) : base;
@@ -6618,6 +6630,7 @@ const AUDIO = (function(){
       card.dataset.eid=id;
       card.style.borderLeft='10px solid '+col.hex;   // 左の色帯＝カテゴリ(色で一目／言葉は詳細ペイン)
       const cst = runSlotCost(id, sel.type);
+      const cstMod = runCostModHTML(id);
       let badge='';
       if(here) badge='<span class="badge on">'+T('badge_on')+'</span>';
       else if(elsewhere) badge='<span class="badge elsewhere">'+T('badge_elsewhere', (elsewhere.type==='suit'?RL.SUIT_SYM[elsewhere.key]:elsewhere.type==='rule'?T('elsewhere_rule_label'):elsewhere.key))+'</span>';
@@ -6627,7 +6640,7 @@ const AUDIO = (function(){
         badge+
         '<div class="thd"><span class="ico">'+embMark(e)+'</span></div>'+
         '<div class="nm">'+embName(e)+'</div>'+
-        '<span class="cst">C'+cst+'</span>';
+        '<span class="cst">C'+cst+cstMod+'</span>';
       card.onclick=()=>{
         if(focusedEl===card){ toggleEquip(id); }
         else { setFocus(card); AUDIO.move(); }
@@ -6677,7 +6690,7 @@ const AUDIO = (function(){
       +'<div class="dt-name">'+embName(e)+'</div>'
       +'<div class="dt-desc">'+embDesc(e)+'</div>'
       +'<div class="dt-rows"><div class="dt-row">'+T('row_place', placeTxt)+'</div>'
-        +'<div class="dt-row">'+(rndFixed ? T(rndOff?'row_cost_rnd_off':'row_cost_rnd') : T('row_cost', cst, ''))+'</div></div>'
+        +'<div class="dt-row">'+(rndFixed ? T(rndOff?'row_cost_rnd_off':'row_cost_rnd') : T('row_cost', cst, runCostModRowHTML(id)))+'</div></div>'
       +'<div class="dt-spacer"></div>'
       +'<div class="dt-act'+actCls+'" id="dt-act">'+act+'</div>';
     const hint = banned
@@ -7709,8 +7722,8 @@ const AUDIO = (function(){
     MODE.lastOutcome={ place, depth:playedDepth, tags:resultTagKeys(G.players[meIdx()]) };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
     const _nodeT = MODE.curNode ? MODE.curNode.type : null;
+    applyRunCostDrift(run, (MODE.matchStats&&MODE.matchStats.usedEmblems)||[]);
     const mutatorCool = (place===1 && _nodeT==='mutator') ? halveRunHighCostMods(run) : 0;
-    if(!mutatorCool) applyRunCostDrift(run, (MODE.matchStats&&MODE.matchStats.usedEmblems)||[]);
     // 通常成長は対戦後ドラフト1回のみ。連勝の昂りはリロード回数に変換する。
     let reward=null;
     const draftGain = 1;
