@@ -2807,9 +2807,10 @@ const RL = (function(){
       const skipped = Array.isArray(state.skipped) ? state.skipped : [];
       const pending = trickAlive(state).filter(i=> i!==owner);
       if(ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i))){
-        clearField(state); state.passed=[]; state.passCount=0; setTurn(state, owner);
-        if(state.players[owner]) state.players[owner].freeActed = false;
-        events.push({kind:'flush', lead:owner});
+        const catchup = skipped.find(i=> pending.includes(i));
+        setTurn(state, catchup);
+        if(state.players[catchup]) state.players[catchup].freeActed = false;
+        state.passCount = passedSet(state).length;
       } else {
         setTurn(state, next);
         if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
@@ -3125,7 +3126,9 @@ const RL = (function(){
       g3.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       g3.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g3.turn=0; g3.passed=[];
       applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPass(g3,2); applyPass(g3,3);
-      ok('指名: 素通り席だけ残っても持ち主へ戻ったら場流し', g3.field.card===null && g3.turn===0 && (g3.passed||[]).length===0);
+      ok('指名: 素通り席だけ残ったら参加権を消さず手番を回す', g3.field.card!==null && g3.turn===1 && !(g3.passed||[]).includes(1));
+      applyPass(g3,1);
+      ok('指名: 素通り席もパスしたら場流し', g3.field.card===null && g3.turn===0 && (g3.passed||[]).length===0);
     })();
     // 8e 指名の効果構成: CHOOSE_NEXT を保持・SHED_WEAK_IF_MOST(手札最多時の弱札捨て)は持たない
     ok('指名: CHOOSE_NEXT を保持', effList(EMB_BY_ID['ao04']).includes('CHOOSE_NEXT'));
@@ -3429,8 +3432,10 @@ const RL = (function(){
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
       ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
-      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→持ち主P0へ戻るので場流し
-      ok('加速: 飛ばされた席だけ残っても持ち主へ戻ったら場流し', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→飛ばされたP1へ参加権が戻る
+      ok('加速: 飛ばされた席に手番が回ってくる(再参加)', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      applyPass(sb,1);                                                               // 最後のP1もパス→場流し
+      ok('加速+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'5':['ao01']}})), 57);
@@ -3440,8 +3445,24 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされるが、パス扱いではない
-      applyPass(sb,2); applyPass(sb,3);                                               // P1が残っていても、場の持ち主P0へ戻る
-      ok('加速: 持ち主へ戻ったらパス要求せず場流し', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+      applyPass(sb,2); applyPass(sb,3);                                               // 場の持ち主P0へ戻る前に、P1へ補填ターン
+      ok('加速: 持ち主へ戻す前に飛ばされた席へ手番を回す', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+    })();
+    (function(){
+      const b3=buildFrom({rank:{'5':['ao01']}});
+      const sb=newGame([{name:'俺',build:emptyBuild()},{name:'A',build:emptyBuild()},{name:'B',build:emptyBuild()},{name:'C',build:b3}], 59);
+      sb.players[0].hand=[{rank:'7',suit:'S'},{rank:'K',suit:'S'}];
+      sb.players[1].hand=[{rank:'6',suit:'H'},{rank:'K',suit:'H'}];
+      sb.players[2].hand=[{rank:'4',suit:'D'},{rank:'K',suit:'D'}];
+      sb.players[3].hand=[{rank:'5',suit:'C'},{rank:'K',suit:'C'}];
+      sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=3; sb.passed=[];
+      applyPlay(sb,3,{rank:'5',suit:'C'},{});                                          // Cが俺(P0)を1回飛ばす
+      ok('加速: Cに飛ばされても俺はpassedに入らない', sb.turn===1 && !(sb.passed||[]).includes(0) && (sb.skipped||[]).includes(0));
+      applyPlay(sb,1,{rank:'6',suit:'H'},{});                                          // Aが新しく札を出す
+      applyPass(sb,2); applyPass(sb,3);                                                // B/Cが返せなければ、俺へ戻る
+      ok('加速: 誰かが新しく出した後は俺の参加権が戻る', sb.field.card!==null && sb.turn===0 && !(sb.passed||[]).includes(0));
+      applyPlay(sb,0,{rank:'7',suit:'S'},{});
+      ok('加速: 戻った俺はその場に出せる', sb.field.ownerIndex===0 && sb.field.card && sb.field.card.rank==='7');
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 56);
@@ -4262,7 +4283,7 @@ const AUDIO = (function(){
       node_elite:'強敵戦', node_elite_ds:'宿敵が強化。1位なら次戦の半額対象が2つになる',
       node_mutator:'お題戦', node_mutator_ds:'予告のお題で戦う。1位ならコスト平坦化',
       node_gamble:'賭場', node_gamble_ds:'次の戦闘：1位ならランダムエンブレム+1、2位以下なら残機追加-1',
-      node_loot:'市（いち）', node_loot_ds:'戦わずにエンブレムを1つ獲得。次戦コスト-15',
+      node_loot:'市（いち）', node_loot_ds:'戦わずにエンブレムを1つ獲得。次戦コスト-10',
       node_rest:'休憩', node_rest_ds:'回復・次戦コスト+10・半額引き直しから1つ選ぶ',
       node_boss:'ボス', node_boss_ds:'宿敵の看板ルール＋強化。撃破で幕クリア・大報酬',
       node_mut_badge:'お題 {0} {1}',
@@ -4500,7 +4521,7 @@ const AUDIO = (function(){
       node_elite:'Cường địch', node_elite_ds:'Địch thủ mạnh hơn. Hạng 1: trận kế có 2 mục nửa giá',
       node_mutator:'Trận đề bài', node_mutator_ds:'Đấu với đề bài đã báo trước. Hạng 1 làm phẳng chi phí',
       node_gamble:'Sòng cược', node_gamble_ds:'Trận kế: hạng 1 nhận biểu tượng ngẫu nhiên +1, hạng 2 trở xuống mất thêm 1 mạng',
-      node_loot:'Chợ', node_loot_ds:'Không đấu, nhận 1 biểu tượng. Trận kế ngân sách -15',
+      node_loot:'Chợ', node_loot_ds:'Không đấu, nhận 1 biểu tượng. Trận kế ngân sách -10',
       node_rest:'Nghỉ', node_rest_ds:'Chọn 1: hồi mạng, ngân sách trận kế +10, hoặc đổi nửa giá',
       node_boss:'Boss', node_boss_ds:'Luật đặc trưng của địch thủ + mạnh hơn. Hạ được = qua màn, thưởng lớn',
       node_mut_badge:'Đề bài {0} {1}',
@@ -4755,6 +4776,7 @@ const AUDIO = (function(){
     setFocus(f[0]||null);
   }
   function center(e){ const r=e.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+  function isMatchHandCard(e){ return currentScreen==='s-match' && e && e.classList.contains('pcard') && e.closest('#match-hand'); }
   /* 方向ナビ(v0.16):
      ・同じ行/列(バンド=進行方向と直交する辺が3割以上重なる相手)を最優先＝「左右を押したのに上下へ飛ぶ」斜め誤爆を排除。
      ・端でさらに端方向を押したら反対端へラップ(←端で←→右端へ)。左右はバンド内ラップを斜め候補より優先、
@@ -4765,6 +4787,21 @@ const AUDIO = (function(){
     const horiz = (dir==='left'||dir==='right');
     const fr=focusedEl.getBoundingClientRect();
     const c=center(focusedEl);
+    if(isMatchHandCard(focusedEl) && dir==='down'){
+      let lowerBest=null, lowerScore=Infinity;
+      list.forEach(e=>{
+        if(e===focusedEl) return;
+        if(isMatchHandCard(e)) return;
+        const r=e.getBoundingClientRect();
+        const t={x:r.left+r.width/2, y:r.top+r.height/2};
+        const dy=t.y-c.y, dx=Math.abs(t.x-c.x);
+        if(dy<=6) return;
+        const sc=dy+dx*0.65;
+        if(sc<lowerScore){ lowerScore=sc; lowerBest=e; }
+      });
+      if(lowerBest){ setFocus(lowerBest); AUDIO.move(); ensureView(); return; }
+      return;
+    }
     let bandBest=null, bandScore=Infinity;   // 同じ行/列で進行方向にある最寄り
     let anyBest=null,  anyScore=Infinity;    // バンド外も含む進行方向の最寄り(斜めフォールバック)
     let wrapBest=null, wrapScore=-Infinity;  // 同じ行/列の「反対端」(ラップ先)
@@ -5429,7 +5466,7 @@ const AUDIO = (function(){
   }
   function enterNode(node){
     const run=MODE.run;
-    if(node.type==='loot'){ MODE.mutator=mutById('m_none'); run.nextBonus = (run.nextBonus||0) - 15; store.saveRun(run, MODE.mutator); prepareDraft(1, 0, 0); openDraft(); return; }   // 戦わずドラフト
+    if(node.type==='loot'){ MODE.mutator=mutById('m_none'); run.nextBonus = (run.nextBonus||0) - 10; store.saveRun(run, MODE.mutator); prepareDraft(1, 0, 0); openDraft(); return; }   // 戦わずドラフト
     if(node.type==='gamble'){ enterGamble(); return; }
     if(node.type==='rest'){ enterRest(); return; }
     MODE.mutator = node.mut || pactMut() || mutById('m_none');   // 戦闘: 素なら誓約(天地無用常時)を注入／ボス・お題ノードは各自の看板を優先
