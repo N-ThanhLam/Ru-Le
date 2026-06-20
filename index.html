@@ -2527,7 +2527,7 @@ const RL = (function(){
     }
     return out;
   }
-  function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; state.skipped=[]; }
+  function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; state.skipped=[]; state.skipMode=null; }
 
   /* ---- 合法手判定 ---- */
   // 単騎が出せるか(後方互換 API)。実体は comboBeats に委譲(単騎を役として包む)。
@@ -2616,6 +2616,7 @@ const RL = (function(){
     state.field.card  = fieldCombo2.key;
     state.field.ownerIndex = playerIndex;
     state.skipped = [];
+    state.skipMode = null;
     // ボム戦争の賭け金(罰カード)pot を更新: 継続なら直前 pot に自役の価値を加算、そうでなければ自役の価値で初期化。
     state.field.bombPot = (myBombsOver ? prevBombPot : 0) + bombPotValue(state, combo, rules);
     // 再開(RESUME): 新しい札が場に出た＝この瞬間、再開ルールを持つ“パス済み”の席をトリックに復帰させる
@@ -2726,7 +2727,7 @@ const RL = (function(){
     const fSilence = effs.includes('SILENCE_OTHERS');
     if(fSkip){
       const skipped = nextTurnFrom(state, playerIndex, 1);
-      if(skipped!==playerIndex && state.players[skipped] && !state.players[skipped].finished) state.skipped = [skipped];
+      if(skipped!==playerIndex && state.players[skipped] && !state.players[skipped].finished){ state.skipped = [skipped]; state.skipMode='skip'; }
     }
     if(fieldCombo2.split)                events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
     if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
@@ -2764,6 +2765,7 @@ const RL = (function(){
     else {
       if(fChoose && opts.nextPlayer!=null && !state.players[opts.nextPlayer].finished && !passedSet(state).includes(opts.nextPlayer) && opts.nextPlayer!==playerIndex){
         state.skipped = skippedTurnsBetween(state, playerIndex, opts.nextPlayer);
+        state.skipMode = 'choose';
         next = opts.nextPlayer; events.push({kind:'emb', emb:firstWith('CHOOSE_NEXT')});
       } else {
         // 加速(SKIP): 次の1席の手番を1回だけ飛ばす(指名があれば指名先を優先)。
@@ -2807,10 +2809,16 @@ const RL = (function(){
       const skipped = Array.isArray(state.skipped) ? state.skipped : [];
       const pending = trickAlive(state).filter(i=> i!==owner);
       if(ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i))){
-        const catchup = skipped.find(i=> pending.includes(i));
-        setTurn(state, catchup);
-        if(state.players[catchup]) state.players[catchup].freeActed = false;
-        state.passCount = passedSet(state).length;
+        if(state.skipMode==='choose'){
+          clearField(state); state.passed=[]; state.passCount=0; setTurn(state, owner);
+          if(state.players[owner]) state.players[owner].freeActed = false;
+          events.push({kind:'flush', lead:owner});
+        } else {
+          const catchup = skipped.find(i=> pending.includes(i));
+          setTurn(state, catchup);
+          if(state.players[catchup]) state.players[catchup].freeActed = false;
+          state.passCount = passedSet(state).length;
+        }
       } else {
         setTurn(state, next);
         if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
@@ -3126,9 +3134,19 @@ const RL = (function(){
       g3.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       g3.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g3.turn=0; g3.passed=[];
       applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPass(g3,2); applyPass(g3,3);
-      ok('指名: 素通り席だけ残ったら参加権を消さず手番を回す', g3.field.card!==null && g3.turn===1 && !(g3.passed||[]).includes(1));
-      applyPass(g3,1);
-      ok('指名: 素通り席もパスしたら場流し', g3.field.card===null && g3.turn===0 && (g3.passed||[]).length===0);
+      ok('指名: 指名先が出さずに流れたら素通り席を挟まず持ち主へ戻す', g3.field.card===null && g3.turn===0 && (g3.passed||[]).length===0);
+      const g4=newGame(defs.map(x=>({...x})),83);
+      g4.players[0].build.rankSlots['5']=['ao04'];
+      g4.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
+      g4.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g4.turn=0; g4.passed=[];
+      applyPlay(g4,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPlay(g4,2,{rank:'7',suit:'D'},{});
+      ok('指名: 指名先が出したら新しい場で全員が通常参加に戻る', g4.field.card!==null && g4.field.ownerIndex===2 && g4.turn===3 && (g4.skipped||[]).length===0);
+      const g5=newGame(defs.map(x=>({...x})),84);
+      g5.players[0].build.rankSlots['5']=['ao04'];
+      g5.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
+      g5.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g5.turn=0; g5.passed=[];
+      applyPlay(g5,0,{rank:'5',suit:'S'},{nextPlayer:1}); applyPlay(g5,1,{rank:'6',suit:'H'},{}); applyPass(g5,2); applyPlay(g5,3,{rank:'8',suit:'C'},{});
+      ok('指名: 通常進行後にBだけパスしてCが出したら俺/A/Cだけ参加権あり', g5.field.ownerIndex===3 && g5.turn===0 && JSON.stringify((g5.passed||[]).slice().sort())==='[2]' && !(g5.skipped||[]).length);
     })();
     // 8e 指名の効果構成: CHOOSE_NEXT を保持・SHED_WEAK_IF_MOST(手札最多時の弱札捨て)は持たない
     ok('指名: CHOOSE_NEXT を保持', effList(EMB_BY_ID['ao04']).includes('CHOOSE_NEXT'));
@@ -7364,9 +7382,10 @@ const AUDIO = (function(){
   }
   function eventToast(events){
     const sounded=new Set();   // 同一エンブレムが1手で複数イベントを出しても効果音は1回(例: 指名=CHOOSE_NEXT+縛り / 溜め撃ち=activate+emb)。
+    const shown=new Set();
     const embSfx=(id,n)=>{ if(id && !sounded.has(id)){ AUDIO.embFx(id,n); sounded.add(id); } };
     events.forEach(ev=>{
-      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; embSfx(ev.emb, ev.n); embFlash(embMark(e)); toast(embMark(e)+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
+      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(!e) return; embSfx(ev.emb, ev.n); if(shown.has(ev.emb)) return; shown.add(ev.emb); embFlash(embMark(e)); toast(embMark(e)+' '+embName(e)+(ev.n>1?(' ×'+ev.n):''), RL.COLORS[e.color].hex); }
       else if(ev.kind==='flush'){ AUDIO.flush(); toast(T('toast_flush'),'#5c6bc0'); }
       else if(ev.kind==='react'){ embFlash('⚡'); toast(T('toast_react'),'#e53935'); }   // 後出し: 場を吹き飛ばし手番を奪った(音は doReact/cpuStep の flush)
       else if(ev.kind==='activate'){ const e=RL.emblem(ev.emb); embSfx(ev.emb); embFlash(e?embMark(e):'ACT'); toast((e?embMark(e)+' '+embName(e):'')+' '+T('toast_activate'), e?RL.COLORS[e.color].hex:'#e53935'); }  // 溜め撃ち発動
