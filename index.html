@@ -2515,6 +2515,18 @@ const RL = (function(){
     }
     return i;
   }
+  function skippedTurnsBetween(state, from, to){
+    const n = state.players.length, ps=passedSet(state);
+    const out=[];
+    let i = from, guard=0;
+    while(guard<256){
+      i = ((i + state.direction) % n + n) % n;
+      if(i===to) break;
+      if(!state.players[i].finished && !ps.includes(i)) out.push(i);
+      guard++;
+    }
+    return out;
+  }
   function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; state.skipped=[]; }
 
   /* ---- 合法手判定 ---- */
@@ -2751,6 +2763,7 @@ const RL = (function(){
     if(fClear || fExtra){ next = playerIndex; }   // 流し(続行) or 連撃 → 同じ人が続行
     else {
       if(fChoose && opts.nextPlayer!=null && !state.players[opts.nextPlayer].finished && !passedSet(state).includes(opts.nextPlayer) && opts.nextPlayer!==playerIndex){
+        state.skipped = skippedTurnsBetween(state, playerIndex, opts.nextPlayer);
         next = opts.nextPlayer; events.push({kind:'emb', emb:firstWith('CHOOSE_NEXT')});
       } else {
         // 加速(SKIP): 次の1席の手番を1回だけ飛ばす(指名があれば指名先を優先)。
@@ -2759,7 +2772,10 @@ const RL = (function(){
       if(fSkip && next===playerIndex && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
       // 自分以外に打てる席が居なくなった(全員パス/上がり/飛ばし)→ 場を流して自分がリードし直す。
       const others = trickAlive(state).filter(i=> i!==playerIndex);
-      if(others.length===0 && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
+      if(others.length===0 && fieldCombo(state)){
+        clearField(state); state.passed=[]; events.push({kind:'clear'});
+        next = state.players[playerIndex].finished ? nextActiveFrom(state, playerIndex, 1) : playerIndex;
+      }
     }
     setTurn(state, next);
     if(state.players[next]) state.players[next].freeActed = false;   // ★新しい手番に入る席=無料アクション(発動)の枠をリセット
@@ -3104,6 +3120,12 @@ const RL = (function(){
       const c2=g2.players[0].hand.find(x=>x.rank==='5'&&x.suit==='H');
       if(c2){ applyPlay(g2,0,c2,{}); ok('指名: 異マークの場でも縛り発生', Array.isArray(g2.field.suitLock)&&g2.field.suitLock[0]==='H'); }
       else ok('指名: 異マークテスト(5♥なしスキップ)', true);
+      const g3=newGame(defs.map(x=>({...x})),82);
+      g3.players[0].build.rankSlots['5']=['ao04'];
+      g3.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
+      g3.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g3.turn=0; g3.passed=[];
+      applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPass(g3,2); applyPass(g3,3);
+      ok('指名: 素通り席だけ残っても持ち主へ戻ったら場流し', g3.field.card===null && g3.turn===0 && (g3.passed||[]).length===0);
     })();
     // 8e 指名の効果構成: CHOOSE_NEXT を保持・SHED_WEAK_IF_MOST(手札最多時の弱札捨て)は持たない
     ok('指名: CHOOSE_NEXT を保持', effList(EMB_BY_ID['ao04']).includes('CHOOSE_NEXT'));
@@ -3428,6 +3450,17 @@ const RL = (function(){
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P1を飛ばすと残りはP0のみ
       ok('加速: 自分に戻る時は場流ししてリード継続', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+    })();
+    (function(){
+      const fg=newGame(defs.map(x=>({...x})), 58);
+      fg.players[0].hand=[{rank:'3',suit:'S'}];
+      fg.players[1].hand=[{rank:'4',suit:'S'}];
+      fg.players[2].hand=[];
+      fg.players[2].finished=true;
+      fg.players[3].hand=[{rank:'K',suit:'S'}];
+      fg.field.combo=singleCombo({rank:'Q',suit:'H'}); fg.field.card=fg.field.combo.key; fg.field.ownerIndex=2; fg.turn=3; fg.passed=[0,1];
+      applyPlay(fg,3,{rank:'K',suit:'S'},{});
+      ok('上がり場流し: 上がった本人ではなく次の生存席がリード', fg.field.card===null && fg.turn===0 && (fg.passed||[]).length===0 && fg.players[3].finished===true);
     })();
     // 43 3返し: 単騎2を切り返したら場を流して自分が続行
     const c3=newGame(seat0(buildFrom({suit:{S:['aka07']}})), 210);
