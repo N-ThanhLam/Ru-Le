@@ -2515,7 +2515,7 @@ const RL = (function(){
     }
     return i;
   }
-  function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; }
+  function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; state.skipped=[]; }
 
   /* ---- 合法手判定 ---- */
   // 単騎が出せるか(後方互換 API)。実体は comboBeats に委譲(単騎を役として包む)。
@@ -2603,6 +2603,7 @@ const RL = (function(){
     state.field.combo = fieldCombo2;
     state.field.card  = fieldCombo2.key;
     state.field.ownerIndex = playerIndex;
+    state.skipped = [];
     // ボム戦争の賭け金(罰カード)pot を更新: 継続なら直前 pot に自役の価値を加算、そうでなければ自役の価値で初期化。
     state.field.bombPot = (myBombsOver ? prevBombPot : 0) + bombPotValue(state, combo, rules);
     // 再開(RESUME): 新しい札が場に出た＝この瞬間、再開ルールを持つ“パス済み”の席をトリックに復帰させる
@@ -2711,6 +2712,10 @@ const RL = (function(){
     const fRev   = effs.includes('REVERSE_DIR');
     const fChoose= effs.includes('CHOOSE_NEXT') && !finishedNow;
     const fSilence = effs.includes('SILENCE_OTHERS');
+    if(fSkip){
+      const skipped = nextTurnFrom(state, playerIndex, 1);
+      if(skipped!==playerIndex && state.players[skipped] && !state.players[skipped].finished) state.skipped = [skipped];
+    }
     if(fieldCombo2.split)                events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
     if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
     if(effs.includes('CLEAR_FIELD'))     events.push({kind:'emb', emb:firstWith('CLEAR_FIELD')});
@@ -2782,9 +2787,18 @@ const RL = (function(){
       if(state.players[lead]) state.players[lead].freeActed = false;   // ★新リードの席=無料アクション枠リセット
       events.push({kind:'flush', lead});
     } else {
-      setTurn(state, nextTurnFrom(state, playerIndex, 1));
-      if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
-      state.passCount = passedSet(state).length;
+      const next = nextTurnFrom(state, playerIndex, 1);
+      const skipped = Array.isArray(state.skipped) ? state.skipped : [];
+      const pending = trickAlive(state).filter(i=> i!==owner);
+      if(ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i))){
+        clearField(state); state.passed=[]; state.passCount=0; setTurn(state, owner);
+        if(state.players[owner]) state.players[owner].freeActed = false;
+        events.push({kind:'flush', lead:owner});
+      } else {
+        setTurn(state, next);
+        if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
+        state.passCount = passedSet(state).length;
+      }
     }
     // 気(チャージ): 反撃 or 溜め撃ち(activated)を持つ席が「場に返さずパスした」ら +CHARGE_PER_PASS 貯まる(上限=chargeCap)。
     //   ★主導権を譲った見返りに気が貯まる＝「出す/溜める」の択を生む。リード中(場が空)のパスは対象外＝何も譲っていないので貯めない(farm 防止)。
@@ -3393,10 +3407,19 @@ const RL = (function(){
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
       ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
-      applyPass(sb,2); applyPass(sb,3); applyPass(sb,0);                             // P2,P3パス→持ち主P0もパス
-      ok('加速: 飛ばされた席に手番が回ってくる(再参加)', sb.turn===1);
-      applyPass(sb,1);                                                               // 最後のP1もパス→場流し
-      ok('加速+全パスで場流し→持ち主P0がリード', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→持ち主P0へ戻るので場流し
+      ok('加速: 飛ばされた席だけ残っても持ち主へ戻ったら場流し', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
+    })();
+    (function(){
+      const sb=newGame(seat0(buildFrom({rank:{'5':['ao01']}})), 57);
+      sb.players[0].hand=[{rank:'5',suit:'S'},{rank:'K',suit:'S'}];
+      sb.players[1].hand=[{rank:'6',suit:'H'},{rank:'K',suit:'H'}];
+      sb.players[2].hand=[{rank:'7',suit:'D'},{rank:'K',suit:'D'}];
+      sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
+      sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
+      applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされるが、パス扱いではない
+      applyPass(sb,2); applyPass(sb,3);                                               // P1が残っていても、場の持ち主P0へ戻る
+      ok('加速: 持ち主へ戻ったらパス要求せず場流し', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0);
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 56);
