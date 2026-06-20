@@ -6120,7 +6120,6 @@ const AUDIO = (function(){
     const seen=new Set(), out=[];
     const add=id=>{ const e=RL.emblem(id); if(e && !e.hidden && !seen.has(id)){ seen.add(id); out.push(id); } };
     (run.owned||[]).forEach(add);
-    collectBuildIds(run.randomBuild).forEach(add);
     return out;
   }
   function normalizeRunCostMods(run){
@@ -6132,6 +6131,12 @@ const AUDIO = (function(){
       const v=Number(src[id]);
       mods[id]=Math.max(RUN_COST_MOD_MIN, Math.min(RUN_COST_MOD_MAX, isFinite(v)?v:1));
     });
+    if(run.randomBuild){
+      const manual=new Set(collectBuildIds(run.build));
+      collectBuildIds(run.randomBuild).forEach(id=>{
+        if(!manual.has(id) && mods[id]!=null) mods[id]=Math.min(mods[id], 1);
+      });
+    }
     const sum=ids.reduce((s,id)=>s+mods[id],0);
     const diff=ids.length - sum;
     distributeCostModDelta(mods, ids, diff);
@@ -7108,10 +7113,22 @@ const AUDIO = (function(){
     }
     return b;
   }
+  function runManualBuildForCost(){
+    const b=cloneBuild(MODE.run.build);
+    const ban=bannedIdSet();
+    if(ban.size){
+      const drop=id=> !ban.has(id);
+      RL.DISPLAY_RANKS.forEach(r=> b.rankSlots[r]=(b.rankSlots[r]||[]).filter(drop));
+      RL.SUITS.forEach(s=> b.suitSlots[s]=(b.suitSlots[s]||[]).filter(drop));
+      b.ruleSlots=(b.ruleSlots||[]).filter(drop);
+    }
+    return b;
+  }
 
   function beginMatch(){
     MODE.matchBanNames = (MODE.kind==='run') ? banNames() : [];   // ★v0.22 この対戦で封じられた名前を控える(結果画面の宿敵レポート用・深度前進前)
     const human = { name:T('you'), isHuman:true, build: MODE.kind==='run' ? effectiveRunBuild() : cloneBuild(MODE.quickBuild) };
+    const manualCostBuild = MODE.kind==='run' ? runManualBuildForCost() : null;
     const cpuNames = MODE.kind==='run'
       ? [T('cpu_speed'),T('cpu_control'),T('cpu_tempo')]
       : ['CPU 1','CPU 2','CPU 3'];
@@ -7150,10 +7167,10 @@ const AUDIO = (function(){
     cpuDefs.forEach((d,k)=>{ if(d._rivalIdx!=null) MODE.rivalSeats.push({ seat:1+k, idx:d._rivalIdx, boss:d._boss }); });
     MODE.matchStats = {
       actions:0,
-      cost: MODE.kind==='run' ? runBuildCost(human.build) : RL.buildCost(human.build),
+      cost: MODE.kind==='run' ? runBuildCost(manualCostBuild) : RL.buildCost(human.build),
       budget: currentBudget(),
       livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0,
-      usedEmblems: MODE.kind==='run' ? buildUsedEmblemIds(human.build) : []
+      usedEmblems: MODE.kind==='run' ? buildUsedEmblemIds(manualCostBuild) : []
     };
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
