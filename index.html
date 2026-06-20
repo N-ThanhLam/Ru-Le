@@ -1078,6 +1078,35 @@
   .run-digest .dg-title .tx{ font-size:32px; font-weight:900; color:#fff4bd; }
   .run-digest .dg-title .ds{ font-size:23px; font-weight:800; color:#cdd6ff; margin-top:2px; }
   .run-digest .dg-stats{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:center; margin-top:16px; font-size:27px; font-weight:800; color:#e7ecff; }
+  #s-runover .ovl-page{ align-items:flex-start; padding:116px 44px 30px; overflow-y:auto; }
+  #s-runover .card-modal{
+    width:100%; max-width:1680px !important; max-height:calc(100vh - 150px); overflow-y:auto;
+    padding:28px 38px 30px !important; display:flex; flex-direction:column;
+    background:linear-gradient(180deg,#202642 0%,#141a33 100%); color:#f5f7ff; border-color:#e8edff;
+  }
+  #s-runover .card-modal h2{ font-size:54px; line-height:1.05; margin-bottom:10px; color:#fff4bd; }
+  #runover-body{ font-size:48px !important; line-height:1.2; margin:10px 0 14px !important; color:#f5f7ff; }
+  #runover-body .subrec{ font-size:36px; color:#dfe6ff; }
+  #s-runover .runover-heat{ font-size:34px; color:#ffd0a6; margin-top:8px; }
+  #s-runover .run-digest{ width:100%; max-width:1540px; margin:4px auto 20px; }
+  #s-runover .run-digest .dg-title{ margin-bottom:16px; }
+  #s-runover .run-digest .dg-title .ic{ font-size:52px; }
+  #s-runover .run-digest .dg-title .tx{ font-size:40px; line-height:1.08; }
+  #s-runover .run-digest .dg-title .ds{ font-size:28px; line-height:1.18; color:#dfe6ff; }
+  #s-runover .run-digest .dg-h{ font-size:38px; color:#f5f7ff; margin-bottom:12px; }
+  #s-runover .run-digest .dg-path{
+    max-height:330px; gap:12px; padding:8px; border:3px solid rgba(232,237,255,.24);
+    border-radius:16px; background:rgba(4,7,18,.32);
+  }
+  #s-runover .run-digest .dg-act{ font-size:30px; color:#b9c8ff; margin:10px 0 0; }
+  #s-runover .run-digest .dg-node{
+    font-size:30px; line-height:1.1; padding:8px 14px; color:#182140;
+    background:#eef3ff; border-color:#bcc9ef; border-width:3px;
+  }
+  #s-runover .run-digest .dg-node.boss{ background:linear-gradient(160deg,#fff4cf,#ffd96d); color:#4d3500; }
+  #s-runover .run-digest .dg-node.elite{ background:#ffe8e5; color:#53201c; }
+  #s-runover .run-digest .dg-tag{ font-size:22px; padding:2px 7px; }
+  #s-runover .run-digest .dg-stats{ font-size:32px; line-height:1.2; color:#f5f7ff; gap:14px 32px; }
 
   /* ヘルプ/設定ページ */
   .page{ min-width:1200px; min-height:520px; }
@@ -1872,21 +1901,21 @@ const RL = (function(){
     //   マーク枠にしか置けないので使われるコストは suitCost のみ(rank の cost は持たない)。
     { id:'aka07',code:'赤07', color:'aka',    name:'3返し',    cost:1, suitCost:1, ico:'↩️', effect:'CUT_TOP', place:'card', suitOnly:true, condRank:'3', desc:'装備したマークの「3」で場の2を切り返せる。返したら場を流して続けて出せる。', nameVi:'3 Đè Heo', abbrVi:'3 Heo', codeVi:'Đ07', descVi:'Lá "3" thuộc chất đã gắn có thể đè con heo (lá 2) trên bãi; đè xong thì dọn bãi và đánh tiếp.' },
     { id:'aka08', code:'赤08', color:'aka',  name:'英雄', cost:1, ico:'🦸', effect:'HERO',       place:'whole', desc:'配られた手札に「2が4枚」または「ペア5階段／ペア6階段（445566778899など連続する数字のペア）」がそろっていたら、無条件で1位（即抜け）。', nameVi:'Anh Hùng', abbrVi:'A.Hùng', codeVi:'Đ08', descVi:'Nếu bài chia ra có "tứ quý heo (bốn lá 2)" hoặc "5/6 đôi thông (các đôi số liên tiếp như 445566778899)" thì vô điều kiện về Nhất (thoát ngay).' },
-    { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:8, suitCost:12, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その単騎は数字・マークに関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, lá lẻ đó đánh được bất kể số/chất (qua được cả con 2 mạnh nhất).' },
+    { id:'aka09', code:'赤09', color:'aka', name:'一撃', cost:8, suitCost:11, ico:'💥', effect:'LAST_SUIT', place:'card', desc:'手札が残り1枚のときだけ、その単騎は数字・マークに関係なく出せる（最強の2も超える）。', nameVi:'Nhất Kích', abbrVi:'N.Kích', codeVi:'Đ09', descVi:'Chỉ khi còn đúng 1 lá, lá lẻ đó đánh được bất kể số/chất (qua được cả con 2 mạnh nhất).' },
     { id:'aka11', code:'赤11', color:'aka', name:'偽装', cost:3, suitCost:10, ico:'🥸', effect:'DISGUISE', place:'card', desc:'単騎で出すと数字が1つ上の札に化ける（8♠→9♠／マークは同じ）。最強の2が上限（A→2・2→2）。革命中は逆に弱くなるリスクあり。', nameVi:'Ngụy Trang', abbrVi:'N.Trang', codeVi:'Đ11', descVi:'Khi đánh lẻ, lá biến thành lá lớn hơn 1 bậc (8♠→9♠, giữ nguyên chất). Tối đa là con 2 mạnh nhất (A→2, 2→2). Khi Cách mạng thì ngược lại sẽ yếu đi (rủi ro).' },
     // ── リアクション(後出し)。自分の手番の第3の選択肢＝「返せない場でも、たまったチャージを切って場を吹き飛ばし手番を奪う」。
     //    試合“中”の能動判断(撃つ/溜める/読む)を生む。★チャージは「場に返さずパスした」ときに貯まる(出した時ではない＝主導権を譲った見返り)。
     //    ★正調ミラー不変の要: これはオプトイン専用で jp/vn プリセットには入れない。盤面に1枚も無ければ applyReact の出番ゼロ＝ターン進行は現状と同一。
     { id:'aka12', code:'赤12', color:'aka', name:'反撃', cost:28, ico:'⚡', effect:'REACT_BLOWBACK', place:'whole', react:true, reactCost:6, desc:'パスする（場に返さず見送る）たびにチャージがたまる（最大6）。たまっていれば自分の手番に、相手の場を吹き飛ばして手番を奪える（後出し＝返せない場でも仕切り直せる）。自分だけに適用。', nameVi:'Phản Kích', abbrVi:'P.Kích', codeVi:'Đ12', descVi:'Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng (tối đa 6). Khi đủ, tới lượt mình có thể thổi bay bãi của đối thủ và giành quyền dẫn (hậu thủ — kể cả khi không chặn được vẫn lật lại được). Chỉ áp dụng cho mình.' },
-    { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:11, suitCost:29, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その単騎を場の単騎にマーク・数字を無視して重ねて出せる（最強の2も超える＝劣勢版の越境）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá lẻ đó đè được lên lá lẻ trên bãi bất kể chất/số (qua cả con 2 mạnh nhất = Vượt Biên bản yếu thế).' },
+    { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:7, suitCost:21, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その単騎を場の単騎にマーク・数字を無視して重ねて出せる（最強の2も超える＝劣勢版の越境）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá lẻ đó đè được lên lá lẻ trên bãi bất kể chất/số (qua cả con 2 mạnh nhất = Vượt Biên bản yếu thế).' },
     //   ★v0.21 溜め撃ち(activated): 気を払って自分の手番に発動する能動エンブレム。反撃(aka12)の攻め版＝相手の場を能動的に流す。
     { id:'aka14', code:'赤14', color:'aka', name:'溜め火', cost:32, ico:'🎆', effect:'ACT_CLEAR', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、相手の場を流して続けて出せる（後出しの能動仕切り直し）。自分だけに適用。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Tích Hỏa', abbrVi:'T.Hỏa', codeVi:'Đ14', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để dọn sạch bãi của đối thủ rồi đánh tiếp (chủ động lật lại thế cờ). Chỉ áp dụng cho mình. Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     //   8切り(aka15): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「8」で場を流す。
     { id:'aka15', code:'赤15', color:'aka', name:'8切り', cost:5, suitCost:5, ico:'8️⃣', effect:'CUT_EIGHT', place:'card', suitOnly:true, condRank:'8', desc:'装備したマークの「8」を出すと場を流して、続けてもう一度出せる。', nameVi:'Chặt 8', abbrVi:'C.8', codeVi:'Đ15', descVi:'Đánh lá "8" thuộc chất đã gắn sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     // ───────── 青 (ao) — ターン操作 ─────────
-    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:11, suitCost:33, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。気を使える構成なら、出したときに気+1。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được). Nếu cấu hình dùng năng lượng, khi đánh sẽ +1 năng lượng.' },
-    { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:23, suitCost:38, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
-    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:10, suitCost:30, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。気を使える構成なら、出したときに気+2。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu cấu hình dùng năng lượng, khi đánh sẽ +2 năng lượng.' },
+    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:9, suitCost:26, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。気を使える構成なら、出したときに気+1。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được). Nếu cấu hình dùng năng lượng, khi đánh sẽ +1 năng lượng.' },
+    { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:12, suitCost:34, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
+    { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:8, suitCost:25, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。気を使える構成なら、出したときに気+2。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu cấu hình dùng năng lượng, khi đánh sẽ +2 năng lượng.' },
     { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:15, suitCost:34, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
@@ -1897,8 +1926,8 @@ const RL = (function(){
     { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:6, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
     { id:'set4', code:'役4', color:'midori', name:'4カード可', cost:1, ico:'4️⃣', effect:'SET4', place:'whole', desc:'同じ数字を4枚でまとめて出せる（革命・ボムを持っていれば自動で可）。', nameVi:'Cho Tứ Quý', abbrVi:'Tứ', codeVi:'B4', descVi:'Được đánh 4 lá cùng số (tứ quý) cùng lúc (có Cách mạng / Chặt Heo thì tự động được).' },
     { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:10, suitCost:27, ico:'🔢', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
-    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:15, suitCost:34, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
-    { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:37, suitCost:45, ico:'☄️', effect:'CARRY_RUN',      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2).' },
+    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:7, suitCost:20, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
+    { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:30, suitCost:40, ico:'☄️', effect:'CARRY_RUN',      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2).' },
     //   自由階段・同種階段(mi05/mi06, place:'suitRun')=装備マークだけで階段に使えるマーク階段専用枠。4マークに積めば素コスト×4。
     { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:8, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
     { id:'mi06', code:'緑06', color:'midori', name:'同種階段', cost:1,  ico:'🎴', effect:'RUN_SUIT', place:'suitRun', desc:'このマークだけで連続する数字3枚以上の「階段」を出せる（マークは混ぜない）。自分だけに適用。', nameVi:'Sảnh Đồng Chất', abbrVi:'S.Đồng', codeVi:'L06', descVi:'Chỉ riêng chất này tạo "sảnh" từ 3 lá số liên tiếp trở lên (không trộn chất). Chỉ áp dụng cho mình.' },
@@ -1907,12 +1936,12 @@ const RL = (function(){
     // ───────── 黄 (ki) — 手札操作(不要な札も一緒に捨てる) ─────────
     //   ★v0.21 溜め撃ち化: 投棄/軽身は「出すと自動で捨てる」受動から「気を払って自分の手番に発動」へ転生(activated)。place:'whole'。
     { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:24, ico:'🗑️', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
-    { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:42, suitCost:78, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
-    { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:28, suitCost:68, ico:'🧹', effect:'SHED_WEAK', place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất.' },
+    { id:'ki02',  code:'黄02', color:'ki', name:'放出', cost:32, suitCost:68, ico:'💨', effect:['CLEAR_FIELD','SHED_STRONG'], place:'card', desc:'出すと場を流して、続けてもう一度出せる。さらに、いちばん強い札を1枚捨てる。', nameVi:'Xả', abbrVi:'Xả', codeVi:'V02', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay. Ngoài ra bỏ 1 lá mạnh nhất trên tay.' },
+    { id:'ki03',  code:'黄03', color:'ki', name:'掃除', cost:26, suitCost:58, ico:'🧹', effect:'SHED_WEAK', place:'card', desc:'いちばん弱い札を1枚捨てる。', nameVi:'Quét', abbrVi:'Quét', codeVi:'V03', descVi:'Bỏ 1 lá yếu nhất.' },
     { id:'ki04',  code:'黄04', color:'ki', name:'軽身', cost:15, ico:'🍃', effect:'ACT_RANDOM_SHED', actN:1, place:'whole', activated:true, chargeCost:2, desc:'【溜め撃ち】気を2つ払って自分の手番に発動し、手持ちの札をランダムに1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Nhẹ Mình', abbrVi:'Nhẹ', codeVi:'V04', descVi:'【Nạp】Tốn 2 năng lượng, kích hoạt trong lượt để bỏ ngẫu nhiên 1 lá trên tay (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     { id:'ki05',  code:'黄05', color:'ki',  name:'初動', cost:1, suitCost:2, ico:'🚀', effect:['SHED_WEAK_IF_FULL','SHED_STRONG_IF_FULL'], place:'card', desc:'手札が満杯（配り直後）のときに出すと、いちばん弱い札といちばん強い札を1枚ずつ捨てる。', nameVi:'Khởi Đầu', abbrVi:'Khởi', codeVi:'V05', descVi:'Khi đánh lúc bài còn đầy (vừa chia xong) thì bỏ 1 lá yếu nhất và 1 lá mạnh nhất.' },
     { id:'ki06',  code:'黄06', color:'ki', name:'乱棄', cost:12, ico:'🎲', effect:'ACT_RANDOM_SHED', actN:2, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、手持ちの札をランダムに2枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Ngẫu', abbrVi:'V.Ngẫu', codeVi:'V06', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để bỏ ngẫu nhiên 2 lá trên tay (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
-    { id:'ao08',  code:'青08', color:'ao', name:'封鳴', cost:14, suitCost:30, ico:'🔇', effect:'SILENCE_OTHERS', place:'card', desc:'出すと、自分の番に戻ってくるまで他のプレイヤー全員のエンブレム効果を無くす。封じられた相手は純粋にパスするか、素のルールでより強い札を出すことしかできない。', nameVi:'Câm Ấn', abbrVi:'Câm', codeVi:'X08', descVi:'Khi đánh: cho tới khi lượt quay lại bạn, mọi người chơi khác mất toàn bộ hiệu ứng biểu tượng. Người bị khóa chỉ có thể bỏ lượt hoặc đánh lá mạnh hơn theo luật gốc.' },
+    { id:'ao08',  code:'青08', color:'ao', name:'封鳴', cost:14, suitCost:28, ico:'🔇', effect:'SILENCE_OTHERS', place:'card', desc:'出すと、自分の番に戻ってくるまで他のプレイヤー全員のエンブレム効果を無くす。封じられた相手は純粋にパスするか、素のルールでより強い札を出すことしかできない。', nameVi:'Câm Ấn', abbrVi:'Câm', codeVi:'X08', descVi:'Khi đánh: cho tới khi lượt quay lại bạn, mọi người chơi khác mất toàn bộ hiệu ứng biểu tượng. Người bị khóa chỉ có thể bỏ lượt hoặc đánh lá mạnh hơn theo luật gốc.' },
   ];
   const EMB_BY_ID = {}; EMBLEMS.forEach(e=>EMB_BY_ID[e.id]=e);
   function emblem(id){ return EMB_BY_ID[id]; }
@@ -4280,7 +4309,7 @@ const AUDIO = (function(){
       style_pick:'スタイルを選ぶ（未解放でもOK）', style_jp:'日本式', style_vn:'ベトナム式', style_note:'※ ワンタップで装填・自分で編成も可',
       /* 巡業しゅうりょう */
       runover_best:' 🎉 自己ベスト更新！', runover_head:'巡業しゅうりょう', runover_ok:'タイトルへ',
-      runover_body:'到達深度 <span style="color:#ffcf4d;">{0}</span>{1}<br><span style="font-size:30px;">最高記録：深度 {2}</span>',
+      runover_body:'到達深度 <span style="color:#ffcf4d;">{0}</span>{1}<br><span class="subrec">最高記録：深度 {2}</span>',
       /* 走り終わりダイジェスト */
       digest_head:'🗺 通った道', digest_act:'― 幕 {0} ―', digest_none:'まだ道を歩んでいない',
       digest_acts:'クリアした幕 {0}', digest_bosses:'撃破したボス {0}体', digest_emblems:'集めたエンブレム {0}（ランダム {1}）',
@@ -4520,7 +4549,7 @@ const AUDIO = (function(){
       /* Trực tuyến: nạp phong cách (chưa mở khóa vẫn chọn được) */
       style_pick:'Chọn phong cách (chưa mở khóa vẫn được)', style_jp:'Kiểu Nhật', style_vn:'Kiểu Việt', style_note:'※ Nạp 1 chạm · vẫn tự cấu hình được',
       runover_best:' 🎉 Kỷ lục mới!', runover_head:'Kết thúc Lữ hành', runover_ok:'Về Menu',
-      runover_body:'Tầng đạt được <span style="color:#ffcf4d;">{0}</span>{1}<br><span style="font-size:30px;">Kỷ lục: Tầng {2}</span>',
+      runover_body:'Tầng đạt được <span style="color:#ffcf4d;">{0}</span>{1}<br><span class="subrec">Kỷ lục: Tầng {2}</span>',
       digest_head:'🗺 Đường đã qua', digest_act:'― Màn {0} ―', digest_none:'Chưa đi đường nào',
       digest_acts:'Màn đã qua {0}', digest_bosses:'Hạ {0} Boss', digest_emblems:'Biểu tượng thu được {0} (ngẫu nhiên {1})',
       digest_title_fast:'Lữ khách gió lốc', digest_title_fast_ds:'Nhiều trận thắng tốc công, luôn lao về phía trước.',
