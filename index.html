@@ -1906,7 +1906,7 @@ const RL = (function(){
     //    試合“中”の能動判断(撃つ/溜める/読む)を生む。★チャージは「場に返さずパスした」ときに貯まる(出した時ではない＝主導権を譲った見返り)。
     //    ★正調ミラー不変の要: これはオプトイン専用で jp/vn プリセットには入れない。盤面に1枚も無ければ applyReact の出番ゼロ＝ターン進行は現状と同一。
     { id:'aka12', code:'赤12', color:'aka', name:'反撃', cost:28, ico:'⚡', effect:'REACT_BLOWBACK', place:'whole', react:true, reactCost:6, desc:'パスする（場に返さず見送る）たびにチャージがたまる（最大6）。たまっていれば自分の手番に、相手の場を吹き飛ばして手番を奪える（後出し＝返せない場でも仕切り直せる）。自分だけに適用。', nameVi:'Phản Kích', abbrVi:'P.Kích', codeVi:'Đ12', descVi:'Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng (tối đa 6). Khi đủ, tới lượt mình có thể thổi bay bãi của đối thủ và giành quyền dẫn (hậu thủ — kể cả khi không chặn được vẫn lật lại được). Chỉ áp dụng cho mình.' },
-    { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:7, suitCost:21, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その単騎を場の単騎にマーク・数字を無視して重ねて出せる（最強の2も超える＝劣勢版の越境）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá lẻ đó đè được lên lá lẻ trên bãi bất kể chất/số (qua cả con 2 mạnh nhất = Vượt Biên bản yếu thế).' },
+    { id:'aka13', code:'赤13', color:'aka', name:'逆襲', cost:7, suitCost:21, ico:'🐉', effect:'WILD_IF_MOST', place:'card', desc:'自分の手札がいちばん多い（劣勢）ときだけ、その1枚は場の役・枚数・階段・縛り・数字を無視して重ねて出せる（最強の2も超える）。', nameVi:'Phản Công', abbrVi:'P.Công', codeVi:'Đ13', descVi:'Chỉ khi bạn đang cầm nhiều bài nhất (đang yếu thế), lá đó được đè lên bãi bất kể bộ, số lá, sảnh, khóa chất hay sức mạnh (qua cả lá 2 mạnh nhất).' },
     //   ★v0.21 溜め撃ち(activated): 気を払って自分の手番に発動する能動エンブレム。反撃(aka12)の攻め版＝相手の場を能動的に流す。
     { id:'aka14', code:'赤14', color:'aka', name:'溜め火', cost:32, ico:'🎆', effect:'ACT_CLEAR', place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、相手の場を流して続けて出せる（後出しの能動仕切り直し）。自分だけに適用。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Tích Hỏa', abbrVi:'T.Hỏa', codeVi:'Đ14', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt để dọn sạch bãi của đối thủ rồi đánh tiếp (chủ động lật lại thế cờ). Chỉ áp dụng cho mình. Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
     //   8切り(aka15): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「8」で場を流す。
@@ -1925,7 +1925,7 @@ const RL = (function(){
     { id:'set3', code:'役3', color:'midori', name:'3カード可', cost:6, ico:'3️⃣', effect:'SET3', place:'whole', desc:'同じ数字を3枚でまとめて出せる。', nameVi:'Cho Sám', abbrVi:'Sám', codeVi:'B3', descVi:'Được đánh 3 lá cùng số (sám) cùng lúc.' },
     { id:'set4', code:'役4', color:'midori', name:'4カード可', cost:1, ico:'4️⃣', effect:'SET4', place:'whole', desc:'同じ数字を4枚でまとめて出せる（革命・ボムを持っていれば自動で可）。', nameVi:'Cho Tứ Quý', abbrVi:'Tứ', codeVi:'B4', descVi:'Được đánh 4 lá cùng số (tứ quý) cùng lúc (có Cách mạng / Chặt Heo thì tự động được).' },
     { id:'mi02',  code:'緑02', color:'midori', name:'連番', cost:10, suitCost:27, ico:'🔢', effect:'CARRY_NEIGHBOR', place:'card', desc:'隣の数字の札も1枚、一緒に捨てる。', nameVi:'Liên Số', abbrVi:'L.Số', codeVi:'L02', descVi:'Bỏ kèm 1 lá có số liền kề.' },
-    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:7, suitCost:20, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
+    { id:'mi03',  code:'緑03', color:'midori', name:'三重', cost:3, suitCost:10, ico:'🔱', effect:'CARRY_TWO_SAME', place:'card', desc:'同じ数字の札を最大2枚、一緒に捨てる。', nameVi:'Tam Trùng', abbrVi:'T.Trùng', codeVi:'L03', descVi:'Bỏ kèm tối đa 2 lá cùng số.' },
     { id:'mi04',  code:'緑04', color:'midori', name:'流星', cost:30, suitCost:40, ico:'☄️', effect:'CARRY_RUN',      place:'card', desc:'続けて並ぶ数字（+1・+2）の札を最大2枚、一緒に捨てる。', nameVi:'Sao Băng', abbrVi:'Sao', codeVi:'L04', descVi:'Bỏ kèm tối đa 2 lá nối tiếp thành sảnh (+1, +2).' },
     //   自由階段・同種階段(mi05/mi06, place:'suitRun')=装備マークだけで階段に使えるマーク階段専用枠。4マークに積めば素コスト×4。
     { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:8, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
@@ -2241,8 +2241,8 @@ const RL = (function(){
     rules = rules || state.rules || DEFAULT_RULES;
     const fieldC = fieldCombo(state);
     if(!fieldC) return true;                                              // リード(場が空)= 妥当な役なら何でも
-    // 逆襲(WILD_IF_MOST): 自分の手札がいちばん多い(劣勢)ときだけ、単騎で場の単騎を数字無視で超える。手番枚数(actorHandLen)が分かる呼び出しでのみ判定。
-    if(move.type==='single' && fieldC.type==='single' && actorHandLen!=null && hasEffect(build, move.cards[0], 'WILD_IF_MOST')
+    // 逆襲(WILD_IF_MOST): 自分の手札がいちばん多い(劣勢)ときだけ、その1枚で場の役/枚数/階段/縛り/強弱を踏み越える。
+    if(move.type==='single' && actorHandLen!=null && hasEffect(build, move.cards[0], 'WILD_IF_MOST')
        && !state.players.some(pl=> !pl.finished && pl.hand.length > actorHandLen)) return true;
     // 一撃: 手札が残り1枚のとき、その単騎は数字・マークを無視して出せる(最強2も超える)。
     if(move.type==='single' && actorHandLen===1 && fieldC.type==='single'
@@ -3898,6 +3898,13 @@ const RL = (function(){
         const setLens=(a,c,d,e)=>{ const ns=[a,c,d,e]; g.players.forEach((pl,k)=>{ pl.finished=false; pl.hand=[]; for(let i=0;i<ns[k];i++) pl.hand.push({rank:'5',suit:'D'}); }); };
         setLens(8,3,3,3); ok('逆襲: 劣勢(手札最多)なら単騎2を超えて出せる', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
         setLens(8,12,3,3); ok('逆襲: 優勢(誰かが手札多)なら出せない', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===false);
+        setLens(8,3,3,3);
+        g.field.combo={type:'set',len:2,key:{rank:'7',suit:'H'},cards:[{rank:'7',suit:'S'},{rank:'7',suit:'H'}]}; g.field.card=g.field.combo.key; g.field.ownerIndex=1;
+        ok('逆襲: 劣勢なら単騎でペア場にも出せる', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
+        g.field.combo={type:'run',len:3,key:{rank:'9',suit:'S'},cards:[{rank:'7',suit:'S'},{rank:'8',suit:'S'},{rank:'9',suit:'S'}]}; g.field.card=g.field.combo.key; g.field.ownerIndex=1;
+        ok('逆襲: 劣勢なら単騎で階段場にも出せる', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
+        g.field.suitLock=['S'];
+        ok('逆襲: 劣勢ならスート縛りも無視する', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
       })();
       // ボム押し付け: 単騎2をボムで切る → 直前owner に罰カード1枚。
       (function(){
