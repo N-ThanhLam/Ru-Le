@@ -5635,7 +5635,7 @@ const AUDIO = (function(){
       build:(function(){ const b=RL.emptyBuild(); b.rankSlots['8']=['aka01']; b.rankSlots['3']=['aka04']; return b; })(), // 連火28+縛り1=29(予算55内)
       randomBuild:RL.emptyBuild(),                 // ★巡業限定のランダムエンブレム枠(ドラフトの既得→ランダムで成長・コスト/解放と無関係・次の巡業でリセット)
       costMods:{},                                  // 巡業限定: 使ったエンブレムは高く、使わなかったものは安くなる(平均100%維持)
-      ban:{ ids:[], depth:1 }, banRecent:[], discount:null, discountSlots:1,   // ★深度ごとの揺さぶり: 封じ / 直近封じ履歴 / 半額対象
+      ban:{ ids:[], depth:1 }, banRecent:[], discount:null, discountSlots:1, discountWeights:{},   // ★深度ごとの揺さぶり: 封じ / 直近封じ履歴 / 半額対象
       act:1, map:genAct(1, 1),                      // ★v0.23 巡業マップ: 幕(act)と分岐マップ(道/ノード種別/ボス)。全てプレーンデータでシリアライズ可
       log:[],                                       // ★v0.25 通った道の物語ログ(各ノードの type/boss/mut/depth/place を順に積む・走り終わりのダイジェスト用)
       inMatch:false,                                // ★対戦進行中フラグ(対戦開始でtrue/完了でfalse)。未完のまま抜けて再開すると残機-1=セーブ巻き戻し不正の封じ
@@ -5673,6 +5673,7 @@ const AUDIO = (function(){
     MODE.run.budget = runBudget(MODE.run.depth);   // 旧セーブ互換: 予算は加算値を捨て、常に深度から再計算
     MODE.run.nextBonus = Math.min(MODE.run.nextBonus || 0, RUN_WIN_BONUS);  // 旧セーブ互換: 旧版の封じ上乗せ(+40)を通常ボーナス(+25)へ丸める
     MODE.run.banRecent = Array.isArray(MODE.run.banRecent) ? MODE.run.banRecent.filter(id=>RL.emblem(id)).slice(0,6) : [];
+    MODE.run.discountWeights = (MODE.run.discountWeights && typeof MODE.run.discountWeights==='object') ? MODE.run.discountWeights : {};
     MODE.run.ban = (saved.run.ban && saved.run.ban.depth===MODE.run.depth && saved.run.ban.ver===BAN_RULE_VER) ? saved.run.ban : decideBan(MODE.run, MODE.run.depth);   // 旧セーブ/深度不一致/旧封じルールは決め直す
     ensureRunDiscount(MODE.run);
     MODE.run.act = MODE.run.act || 1;   // 旧セーブ互換
@@ -7034,6 +7035,35 @@ const AUDIO = (function(){
     return set;
   }
   function banNames(){ return (Array.from(bannedIdSet())).map(id=> RL.emblem(id)? embName(RL.emblem(id)) : id); }
+  const DISCOUNT_RECOVER_STEP = 0.10;
+  function discountWeightMap(run){
+    if(!run) return {};
+    if(!run.discountWeights || typeof run.discountWeights!=='object') run.discountWeights={};
+    return run.discountWeights;
+  }
+  function discountPickWeight(run, id){
+    const w = Number(discountWeightMap(run)[id]);
+    return isFinite(w) ? Math.max(0, Math.min(1, w)) : 1;
+  }
+  function rememberRunDiscount(run, pickedIds, candidateIds){
+    if(!run) return;
+    const picked = new Set((pickedIds||[]).filter(id=>RL.emblem(id)));
+    const cand = (candidateIds||[]).filter(id=>RL.emblem(id));
+    const w = discountWeightMap(run);
+    cand.forEach(id=>{
+      w[id] = picked.has(id) ? 0 : Math.min(1, discountPickWeight(run, id) + DISCOUNT_RECOVER_STEP);
+    });
+    Object.keys(w).forEach(id=>{ if(!RL.emblem(id) || !cand.includes(id)) delete w[id]; });
+  }
+  function pickRunDiscountIds(run, ids, n){
+    let pool = ids.slice(), out = [];
+    while(out.length<n && pool.length){
+      const picked = weightedPick(pool, id=>discountPickWeight(run, id));
+      out.push(picked);
+      pool = pool.filter(id=>id!==picked);
+    }
+    return out;
+  }
   function chooseRunDiscount(run, avoidId, count){
     const ban = new Set((run.ban && run.ban.depth===run.depth) ? (run.ban.ids||[]) : []);
     let ids = (run.owned||[]).filter(id=> RL.emblem(id) && !RL.emblem(id).hidden && !ban.has(id));
@@ -7041,7 +7071,8 @@ const AUDIO = (function(){
     if(avoid.size && ids.length>avoid.size) ids = ids.filter(id=> !avoid.has(id));
     const n = Math.max(1, count||1);
     if(!ids.length) return { id:null, ids:[], depth:run.depth };
-    const pick = pick3(ids, n);
+    const pick = pickRunDiscountIds(run, ids, n);
+    rememberRunDiscount(run, pick, ids);
     return { id:pick[0]||null, ids:pick, depth:run.depth };
   }
   function discountIdsFor(run){
