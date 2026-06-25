@@ -2567,6 +2567,16 @@ const RL = (function(){
     }
     return out;
   }
+  function firstPendingFrom(state, from, pending){
+    const n = state.players.length, set=new Set(pending||[]);
+    let i = from, guard=0;
+    while(guard<256){
+      i = ((i + state.direction) % n + n) % n;
+      if(set.has(i) && !state.players[i].finished && !passedSet(state).includes(i)) return i;
+      guard++;
+    }
+    return null;
+  }
   function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; state.skipped=[]; state.skipMode=null; }
 
   /* ---- 合法手判定 ---- */
@@ -2848,15 +2858,13 @@ const RL = (function(){
       const next = nextTurnFrom(state, playerIndex, 1);
       const skipped = Array.isArray(state.skipped) ? state.skipped : [];
       const pending = trickAlive(state).filter(i=> i!==owner);
-      if(ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i))){
-        clearField(state); state.passed=[]; state.passCount=0; setTurn(state, owner);
-        if(state.players[owner]) state.players[owner].freeActed = false;
-        events.push({kind:'flush', lead:owner});
-      } else {
-        setTurn(state, next);
-        if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
-        state.passCount = passedSet(state).length;
-      }
+      const rejoin = (ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i)))
+        ? firstPendingFrom(state, playerIndex, pending)
+        : null;
+      setTurn(state, rejoin==null ? next : rejoin);
+      if(rejoin!=null){ state.skipped=[]; state.skipMode=null; }
+      if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
+      state.passCount = passedSet(state).length;
     }
     // 気(チャージ): 反撃 or 溜め撃ち(activated)を持つ席が「場に返さずパスした」ら +CHARGE_PER_PASS 貯まる(上限=chargeCap)。
     //   ★主導権を譲った見返りに気が貯まる＝「出す/溜める」の択を生む。リード中(場が空)のパスは対象外＝何も譲っていないので貯めない(farm 防止)。
@@ -3167,7 +3175,7 @@ const RL = (function(){
       g3.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       g3.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g3.turn=0; g3.passed=[];
       applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPass(g3,2); applyPass(g3,3);
-      ok('指名: 指名先が出さずに流れたら素通り席を挟まず持ち主へ戻す', g3.field.card===null && g3.turn===0 && (g3.passed||[]).length===0);
+      ok('指名: 飛ばされた席はパス扱いにならず順番が戻れば参加できる', g3.field.card!==null && g3.turn===1 && !(g3.passed||[]).includes(1));
       const g4=newGame(defs.map(x=>({...x})),83);
       g4.players[0].build.rankSlots['5']=['ao04'];
       g4.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
@@ -3483,8 +3491,8 @@ const RL = (function(){
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
       ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
-      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→P1は補填せず、持ち主P0へ場流し
-      ok('加速: 俺→A→B→C→俺でAを飛ばしたらB→C→俺へ戻る', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0 && !(sb.passed||[]).includes(1));
+      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→P1はパス扱いではないので参加できる
+      ok('加速: 俺→A→B→CでAを飛ばしてもAは参加権を失わない', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'5':['ao01']}})), 57);
@@ -3494,8 +3502,8 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされるが、パス扱いではない
-      applyPass(sb,2); applyPass(sb,3);                                               // 補填ターンなしで持ち主P0へ場流し
-      ok('加速: 飛ばされた席だけが残っても補填せず場流し', sb.field.card===null && sb.turn===0 && (sb.passed||[]).length===0 && !(sb.passed||[]).includes(1));
+      applyPass(sb,2); applyPass(sb,3);                                               // 飛ばされた席だけが残ってもパス扱いにせず参加させる
+      ok('加速: 飛ばされた席だけが残っても参加できる', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const b3=buildFrom({rank:{'5':['ao01']}});
@@ -5757,23 +5765,31 @@ const AUDIO = (function(){
   //   クライアントがタイトルへ戻って NET をリセットしても、合言葉(roomId)ごとにトークンを残す。
   //   同じ合言葉で入り直したときホストへ提示し、対戦中の同じ席へ復帰できる(=本不具合の修正)。
   const RECO_KEY='rule_reconnect';
+  const RECO_TAB_KEY='rule_reconnect_tab';
   const RECO_TTL=5*60*1000;   // 5分で失効(古い卓へ誤復帰しない)
   function saveReco(room, token, idx, session){
-    try{ localStorage.setItem(RECO_KEY, JSON.stringify({room, token, idx, session:session||'', ts:Date.now()})); }catch(e){}
+    const data={room, token, idx, session:session||'', ts:Date.now()};
+    try{ sessionStorage.setItem(RECO_TAB_KEY, JSON.stringify(data)); }catch(e){}
+    try{ localStorage.setItem(RECO_KEY, JSON.stringify(data)); }catch(e){}
   }
   function loadReco(room){
-    try{ const o=JSON.parse(localStorage.getItem(RECO_KEY)||'null');
-      if(!o || o.room!==room) return null;
-      if(Date.now()-(o.ts||0)>RECO_TTL) return null;
-      return o; }catch(e){ return null; }
+    const read=(store,key,scope)=>{
+      try{ const o=JSON.parse(store.getItem(key)||'null');
+        if(!o || o.room!==room) return null;
+        if(Date.now()-(o.ts||0)>RECO_TTL) return null;
+        o.scope=scope;
+        return o; }catch(e){ return null; }
+    };
+    try{ const tab=read(sessionStorage, RECO_TAB_KEY, 'tab'); if(tab) return tab; }catch(e){}
+    try{ return read(localStorage, RECO_KEY, 'local'); }catch(e){ return null; }
   }
-  function clearReco(){ try{ localStorage.removeItem(RECO_KEY); }catch(e){} }
+  function clearReco(){ try{ sessionStorage.removeItem(RECO_TAB_KEY); }catch(e){} try{ localStorage.removeItem(RECO_KEY); }catch(e){} }
 
   const NET = {
     active:false, isHost:false, myIdx:0, paused:false,
     peer:null, hostConn:null, conns:new Map(),
     keyword:'', roomId:'', myName:'', myBuild:null,
-    seats:[], matchId:'', stateVer:0, lastVer:0, token:'', session:'', hostSession:'', _actSeq:0,
+    seats:[], matchId:'', stateVer:0, lastVer:0, token:'', session:'', recoScope:'', hostSession:'', _actSeq:0,
     _hbTimer:null, _watchTimer:null, _lastRx:0, _recoOn:false, _recoTries:0, _intentional:false,
 
     _send(conn,obj){ try{ if(conn&&conn.open!==false) conn.send(obj); return true; }catch(e){ return false; } },
@@ -5784,7 +5800,7 @@ const AUDIO = (function(){
       //   ブローカーへ再登録してしまい、ソケットが開いたままIDが「使用中」として居残る(=再ホスト不可の原因)。
       this._intentional=true;
       this.active=false; this.isHost=false; this.myIdx=0; this.paused=false;
-      this.seats=[]; this.matchId=''; this.stateVer=0; this.lastVer=0; this.token=''; this.session=''; this.hostSession=''; this._actSeq=0; this._recoOn=false; this._recoTries=0;
+      this.seats=[]; this.matchId=''; this.stateVer=0; this.lastVer=0; this.token=''; this.session=''; this.recoScope=''; this.hostSession=''; this._actSeq=0; this._recoOn=false; this._recoTries=0;
       try{ this.conns.forEach(c=>{ try{c.close();}catch(e){} }); }catch(e){}
       this.conns.clear(); this.hostConn=null;
       try{ if(this.peer){ if(!this.peer.destroyed && !this.peer.disconnected){ try{ this.peer.disconnect(); }catch(e){} } if(!this.peer.destroyed) this.peer.destroy(); } }catch(e){}
@@ -5845,7 +5861,7 @@ const AUDIO = (function(){
       this._intentional=false;   // 参加開始＝以後の回線瞬断は再接続して復旧させる
       this.isHost=false; this.active=true; this.keyword=kw; this.roomId=roomIdFor(kw);
       // 同じ合言葉で前回つかんだ復帰トークンがあれば提示用に復元(タイトルへ戻った後の再接続用)。
-      const prev=loadReco(this.roomId); if(prev){ this.token=prev.token||''; this.session=prev.session||''; }
+      const prev=loadReco(this.roomId); if(prev){ this.token=prev.token||''; this.session=prev.session||''; this.recoScope=prev.scope||''; }
       this.myName=(name||T('guest_default_name')).slice(0,12);
       rememberNet(kw, this.myName);   // 合言葉とプレイヤー名を記録(次回プリフィル用)
       this.myBuild = store.savedBuild ? RL.normalizeBuild(JSON.parse(JSON.stringify(store.savedBuild))) : RL.emptyBuild();
@@ -5859,7 +5875,7 @@ const AUDIO = (function(){
         let conn; try{ conn=this.peer.connect(this.roomId,{reliable:true}); }catch(e){ this._scheduleReco(); return; }
         let opened=false;
         conn.on('open', ()=>{ opened=true; this.hostConn=conn; this._lastRx=Date.now(); this._wireClientConn(conn);
-          this._send(conn,{type:'hello', ver:NET_VER, name:this.myName, build:this.myBuild, token:this.token||undefined, session:this.session||undefined});
+          this._send(conn,{type:'hello', ver:NET_VER, name:this.myName, build:this.myBuild, token:this.token||undefined, session:this.session||undefined, recoScope:this.recoScope||undefined});
         });
         conn.on('error', ()=>{ if(!opened) this._scheduleReco(); });
         setTimeout(()=>{ if(this.active && !opened && (!this.hostConn||this.hostConn.open===false)){ try{conn.close();}catch(e){} this._scheduleReco(); } }, 2600);
@@ -5973,7 +5989,10 @@ const AUDIO = (function(){
         if(m.ver!==NET_VER){ this._send(conn,{type:'reject',reason:T('reject_ver')}); setTimeout(()=>{try{conn.close();}catch(e){}},200); return; }
         // 再接続① token一致(最も確実。同一ホストセッションのトークンのみ有効)。
         if(m.token){ const seat=this.seats.find(s=>s.token===m.token);
-          if(seat && (!m.session || m.session===this.hostSession)){ this._reseat(seat, conn, null); return; }
+          const sameSession = seat && (!m.session || m.session===this.hostSession);
+          const sameTab = m.recoScope === 'tab';
+          const canReseat = sameSession && (sameTab || !seat.connected || seat.cpu);
+          if(canReseat){ this._reseat(seat, conn, null); return; }
         }
         // 再接続② 名前フォールバック: 対戦中に切断席が残っていれば、退室でトークンを失った／別端末/ストレージ消去でも合言葉だけで復帰させる。
         if(G && !G.gameOver){
@@ -6009,7 +6028,7 @@ const AUDIO = (function(){
       if(m.type==='pong') return;
       if(m.type==='reject'){ clearReco(); this.ovl(T('net_cant_join'), m.reason||T('net_rejected'), [[T('net_to_title'), ()=>{ this.leave(); buildTitle(); show('s-title'); }]]); this.active=false; return; }
       if(m.type==='welcome'){
-        this.myIdx=m.yourIdx; this.token=m.token||this.token; this.session=m.session||this.session;
+        this.myIdx=m.yourIdx; this.token=m.token||this.token; this.session=m.session||this.session; this.recoScope='tab';
         saveReco(this.roomId, this.token, this.myIdx, this.session);   // ★タイトルへ戻っても同じ合言葉で同じ席へ復帰できるよう永続化
         this._recoOn=false; this._recoTries=0; this.closeOvl(); this.msg('');
         if(!m.reconnected){ MODE.kind='online'; if(currentScreen!=='s-match'){ show('s-lobby'); } }
