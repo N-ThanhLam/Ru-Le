@@ -1081,23 +1081,24 @@
   #s-runover .card-modal{
     width:100%; max-width:1680px !important; max-height:calc(100vh - 150px); overflow-y:auto;
     padding:28px 38px 30px !important; display:flex; flex-direction:column;
-    background:linear-gradient(180deg,#202642 0%,#141a33 100%); color:#f5f7ff; border-color:#e8edff;
+    background:linear-gradient(180deg,#fffdf4 0%,#f3e5bf 100%); color:#1f2440; border-color:#8d6b2e;
   }
-  #s-runover .card-modal h2{ font-size:54px; line-height:1.05; margin-bottom:10px; color:#fff4bd; }
-  #runover-body{ font-size:48px !important; line-height:1.2; margin:10px 0 14px !important; color:#f5f7ff; }
-  #runover-body .subrec{ font-size:36px; color:#dfe6ff; }
-  #s-runover .runover-heat{ font-size:34px; color:#ffd0a6; margin-top:8px; }
+  #s-runover .card-modal h2{ font-size:54px; line-height:1.05; margin-bottom:10px; color:#4b2f00; }
+  #runover-body{ font-size:48px !important; line-height:1.2; margin:10px 0 14px !important; color:#1f2440; }
+  #runover-body span{ color:#6e3d00 !important; }
+  #runover-body .subrec{ font-size:36px; color:#3d4567; }
+  #s-runover .runover-heat{ font-size:34px; color:#7a2d00; margin-top:8px; }
   #s-runover .run-digest{ width:100%; max-width:1540px; margin:4px auto 20px; }
   #s-runover .run-digest .dg-title{ margin-bottom:16px; }
   #s-runover .run-digest .dg-title .ic{ font-size:52px; }
-  #s-runover .run-digest .dg-title .tx{ font-size:40px; line-height:1.08; }
-  #s-runover .run-digest .dg-title .ds{ font-size:28px; line-height:1.18; color:#dfe6ff; }
-  #s-runover .run-digest .dg-h{ font-size:38px; color:#f5f7ff; margin-bottom:12px; }
+  #s-runover .run-digest .dg-title .tx{ font-size:40px; line-height:1.08; color:#5a3400; }
+  #s-runover .run-digest .dg-title .ds{ font-size:28px; line-height:1.18; color:#3d4567; }
+  #s-runover .run-digest .dg-h{ font-size:38px; color:#1f2440; margin-bottom:12px; }
   #s-runover .run-digest .dg-path{
-    max-height:330px; gap:12px; padding:8px; border:3px solid rgba(232,237,255,.24);
-    border-radius:16px; background:rgba(4,7,18,.32);
+    max-height:330px; gap:12px; padding:8px; border:3px solid rgba(86,63,25,.28);
+    border-radius:16px; background:rgba(255,255,255,.62);
   }
-  #s-runover .run-digest .dg-act{ font-size:30px; color:#b9c8ff; margin:10px 0 0; }
+  #s-runover .run-digest .dg-act{ font-size:30px; color:#4a5480; margin:10px 0 0; }
   #s-runover .run-digest .dg-node{
     font-size:30px; line-height:1.1; padding:8px 14px; color:#182140;
     background:#eef3ff; border-color:#bcc9ef; border-width:3px;
@@ -1105,7 +1106,7 @@
   #s-runover .run-digest .dg-node.boss{ background:linear-gradient(160deg,#fff4cf,#ffd96d); color:#4d3500; }
   #s-runover .run-digest .dg-node.elite{ background:#ffe8e5; color:#53201c; }
   #s-runover .run-digest .dg-tag{ font-size:22px; padding:2px 7px; }
-  #s-runover .run-digest .dg-stats{ font-size:32px; line-height:1.2; color:#f5f7ff; gap:14px 32px; }
+  #s-runover .run-digest .dg-stats{ font-size:32px; line-height:1.2; color:#1f2440; gap:14px 32px; }
 
   /* ヘルプ/設定ページ */
   .page{ min-width:1200px; min-height:520px; }
@@ -1918,7 +1919,7 @@ const RL = (function(){
     { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:15, suitCost:34, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
-    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:10, ico:'🪃', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
+    { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:17, ico:'🪃', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
     // ───────── 緑 (midori) — 役追加 ─────────
     //   2/3/4カード可(set2-4)・革命/ボム/スート順などは place:'whole'(自分だけに効く全体ルール枠=ruleSlots)。
     { id:'set2', code:'役2', color:'midori', name:'2カード可', cost:45, ico:'2️⃣', effect:'SET2', place:'whole', desc:'同じ数字を2枚（ペア）でまとめて出せる。', nameVi:'Cho Đôi', abbrVi:'Đôi', codeVi:'B2', descVi:'Được đánh 2 lá cùng số (đôi) cùng lúc.' },
@@ -1931,7 +1932,7 @@ const RL = (function(){
     { id:'mi05', code:'緑05', color:'midori', name:'自由階段', cost:8, ico:'🪜', effect:'RUN_ANY',  place:'suitRun', desc:'このマークの札を、連続する数字4枚以上の「階段」に使える（付けたマーク同士は混ぜてOK）。自分だけに適用。', nameVi:'Sảnh Tự Do', abbrVi:'S.TựDo', codeVi:'L05', descVi:'Dùng lá thuộc chất này để tạo "sảnh" từ 4 lá số liên tiếp trở lên (các chất đã gắn được trộn lẫn). Chỉ áp dụng cho mình.' },
     { id:'mi06', code:'緑06', color:'midori', name:'同種階段', cost:1,  ico:'🎴', effect:'RUN_SUIT', place:'suitRun', desc:'このマークだけで連続する数字3枚以上の「階段」を出せる（マークは混ぜない）。自分だけに適用。', nameVi:'Sảnh Đồng Chất', abbrVi:'S.Đồng', codeVi:'L06', descVi:'Chỉ riêng chất này tạo "sảnh" từ 3 lá số liên tiếp trở lên (không trộn chất). Chỉ áp dụng cho mình.' },
     { id:'mi08', code:'緑08', color:'midori', name:'分裂', cost:8, suitCost:8, ico:'👯', effect:'SPLIT', place:'card', desc:'単騎で出すと同じ札がもう1枚増えてペアになる。そのぶん、場の単騎は返せなくなる。越境・3返し・一撃が活きる場面では分裂せず単騎のまま出る。', nameVi:'Phân Liệt', abbrVi:'P.Liệt', codeVi:'L08', descVi:'Khi đánh lẻ 1 lá, lá đó nhân đôi thành đôi. Đổi lại, không chặn được lá lẻ trên bãi. Khi Vượt Biên / 3 Đè Heo / Nhất Kích có tác dụng thì giữ nguyên lá lẻ, không phân đôi.' },
-    { id:'mi09', code:'緑09', color:'midori', name:'共鳴', cost:37, ico:'🔮', effect:'RESONANCE', place:'whole', desc:'あなたの「一緒に捨てる／余分に捨てる」効果（三重・連番・流星・投棄・掃除・放出・軽身・初動など）が発動したら、いつも弱い札を1枚多く捨てる。自分だけに適用。', nameVi:'Cộng Hưởng', abbrVi:'C.Hưởng', codeVi:'L09', descVi:'Mỗi khi hiệu ứng "bỏ kèm / bỏ thêm" của bạn (Tam Trùng, Liên Số, Sao Băng, Vứt Bỏ, Quét, Xả, Nhẹ Mình, Khởi Đầu...) kích hoạt, luôn bỏ thêm 1 lá yếu nhất. Chỉ áp dụng cho mình.' },
+    { id:'mi09', code:'緑09', color:'midori', name:'共鳴', cost:41, ico:'🔮', effect:'RESONANCE', place:'whole', desc:'あなたの「一緒に捨てる／余分に捨てる」効果（三重・連番・流星・投棄・掃除・放出・軽身・初動など）が発動したら、いつも弱い札を1枚多く捨てる。自分だけに適用。', nameVi:'Cộng Hưởng', abbrVi:'C.Hưởng', codeVi:'L09', descVi:'Mỗi khi hiệu ứng "bỏ kèm / bỏ thêm" của bạn (Tam Trùng, Liên Số, Sao Băng, Vứt Bỏ, Quét, Xả, Nhẹ Mình, Khởi Đầu...) kích hoạt, luôn bỏ thêm 1 lá yếu nhất. Chỉ áp dụng cho mình.' },
     // ───────── 黄 (ki) — 手札操作(不要な札も一緒に捨てる) ─────────
     //   ★v0.21 溜め撃ち化: 投棄/軽身は「出すと自動で捨てる」受動から「気を払って自分の手番に発動」へ転生(activated)。place:'whole'。
     { id:'ki01',  code:'黄01', color:'ki', name:'投棄', cost:24, ico:'🗑️', effect:'ACT_SHED', actN:1, place:'whole', activated:true, chargeCost:4, desc:'【溜め撃ち】気を4つ払って自分の手番に発動し、いちばん弱い札を1枚捨てる（最後の1枚は残す）。パスする（場に返さず見送る）たびに気がたまる。', nameVi:'Vứt Bỏ', abbrVi:'Vứt', codeVi:'V01', descVi:'【Nạp】Tốn 4 năng lượng, kích hoạt trong lượt của mình để bỏ 1 lá yếu nhất (chừa lại 1 lá). Mỗi lần bỏ lượt (không đè bãi) sẽ tích năng lượng.' },
@@ -4005,7 +4006,7 @@ const RL = (function(){
     CONFIG, COLORS, EMBLEMS, EMB_BY_ID, emblem, SUITS, SUIT_SYM, SUIT_RED, SUIT_STRENGTH, suitStrength, DISPLAY_RANKS, SUIT_SURCHARGE,
     MUTATORS, MUT_BY_ID, mutator, mutatorHandCount,
     get RANKS(){ return RANKS; }, setRankOrder, strength, effStrength, rimTier,
-    emptyBuild, normalizeBuild, placeOf, buildCost, slotCost, canScope, emblemSlotOf, emblemsForCard, effectsForCard, hasEffect,
+    emptyBuild, normalizeBuild, placeOf, buildCost, slotCost, canScope, emblemSlotOf, emblemsForCard, emblemFiresOnCard, effectsForCard, hasEffect,
     PRESETS, presetBuild, buildFrom,
     classifyCombo, singleCombo, comboBeats, effectiveCombo, disguiseRank, maxPairRunLen, isBomb, bombPower, fieldCombo, handCombos, legalMoves, computeTableRules, playerRules,
     newGame, sortHand, legalCards, canPlay, applyPlay, applyPass, canReact, applyReact, cpuDecide,
@@ -4823,6 +4824,7 @@ const AUDIO = (function(){
       ensureView(); // エンブレムにフォーカスが乗ったらスクロール追従(見切れ防止)
       // 編成/エンブレム選択画面: フォーカス中の対象(スロット/エンブレム/ボタン)に合わせて詳細ペインとヒントを更新
       if((currentScreen==='s-build' || currentScreen==='s-emblem') && buildState) renderDetail();
+      if(currentScreen==='s-match') renderSelfFocusBuilds();
     }
   }
   const shuffleArr = a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
@@ -6256,19 +6258,14 @@ const AUDIO = (function(){
     const usedSet=new Set((usedIds||[]).filter(id=>ids.includes(id)));
     const used=ids.filter(id=>usedSet.has(id));
     const unused=ids.filter(id=>!usedSet.has(id));
-    if(!used.length || !unused.length) return;
+    if(!used.length) return;
     let incTotal=0;
-    const incs={};
     used.forEach(id=>{
       const inc=Math.min(RUN_COST_MOD_STEP, Math.max(0, RUN_COST_MOD_MAX-mods[id]));
-      incs[id]=inc; incTotal+=inc;
+      mods[id]+=inc;
+      incTotal+=inc;
     });
-    const downRoom=unused.reduce((s,id)=>s+Math.max(0, mods[id]-RUN_COST_MOD_MIN),0);
-    const scale=(incTotal>0 && downRoom<incTotal) ? (downRoom/incTotal) : 1;
-    incTotal=0;
-    used.forEach(id=>{ const inc=(incs[id]||0)*scale; mods[id]+=inc; incTotal+=inc; });
-    distributeCostModDelta(mods, unused, -incTotal);
-    distributeCostModDelta(mods, ids, ids.length - ids.reduce((s,id)=>s+mods[id],0));
+    if(incTotal>0 && unused.length) distributeCostModDelta(mods, unused, -incTotal);
     run.costMods=mods;
   }
   function halveRunHighCostMods(run){
@@ -6712,7 +6709,7 @@ const AUDIO = (function(){
     const banned=bannedIdSet().has(id);   // ★v0.22 メタ崩壊: 封じ中は効果を読めるが装備不可
     const rndOff = rndFixed && isRandomOff(MODE.run,id,sel.type,sel.key);
     let act, actCls='';
-    if(rndFixed){ act=T(rndOff?'act_rand_equip':'act_rand_remove', actKey('decide')); actCls=' rnd'; }   // 巡業ランダム獲得分: ON/OFFできる
+    if(rndFixed){ act=T(rndOff?'act_rand_equip':'act_rand_remove', actKey('decide')); actCls=' rnd'; }   // 巡業ランダム獲得分: 封じ中でもON/OFFはできる(対戦効果だけ無効)
     else if(banned){ act=T('act_banned'); actCls=' no'; }
     else if(!allowed){ const rlk=e.rankLock; act=rlk ? T('act_cannot', T('slot_disp_rank', rlk.join('/'))) : T('act_cannot', placeTxt); actCls=' no'; }
     else if(here){ act=T('act_equipped', actKey('decide')); }
@@ -6732,7 +6729,7 @@ const AUDIO = (function(){
       ? T('hint_emb_ok', rndFixed ? T(rndOff?'emb_equip':'emb_remove') : (here?T('emb_remove'):T('emb_equip')), actKey('decide'), actKey('back'))
       : T('hint_emb_no', actKey('back'));
     // actId=この枠に装備/解除できるエンブレム(クリックで toggleEquip 対象)。置けない/封じ中は null。
-    return {html, hint, actId: (allowed && !banned) ? id : null};
+    return {html, hint, actId: (rndFixed || (allowed && !banned)) ? id : null};
   }
   function detailForSlot(type,key){
     const b=buildState.build;
@@ -6757,14 +6754,14 @@ const AUDIO = (function(){
   }
   function toggleEquip(id){
     const sel=buildState.selSlot, b=buildState.build;
-    // ★v0.22 メタ崩壊: この深度で封じられたエンブレムは装備できない(別の枠でも不可)。
-    if(bannedIdSet().has(id)){ AUDIO.bad(); toast(T('toast_banned', embName(RL.emblem(id))),'#ff5252'); return; }
     // 巡業のランダムが「この枠」に付いている同idは、獲得自体は残したままON/OFFを切り替える。
     if(randIdsFor(sel.type, sel.key).includes(id)){
       if(toggleRandomEmblemSlot(MODE.run, id, sel.type, sel.key)){
         AUDIO.back(); renderBuild(); refocusPaletteOn(id); return;
       }
     }
+    // ★v0.22 メタ崩壊: この深度で封じられた手動エンブレムは装備できない(別の枠でも不可)。
+    if(bannedIdSet().has(id)){ AUDIO.bad(); toast(T('toast_banned', embName(RL.emblem(id))),'#ff5252'); return; }
     // 全体ルール枠(whole): 複数装備可(1枠に並べる)。
     if(sel.type==='rule'){
       const arr=b.ruleSlots;
@@ -7305,6 +7302,38 @@ const AUDIO = (function(){
     if(chips.length>cap) html += '<span class="bchip more">+'+(chips.length-cap)+'</span>';
     return html;
   }
+  function focusedHandCard(){
+    if(isMatchHandCard(focusedEl) && focusedEl.dataset.rank && focusedEl.dataset.suit){
+      return {rank:focusedEl.dataset.rank, suit:focusedEl.dataset.suit};
+    }
+    return null;
+  }
+  function firingChipsForCard(build, card){
+    if(!build || !card) return [];
+    const chips=[];
+    (build.rankSlots[card.rank]||[]).forEach(id=>{
+      const e=RL.emblem(id);
+      if(e && RL.emblemFiresOnCard(id, card)) chips.push({slot:card.rank, e});
+    });
+    (build.suitSlots[card.suit]||[]).forEach(id=>{
+      const e=RL.emblem(id);
+      if(e && RL.emblemFiresOnCard(id, card)) chips.push({slot:RL.SUIT_SYM[card.suit], e});
+    });
+    return chips;
+  }
+  function firingChipsHTML(build, card, cap){
+    const chips=firingChipsForCard(build, card);
+    if(!card || !chips.length) return '<span class="no-emb">'+T('no_emblem')+'</span>';
+    let html=chips.slice(0, cap).map(c=>chipHTML(c.slot,c.e)).join('');
+    if(chips.length>cap) html += '<span class="bchip more">+'+(chips.length-cap)+'</span>';
+    return html;
+  }
+  function renderSelfFocusBuilds(){
+    const sb=$('#self-builds');
+    if(!sb || !G) return;
+    const me=G.players[meIdx()];
+    sb.innerHTML=firingChipsHTML(me.build, focusedHandCard(), 8);
+  }
   // 気(チャージ)のピル(反撃 or 溜め撃ちを持つ席のみ表示)。満タンは赤で強調＝「発動できる」合図。
   function chargeHTML(p){
     const rr = p && p.rules;
@@ -7334,7 +7363,6 @@ const AUDIO = (function(){
     // 状態バッジ
     const sc=$('#match-state'); sc.innerHTML='';
     if(G.mutator && G.mutator.effect!=='NONE') sc.appendChild(badge(G.mutator.ico,T('badge_mut'), mutName(G.mutator), true));
-    { const bn=banNames(); if(bn.length) sc.appendChild(badge(uiMark('🚫','BAN'),T('badge_ban'), bn.join('・'), true)); }   // ★v0.22 封じ中バッジ
     sc.appendChild(badge(uiMark('🔁','DIR'),T('badge_dir'), G.direction>0?T('dir_normal'):T('dir_rev'), false));
     const lockSuits = G.field.suitLock;
     const lockDisplay = lockSuits ? (Array.isArray(lockSuits) ? lockSuits.map(s=>RL.SUIT_SYM[s]).join('') : RL.SUIT_SYM[lockSuits]) : null;
@@ -7346,9 +7374,9 @@ const AUDIO = (function(){
     const myTag=(typeof NET!=='undefined'&&NET.active)?(' <span style="font-size:22px;color:#9fd9a8;">('+me.name+')</span>'):'';
     const myLow = (!me.finished && me.hand.length<=3) ? ' low' : '';
     $('#self-name').innerHTML=T('you')+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+chargeHTML(me)+(me.finished?paren(placeLabel(me.place)):'');
-    const sb=$('#self-builds'); sb.innerHTML = buildChipsHTML(me.build, 6);   // 自分バーも相手枠と同じく 6 個まで、残りは +N
     renderHand();
     renderActions();
+    renderSelfFocusBuilds();
   }
   function badge(ic,label,val,on){
     const b=el('div','stbadge'+(on?' on':'')); b.innerHTML='<span class="ic">'+ic+'</span>'+label+(LANG==='vi'?': ':'：')+val; return b;
@@ -7388,7 +7416,7 @@ const AUDIO = (function(){
       const _t=RL.rimTier(G,c.rank); const rare=_t===2?' rare2':(_t===1?' rare1':'');   // レア札縁取り(高品質時のみCSSが効く・liteは無害)
       const card=el('div','pcard'+rare+(myTurn?(canUse?' playable foc':' dead foc'):'')+(selHas(c)?' sel':''));
       card.dataset.rank=c.rank; card.dataset.suit=c.suit;
-      const embs=RL.emblemsForCard(me.build,c);
+      const embs=firingChipsForCard(me.build,c);
       let embHtml='';
       if(embs.length){ embHtml='<div class="emb'+(red?' red':'')+'">'+embs.length+'</div>'; }
       card.innerHTML=embHtml+(selHas(c)?'<div class="pick">✓</div>':'')+
@@ -7402,10 +7430,11 @@ const AUDIO = (function(){
   // 札の選択トグル(DOMは作り直さず class だけ更新＝フォーカス維持)。アクション帯だけ再描画。
   function toggleCard(c, cardEl){
     if(!humanTurnReady()) return;
+    if(cardEl) setFocus(cardEl);
     const i=handSel.findIndex(x=>x.rank===c.rank&&x.suit===c.suit);
     if(i>=0){ handSel.splice(i,1); cardEl.classList.remove('sel'); const pk=cardEl.querySelector('.pick'); if(pk) pk.remove(); }
     else { handSel.push({rank:c.rank, suit:c.suit}); cardEl.classList.add('sel'); const pk=el('div','pick','✓'); cardEl.appendChild(pk); }
-    AUDIO.move(); renderActions();
+    AUDIO.move(); renderActions(); renderSelfFocusBuilds();
   }
   function renderActions(){
     const a=$('#match-act'); a.innerHTML='';
