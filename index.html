@@ -5476,12 +5476,13 @@ const AUDIO = (function(){
     show('s-pact');
     setTimeout(()=>{ setFocus($('#pact-list .pactile.foc') || focusables()[0] || null); }, 0);
   }
-  function renderPactList(){
+  function renderPactList(focusId){
     const run=MODE.run, sel=new Set(run.pact.ids||[]);
     const wrap=$('#pact-list'); wrap.innerHTML='';
     pactsForMode(pactMode).forEach(p=>{
       const on=sel.has(p.id), locked=(pactMode==='boss' && pactBaseIds.includes(p.id));
       const c=el('div','pactile foc'+(on?' on':'')+(locked?' locked':''));
+      c.dataset.pactId=p.id;
       c.innerHTML='<div class="pt-ico">'+pactIco(p)+'</div>'
         +'<div class="pt-nm">'+T('pact_'+p.id+'_ti')+'</div>'
         +'<div class="pt-ds">'+T('pact_'+p.id+'_ds')+'</div>'
@@ -5491,6 +5492,10 @@ const AUDIO = (function(){
       wrap.appendChild(c);
     });
     updatePactHead();
+    if(focusId){
+      const next=$('#pact-list .pactile[data-pact-id="'+focusId+'"]');
+      if(next) setFocus(next);
+    }
   }
   function togglePact(id){
     const run=MODE.run, ids=run.pact.ids||(run.pact.ids=[]);
@@ -5498,7 +5503,7 @@ const AUDIO = (function(){
     const i=ids.indexOf(id);
     if(i>=0) ids.splice(i,1); else ids.push(id);
     run.pact.heat = pactHeat();
-    renderPactList();
+    renderPactList(id);
   }
   function updatePactHead(){
     $('#pact-heat').textContent = '';
