@@ -9262,8 +9262,8 @@ const AUDIO = (function(){
 <!-- PWA 登録 ＆ 横画面ロック試行(本体ロジックではない最小の配線) -->
 <script>
 (function(){
-  // Service Worker 登録: 更新を即反映するため network-first の sw.js を使う。
-  //   新しい SW が来たら skipWaiting → controllerchange で1回だけ自動リロード＝スマホに即反映。
+  // Service Worker 登録: sw.js は HTML を network-first で取りに行く。
+  //   新しい SW が来たら skipWaiting → controllerchange で1回だけ自動リロード＝更新を通常リロードで反映。
   if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
     window.addEventListener('load', function(){
       navigator.serviceWorker.register('sw.js', { updateViaCache:'none' }).then(function(reg){
@@ -9272,7 +9272,7 @@ const AUDIO = (function(){
           var nw=reg.installing;
           if(!nw) return;
           nw.addEventListener('statechange', function(){
-            if(nw.state==='installed' && navigator.serviceWorker.controller){ try{ nw.postMessage('skipWaiting'); }catch(e){} }
+            if(nw.state==='installed' && navigator.serviceWorker.controller){ try{ nw.postMessage({type:'skipWaiting'}); }catch(e){} }
           });
         });
         // 念のため起動毎に更新チェック
