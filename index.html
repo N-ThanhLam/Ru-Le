@@ -1607,6 +1607,7 @@
       <div class="title" id="lobby-title" style="margin-left:18px;" data-i18n="lobby_title">ロビー</div>
       <div class="spacer"></div>
       <div class="btn small ghost foc" id="lobby-build" data-i18n="lobby_build">🎴 ビルド編成</div>
+      <div class="btn small primary foc" id="lobby-ready" style="margin-left:14px;" data-i18n="lobby_ready">✅ 準備OK</div>
       <div class="btn small primary foc" id="lobby-start" style="margin-left:14px;" data-i18n="lobby_start">▶ ゲーム開始</div>
     </div>
     <div class="wrap" style="align-items:center;">
@@ -2567,16 +2568,6 @@ const RL = (function(){
     }
     return out;
   }
-  function firstPendingFrom(state, from, pending){
-    const n = state.players.length, set=new Set(pending||[]);
-    let i = from, guard=0;
-    while(guard<256){
-      i = ((i + state.direction) % n + n) % n;
-      if(set.has(i) && !state.players[i].finished && !passedSet(state).includes(i)) return i;
-      guard++;
-    }
-    return null;
-  }
   function clearField(state){ state.field.card=null; state.field.combo=null; state.field.suitLock=null; state.field.reverseCompare=false; state.field.bombPot=0; state.skipped=[]; state.skipMode=null; }
 
   /* ---- 合法手判定 ---- */
@@ -2858,13 +2849,16 @@ const RL = (function(){
       const next = nextTurnFrom(state, playerIndex, 1);
       const skipped = Array.isArray(state.skipped) ? state.skipped : [];
       const pending = trickAlive(state).filter(i=> i!==owner);
-      const rejoin = (ownerActive && next===owner && pending.length>0 && pending.every(i=> skipped.includes(i)))
-        ? firstPendingFrom(state, playerIndex, pending)
-        : null;
-      setTurn(state, rejoin==null ? next : rejoin);
-      if(rejoin!=null){ state.skipped=[]; state.skipMode=null; }
-      if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
-      state.passCount = passedSet(state).length;
+      const skippedPending = pending.filter(i=> skipped.includes(i));
+      if(ownerActive && next===owner && skippedPending.length>0){
+        setTurn(state, skippedPending[0]);
+        if(state.players[state.turn]) state.players[state.turn].freeActed = false;
+        state.passCount = passedSet(state).length;
+      } else {
+        setTurn(state, next);
+        if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
+        state.passCount = passedSet(state).length;
+      }
     }
     // 気(チャージ): 反撃 or 溜め撃ち(activated)を持つ席が「場に返さずパスした」ら +CHARGE_PER_PASS 貯まる(上限=chargeCap)。
     //   ★主導権を譲った見返りに気が貯まる＝「出す/溜める」の択を生む。リード中(場が空)のパスは対象外＝何も譲っていないので貯めない(farm 防止)。
@@ -3175,7 +3169,7 @@ const RL = (function(){
       g3.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       g3.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g3.turn=0; g3.passed=[];
       applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPass(g3,2); applyPass(g3,3);
-      ok('指名: 飛ばされた席はパス扱いにならず順番が戻れば参加できる', g3.field.card!==null && g3.turn===1 && !(g3.passed||[]).includes(1));
+      ok('指名: 指名で飛ばされた席は自分でパスするまで参加権を残す', g3.field.card!==null && g3.turn===1 && !(g3.passed||[]).includes(1));
       const g4=newGame(defs.map(x=>({...x})),83);
       g4.players[0].build.rankSlots['5']=['ao04'];
       g4.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
@@ -3491,8 +3485,8 @@ const RL = (function(){
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
       ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
-      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→P1はパス扱いではないので参加できる
-      ok('加速: 俺→A→B→CでAを飛ばしてもAは参加権を失わない', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→飛ばされたP1へ参加権を戻す
+      ok('加速: 誰も新しく出さなくても飛ばされた席に参加権が戻る', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'5':['ao01']}})), 57);
@@ -3502,8 +3496,8 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされるが、パス扱いではない
-      applyPass(sb,2); applyPass(sb,3);                                               // 飛ばされた席だけが残ってもパス扱いにせず参加させる
-      ok('加速: 飛ばされた席だけが残っても参加できる', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      applyPass(sb,2); applyPass(sb,3);                                               // 飛ばされた席だけが残ったら、その席へ参加権を戻す
+      ok('加速: 飛ばされた席だけが残ったらその席へ戻す', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const b3=buildFrom({rank:{'5':['ao01']}});
@@ -3520,6 +3514,33 @@ const RL = (function(){
       ok('加速: 誰かが新しく出した後は俺の参加権が戻る', sb.field.card!==null && sb.turn===0 && !(sb.passed||[]).includes(0));
       applyPlay(sb,0,{rank:'7',suit:'S'},{});
       ok('加速: 戻った俺はその場に出せる', sb.field.ownerIndex===0 && sb.field.card && sb.field.card.rank==='7');
+    })();
+    (function(){
+      const b1=buildFrom({rank:{'5':['ao01']}});
+      const sb=newGame([{name:'P1',build:b1},{name:'P2',build:emptyBuild()},{name:'P3',build:emptyBuild()},{name:'P4',build:emptyBuild()}], 60);
+      sb.players[0].hand=[{rank:'5',suit:'S'},{rank:'K',suit:'S'}];
+      sb.players[1].hand=[{rank:'6',suit:'H'},{rank:'K',suit:'H'}];
+      sb.players[2].hand=[{rank:'7',suit:'D'},{rank:'K',suit:'D'}];
+      sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
+      sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
+      applyPlay(sb,0,{rank:'5',suit:'S'},{});   // P1が加速 → P2を飛ばしてP3へ
+      applyPass(sb,2); applyPass(sb,3);         // P3/P4がパス
+      ok('加速: P1がP2を飛ばしP3/P4がパスしたらP2へ戻す', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      applyPlay(sb,1,{rank:'6',suit:'H'},{});   // P2が出したら、P3/P4はパス済みなのでP1へ戻る
+      ok('加速: 戻ったP2が出したらパス済み席を飛ばしてP1へ戻る', sb.field.ownerIndex===1 && sb.turn===0 && (sb.passed||[]).includes(2) && (sb.passed||[]).includes(3));
+    })();
+    (function(){
+      const b1=buildFrom({rank:{'5':['ao01']}});
+      const sb=newGame([{name:'P1',build:b1},{name:'P2',build:emptyBuild()},{name:'P3',build:emptyBuild()},{name:'P4',build:emptyBuild()}], 61);
+      sb.players[0].hand=[{rank:'5',suit:'S'},{rank:'K',suit:'S'}];
+      sb.players[1].hand=[{rank:'8',suit:'H'},{rank:'K',suit:'H'}];
+      sb.players[2].hand=[{rank:'6',suit:'D'},{rank:'K',suit:'D'}];
+      sb.players[3].hand=[{rank:'7',suit:'C'},{rank:'K',suit:'C'}];
+      sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
+      applyPlay(sb,0,{rank:'5',suit:'S'},{});   // P1が加速 → P2を飛ばしてP3へ
+      applyPlay(sb,2,{rank:'6',suit:'D'},{});   // P3が新しく出す → 飛ばし状態は解除
+      applyPass(sb,3); applyPass(sb,0);         // P4/P1がパス
+      ok('加速: P3が出した後ならP2に参加権が戻る', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 56);
@@ -4411,11 +4432,12 @@ const AUDIO = (function(){
       online_desc:'同じ<b>合言葉</b>を入れた人どうしが対戦します。1人が<b>部屋を作る</b>、ほかは同じ合言葉で<b>入る</b>。空いた席はCPUが担当します（最大4人）。',
       online_kw:'合言葉', online_name:'あなたの名前', ph_kw:'例：さくら12', ph_name:'プレイヤー',
       net_host:'🏠 部屋を作る（ホスト）', net_join:'🚪 部屋に入る（ゲスト）',
-      lobby_leave:'◀ 退室', lobby_title:'ロビー', lobby_build:'🎴 ビルド編成', lobby_start:'▶ ゲーム開始',
+      lobby_leave:'◀ 退室', lobby_title:'ロビー', lobby_build:'🎴 ビルド編成', lobby_ready:'✅ 準備OK', lobby_unready:'準備OK解除', lobby_start:'▶ ゲーム開始',
       seat_host:'ホスト', seat_ready:'準備OK', seat_building:'編成中…', seat_disc:'切断', seat_empty_cpu:'空き → CPU',
       seat_label:'席 {0}{1}', seat_you:'（あなた）', lobby_code:'合言葉：{0}',
       lobby_hint_host:'空いた席はCPUが担当します。準備ができたら「ゲーム開始」。',
       lobby_hint_guest:'ホストの開始を待っています。「ビルド編成」で自分のデッキを準備できます。',
+      lobby_need_ready:'準備OKでない参加者がいます',
       net_registering:'接続サーバに登録中…', net_connect_fail:'接続に失敗しました',
       net_id_inuse:'その合言葉は使用中です。別の合言葉でお試しください。',
       net_err_signal:'接続エラー（{0}）。電波の良い所で再試行を。',
@@ -4646,11 +4668,12 @@ const AUDIO = (function(){
       online_desc:'Những người nhập cùng <b>mật khẩu</b> sẽ đấu với nhau. Một người <b>tạo phòng</b>, người khác <b>vào</b> bằng cùng mật khẩu. Ghế trống do CPU đảm nhiệm (tối đa 4 người).',
       online_kw:'Mật khẩu', online_name:'Tên của bạn', ph_kw:'VD: sakura12', ph_name:'Người chơi',
       net_host:'🏠 Tạo phòng (Chủ)', net_join:'🚪 Vào phòng (Khách)',
-      lobby_leave:'◀ Rời phòng', lobby_title:'Sảnh chờ', lobby_build:'🎴 Cấu hình', lobby_start:'▶ Bắt đầu',
+      lobby_leave:'◀ Rời phòng', lobby_title:'Sảnh chờ', lobby_build:'🎴 Cấu hình', lobby_ready:'✅ Sẵn sàng', lobby_unready:'Bỏ sẵn sàng', lobby_start:'▶ Bắt đầu',
       seat_host:'Chủ phòng', seat_ready:'Sẵn sàng', seat_building:'Đang lắp…', seat_disc:'Mất kết nối', seat_empty_cpu:'Trống → CPU',
       seat_label:'Ghế {0}{1}', seat_you:' (Bạn)', lobby_code:'Mật khẩu: {0}',
       lobby_hint_host:'Ghế trống do CPU đảm nhiệm. Sẵn sàng thì bấm "Bắt đầu".',
       lobby_hint_guest:'Đang chờ chủ phòng bắt đầu. Có thể chuẩn bị bộ bài qua "Cấu hình".',
+      lobby_need_ready:'Có người chưa sẵn sàng',
       net_registering:'Đang đăng ký máy chủ kết nối…', net_connect_fail:'Kết nối thất bại',
       net_id_inuse:'Mật khẩu này đang được dùng. Hãy thử mật khẩu khác.',
       net_err_signal:'Lỗi kết nối ({0}). Hãy thử lại nơi sóng tốt.',
@@ -5912,6 +5935,15 @@ const AUDIO = (function(){
         wrap.appendChild(card);
       });
       const codeEl=$('#lobby-code'); if(codeEl) codeEl.textContent=T('lobby_code', this.keyword);
+      const mySeat=this.seats[this.myIdx];
+      const readyBtn=$('#lobby-ready');
+      if(readyBtn){
+        readyBtn.style.display=(!this.isHost && this.active)?'':'none';
+        const ready=!!(mySeat&&mySeat.ready);
+        readyBtn.textContent=ready?T('lobby_unready'):T('lobby_ready');
+        readyBtn.classList.toggle('ghost', ready);
+        readyBtn.classList.toggle('primary', !ready);
+      }
       const startBtn=$('#lobby-start'); if(startBtn) startBtn.style.display=this.isHost?'':'none';
       const hint=$('#lobby-hint'); if(hint) hint.textContent = this.isHost ? T('lobby_hint_host') : T('lobby_hint_guest');
       // 「日本式／ベトナム式」ワンタップ装填バー（未解放でも丸ごと装填して対戦できる＝編成画面から移設）。
@@ -5935,13 +5967,26 @@ const AUDIO = (function(){
     afterBuild(build){
       this.myBuild = RL.normalizeBuild(build);
       if(this.isHost){ this.seats[0].build=this.myBuild; this.seats[0].ready=true; }
-      else if(this.hostConn) this._send(this.hostConn,{type:'buildUpdate', build:this.myBuild, ready:true});
+      else {
+        if(this.seats[this.myIdx]) this.seats[this.myIdx].ready=false;
+        if(this.hostConn) this._send(this.hostConn,{type:'buildUpdate', build:this.myBuild, ready:false});
+      }
       show('s-lobby'); this.renderLobby(); if(this.isHost) this.broadcastLobby();
+    },
+    setReady(v){
+      if(this.isHost) return;
+      if(this.seats[this.myIdx]) this.seats[this.myIdx].ready=!!v;
+      if(this.hostConn) this._send(this.hostConn,{type:'buildUpdate', build:this.myBuild||RL.emptyBuild(), ready:!!v});
+      this.renderLobby();
+    },
+    allClientsReady(){
+      return this.seats.every(s=> !(s.kind==='client' && s.connected && !s.cpu) || !!s.ready);
     },
 
     /* ---------- ゲーム開始(ホスト) ---------- */
     startGame(){
       if(!this.isHost) return;
+      if(!this.allClientsReady()){ AUDIO.bad(); toast(T('lobby_need_ready'), '#ff9800'); return; }
       const defs=this.seats.map((s,i)=>{
         if(i===0) return { name:this.myName, isHuman:true, build:this.myBuild||RL.emptyBuild() };
         if(s.kind==='client' && s.connected){ s.cpu=false; return { name:s.name||('P'+(i+1)), isHuman:true, build:s.build||RL.emptyBuild() }; }
@@ -6002,7 +6047,7 @@ const AUDIO = (function(){
         }
         const seat=this.seats.find(s=>s.kind==='empty');
         if(!seat){ this._send(conn,{type:'reject',reason:T('reject_full')}); setTimeout(()=>{try{conn.close();}catch(e){}},200); return; }
-        seat.kind='client'; seat.peerId=conn.peer; seat.connected=true; seat.ready=!!(m.build); seat.name=(m.name||('P'+(seat.idx+1))).slice(0,12);
+        seat.kind='client'; seat.peerId=conn.peer; seat.connected=true; seat.ready=false; seat.name=(m.name||('P'+(seat.idx+1))).slice(0,12);
         seat.build=m.build?RL.normalizeBuild(m.build):RL.emptyBuild(); seat.token=Math.random().toString(36).slice(2,10);
         this.conns.set(conn.peer,conn);
         this._send(conn,{type:'welcome', yourIdx:seat.idx, token:seat.token, ver:NET_VER, session:this.hostSession});
@@ -6184,6 +6229,7 @@ const AUDIO = (function(){
   $('#net-join').onclick=()=>{ if(trySecretSim()) return; const kw=($('#net-keyword').value||'').trim(); if(!kw){ NET.msg(T('net_kw_required')); return; } AUDIO.confirm(); NET.join(kw, $('#net-name').value); };
   $('#lobby-leave').onclick=()=>{ AUDIO.back(); NET.leave(); buildTitle(); show('s-title'); };
   $('#lobby-build').onclick=()=>{ AUDIO.confirm(); MODE.kind='online'; MODE.mutator=null; openBuild(T('bt_online')); };
+  $('#lobby-ready').onclick=()=>{ if(NET.isHost) return; const s=NET.seats[NET.myIdx]; AUDIO.confirm(); NET.setReady(!(s&&s.ready)); };
   $('#lobby-start').onclick=()=>{ if(!NET.isHost) return; AUDIO.confirm(); NET.startGame(); };
 
   /* ============================================================
