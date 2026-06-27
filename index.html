@@ -223,6 +223,8 @@
   .topbar{ position:absolute; top:0; left:0; right:0; height:96px; display:flex; align-items:center; padding:0 36px;
     background:linear-gradient(180deg, rgba(14,20,46,.78), rgba(10,14,34,.5));
     border-bottom:4px solid rgba(255,207,77,.32); box-shadow:0 6px 18px rgba(0,0,0,.3); }
+  .screen>.topbar{ z-index:60; pointer-events:auto; }
+  .screen>.topbar .btn{ position:relative; z-index:1; pointer-events:auto; touch-action:manipulation; }
   .topbar .title{ font-size:44px; font-weight:900; color:#fff; }
   .topbar .spacer{ flex:1; }
   .hint{ position:absolute; bottom:18px; left:0; right:0; text-align:center; color:#cdd6ff; font-size:26px;
@@ -501,11 +503,14 @@
     display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none; }
   .toast-it{ font-size:40px; font-weight:900; color:#fff; padding:14px 36px; border-radius:18px;
     border:5px solid #fff; box-shadow:0 10px 30px rgba(0,0,0,.5); animation:pop .3s ease; }
-  #match-talk{ position:absolute; top:304px; left:46px; width:470px; z-index:24; pointer-events:none; display:none; }
-  #match-talk.show{ display:block; animation:talkIn .16s ease-out; }
-  .talkbubble{ background:#fffdf4; border:5px solid #2a2f55; border-radius:18px; padding:13px 18px; box-shadow:0 10px 26px rgba(0,0,0,.42); }
-  .talkbubble .who{ font-size:21px; font-weight:900; color:#8a681e; margin-bottom:4px; }
-  .talkbubble .txt{ font-size:27px; font-weight:900; line-height:1.32; color:#26304a; }
+  #match-talk{ position:absolute; top:304px; left:46px; width:500px; height:304px; z-index:24; pointer-events:none; display:none; flex-direction:column; justify-content:flex-end; gap:7px; overflow:hidden; }
+  #match-talk.show{ display:flex; }
+  .talkbubble{ flex:none; background:rgba(255,253,244,.9); border:3px solid #59617f; border-radius:10px; padding:7px 13px; box-shadow:0 5px 14px rgba(0,0,0,.32); opacity:.72; }
+  .talkbubble .who{ font-size:17px; font-weight:900; color:#8a681e; margin-bottom:1px; }
+  .talkbubble .txt{ font-size:20px; font-weight:850; line-height:1.24; color:#26304a; }
+  .talkbubble:last-child{ background:#fffdf4; border:4px solid #2a2f55; padding:9px 15px; box-shadow:0 9px 22px rgba(0,0,0,.42); opacity:1; animation:talkIn .16s ease-out; }
+  .talkbubble:last-child .who{ font-size:19px; margin-bottom:2px; }
+  .talkbubble:last-child .txt{ font-size:24px; line-height:1.28; }
   @keyframes pop{ from{ transform:scale(.7); opacity:0;} to{ transform:scale(1); opacity:1;} }
   @keyframes talkIn{ from{ transform:translateY(10px); opacity:0;} to{ transform:none; opacity:1;} }
 
@@ -952,6 +957,7 @@
 
   /* ===== オーバーレイ(指名/メニュー/結果/ドラフト) ===== */
   .ovl{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(4,6,16,.72); z-index:40; }
+  .screen>.ovl:not(.ovl-page){ z-index:80; }
   .ovl.active{ display:flex; }
   /* ページ型オーバーレイ(専用画面の中身を中央寄せするだけの透明レイヤ)は
      背面のトップバー(とじる等)へクリックを通すため pointer-events を無効化する。
@@ -1002,10 +1008,16 @@
   .draftcard .code.rnd{ background:linear-gradient(135deg,#f0a500,#ffd54a); color:#3a2a00; box-shadow:0 3px 0 #c98700; }
 
   /* ---- 巡業マップ(道/幕/ボス) ---- */
-  .map-hint{ font-size:36px; font-weight:900; color:#dfe6ff; margin:0 0 18px; line-height:1.22; text-align:center; }
+  .map-hint{ font-size:36px; font-weight:900; color:#dfe6ff; margin:0; line-height:1.22; text-align:left; }
   #s-map .wrap,
   #s-pact .wrap{ position:absolute; top:124px; left:28px; right:28px; bottom:34px; display:flex; flex-direction:column; }
-  .runmap{ display:flex; gap:32px; align-items:stretch; justify-content:center; flex-wrap:nowrap; max-width:1780px; width:100%; }
+  #s-map .wrap{ gap:14px; }
+  .map-intro{ width:100%; max-width:1780px; display:grid; grid-template-columns:minmax(360px,.7fr) minmax(0,1.3fr); gap:22px; align-items:stretch; flex:none; }
+  .map-intro:not(:has(.worldline.show)){ grid-template-columns:1fr; }
+  .map-intro .map-hint{ display:flex; align-items:center; padding:12px 18px; border-left:6px solid #ffd54a; background:rgba(8,12,32,.48); border-radius:8px; }
+  .map-intro #map-worldline{ width:100%; max-width:none; margin:0; display:none; text-align:left; }
+  .map-intro #map-worldline.show{ display:block; }
+  .runmap{ display:flex; gap:32px; align-items:stretch; justify-content:center; flex-wrap:nowrap; max-width:1780px; width:100%; flex:1; min-height:0; }
   .mapcol{ display:flex; flex-direction:column; gap:14px; align-items:center; position:relative; flex:1; min-width:0; }
   .mapcol-hd{ font-size:32px; font-weight:900; color:#9fb0e8; margin-bottom:0; line-height:1.1; }
   .mapcol.cur .mapcol-hd{ color:#ffd54a; }
@@ -1132,7 +1144,7 @@
   .setrow{ display:flex; align-items:center; gap:24px; background:#fff; border:5px solid var(--line); border-radius:16px; padding:16px 26px; margin:12px 0; }
   .setrow .nm{ font-size:34px; font-weight:900; flex:1; }
   .setrow .val{ font-size:32px; font-weight:900; color:#b25a00; min-width:220px; text-align:center; }
-  #s-aiworld>.topbar{ z-index:50; }
+  #s-aiworld>.topbar{ z-index:60; }
   #s-aiworld>.ovl-page{ top:96px; }
   .aiworld-page{ width:min(1500px, calc(100% - 120px)); max-height:calc(100% - 54px); overflow-y:auto; }
   .aiworld-grid{ display:grid; grid-template-columns:1.08fr .92fr; gap:22px; align-items:start; }
@@ -1576,8 +1588,10 @@
       <div class="title" id="map-title" style="margin-left:18px;"></div>
     </div>
     <div class="wrap" style="align-items:center;">
-      <div class="map-hint" id="map-hint" data-i18n="map_hint">分かれ道 — 次に進む先を選ぶ</div>
-      <div class="worldline" id="map-worldline"></div>
+      <div class="map-intro">
+        <div class="map-hint" id="map-hint" data-i18n="map_hint">分かれ道 — 次に進む先を選ぶ</div>
+        <div class="worldline" id="map-worldline"></div>
+      </div>
       <div class="runmap" id="map-rows"></div>
     </div>
   </section>
@@ -5630,7 +5644,7 @@ const AUDIO = (function(){
       });
       wrap.appendChild(col);
     });
-    renderWorldLine('map-worldline', ['event','diary','rumor','conversation'], '旅の噂', 'map', ['旅','巡業','酒場']);
+    renderWorldLine('map-worldline', ['event','diary','rumor','conversation'], store.lang==='vi'?'Chuyện dọc đường':'旅の噂', 'map', ['旅','巡業','酒場']);
     show('s-map');
     setTimeout(()=>setFocus(null),0);
   }
@@ -7772,7 +7786,8 @@ const AUDIO = (function(){
     const p=(speakerIdx!=null&&G.players)?G.players[speakerIdx]:null;
     const who=worldEsc((p&&p.name)||(item&&item.speaker)||T('world_conversation'));
     const box=$('#match-talk'); if(!box||!text)return false;
-    box.innerHTML='<div class="talkbubble"><div class="who">'+who+'</div><div class="txt">'+worldEsc(String(text).slice(0,76))+'</div></div>';
+    box.insertAdjacentHTML('beforeend','<div class="talkbubble"><div class="who">'+who+'</div><div class="txt">'+worldEsc(String(text).slice(0,76))+'</div></div>');
+    while(box.children.length>3)box.firstElementChild.remove();
     box.classList.add('show'); matchTalkLastAt=now;
     return true;
   }
@@ -7818,19 +7833,6 @@ const AUDIO = (function(){
       if(matchThemeTalkShown)return true;
     }
     return matchTalkEvent(action==='pass'?'pass':(Math.random()<.24?'chatter':'play'),actorIdx,false);
-  }
-  function matchTalkMaybe(actorIdx, force){
-    if(!G || currentScreen!=='s-match' || G.gameOver) return;
-    const now=Date.now();
-    if(!force && now-matchTalkLastAt<5200) return;
-    if(!force && Math.random()>.38) return;
-    const item=matchTalkPick('chatter'); if(!item) return;
-    const p=(actorIdx!=null && G.players && G.players[actorIdx]) ? G.players[actorIdx] : null;
-    const who=worldEsc(item.speaker || (p&&p.name) || T('world_conversation'));
-    const txt=worldEsc(String(item.text||'').slice(0,76));
-    const box=$('#match-talk'); if(!box) return;
-    box.innerHTML='<div class="talkbubble"><div class="who">'+who+'</div><div class="txt">'+txt+'</div></div>';
-    box.classList.add('show'); matchTalkLastAt=now;
   }
   // エンブレム発動の一瞬きらめき。発動時だけ要素を生成し、約380msで除去する(常時アニメ無し)。
   function embFlash(ico){
