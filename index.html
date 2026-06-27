@@ -1741,9 +1741,9 @@
     </div>
   </section>
 
-  <!-- ===================== RIVALS (宿敵4人の名前) ===================== -->
+  <!-- ===================== CHARACTERS (自分＋宿敵4人の人物設定) ===================== -->
   <section id="s-rivals" class="screen">
-    <div class="topbar"><div class="btn small ghost foc" id="rivals-close" data-i18n="rivals_close">◀ もどる</div><div class="title" style="margin-left:18px;" data-i18n="rivals_topbar">ライバルの名前</div></div>
+    <div class="topbar"><div class="btn small ghost foc" id="rivals-close" data-i18n="rivals_close">◀ もどる</div><div class="title" style="margin-left:18px;" data-i18n="rivals_topbar">人物設定</div></div>
     <div class="ovl ovl-page active" style="background:transparent;">
       <div class="card-modal page" style="min-height:auto;">
         <div id="rivals-rows"></div>
@@ -1754,7 +1754,15 @@
       <div class="card-modal" style="text-align:center;max-width:900px;">
         <h2 id="rival-edit-title"></h2>
         <input id="rival-name-input" type="text" maxlength="12" autocomplete="off"
-               style="font-size:32px;font-weight:800;text-align:center;width:80%;max-width:560px;padding:12px 16px;margin:18px 0 26px;border-radius:14px;border:2px solid #8aa;background:#0e1430;color:#fff;">
+               style="font-size:32px;font-weight:800;text-align:center;width:80%;max-width:560px;padding:12px 16px;margin:12px 0;border-radius:14px;border:2px solid #8aa;background:#0e1430;color:#fff;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;width:80%;max-width:596px;margin:4px auto 26px;">
+          <label style="font-size:20px;font-weight:800;text-align:left;"><span data-i18n="char_gender">性別</span>
+            <select id="rival-gender-input" style="display:block;width:100%;font-size:24px;padding:10px;margin-top:6px;background:#0e1430;color:#fff;border:2px solid #8aa;border-radius:8px;"></select>
+          </label>
+          <label style="font-size:20px;font-weight:800;text-align:left;"><span data-i18n="char_job">職業</span>
+            <select id="rival-job-input" style="display:block;width:100%;font-size:24px;padding:10px;margin-top:6px;background:#0e1430;color:#fff;border:2px solid #8aa;border-radius:8px;"></select>
+          </label>
+        </div>
         <div class="rowbtns">
           <div class="btn ghost foc" id="rival-cancel"></div>
           <div class="btn primary foc" id="rival-ok"></div>
@@ -4300,7 +4308,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', gfx:'lite', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
-    keymap:null, padmap:null, netKw:'', netName:'', rival:null, rivals:null, rivalProf:null, heatBest:{}, titleBest:{}, aiKeys:[''], aiWorldAuto:false,
+    keymap:null, padmap:null, netKw:'', netName:'', playerProfile:null, rival:null, rivals:null, rivalProf:null, heatBest:{}, titleBest:{}, aiKeys:[''], aiWorldAuto:false,
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -4315,6 +4323,7 @@ const AUDIO = (function(){
       this.gfx = (this.gfx==='hi'||this.gfx==='lite') ? this.gfx : 'lite';   // 画質: lite=描画優先(既定) / hi=高品質
       this.netKw = (typeof this.netKw==='string') ? this.netKw : '';
       this.netName = (typeof this.netName==='string') ? this.netName : '';
+      this.playerProfile = (this.playerProfile && typeof this.playerProfile==='object') ? this.playerProfile : {name:'プレイヤー',gender:'未設定',job:'旅札師'};
       this.rival = (this.rival && typeof this.rival==='object') ? this.rival : null;   // 旧:単一宿敵(移行用に読むだけ・RIVAL.ensure で rivals へ継承後に破棄)
       this.rivals = (Array.isArray(this.rivals) && this.rivals.length===4) ? this.rivals : null;   // 宿敵4人(名前/戦績hist)
       this.rivalProf = (this.rivalProf && typeof this.rivalProf==='object') ? this.rivalProf : null; // あなたのビルド傾向(共有・学習型/ban が使う)
@@ -4327,7 +4336,7 @@ const AUDIO = (function(){
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest, titleBest:this.titleBest, aiKeys:this.aiKeys, aiWorldAuto:this.aiWorldAuto})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, playerProfile:this.playerProfile, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest, titleBest:this.titleBest, aiKeys:this.aiKeys, aiWorldAuto:this.aiWorldAuto})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -4414,7 +4423,7 @@ const AUDIO = (function(){
       pause_h2:'メニュー', pause_resume:'つづける', pause_help:'あそびかた', pause_quit:'タイトルへもどる',
       match_inspect:'🔍 しらべる', match_menu:'☰ メニュー',
       /* 結果 */
-      result_run_title:'深度 {0} けっか', result_title:'けっか', result_win:'🏆 あなたの勝ち！', result_head:'けっか発表',
+      result_run_title:'深度 {0} けっか', result_title:'けっか', result_win:'🏆 あなたの勝ち！', result_named_win:'🏆 {0}の勝ち！', result_head:'けっか発表',
       btn_to_lobby:'ロビーへもどる', btn_leave_title:'退室してタイトルへ', btn_again:'もう一度', btn_to_title:'タイトルへ',
       next_see_result:'結果を見る', next_loot_win:'🏆 戦利品を選ぶ', next_loot:'戦利品を選ぶ', next_lifedown:'（残機-1）次の深度へ', next_lifedown2:'（残機-2）次の深度へ', next_lifedown3:'（残機-3）次の深度へ',
       result_tags_head:'今回の戦果',
@@ -4531,7 +4540,7 @@ const AUDIO = (function(){
       set_sfx:'効果音', set_gfx:'画質', gfx_hi:'高品質', gfx_lite:'描画優先（標準）', set_rankmode:'強さルール', rankmode_2:'2 が最強（標準）', rankmode_a:'A が最強（変則）',
       set_budget:'対戦の予算', set_budget_val:'コスト {0}', set_unlocked:'解放エンブレム', set_unlocked_val:'{0} / {1}（巡業で増える）',
       set_best:'最高到達深度', set_best_val:'深度 {0}', set_title_best:'称号記録', set_title_best_none:'まだ記録なし', set_title_best_item:'{0} 深度{1}', set_toggle:'切替 ▶',
-      set_rival_name:'ライバルの名前', set_rival_ok:'けってい', set_edit:'変更 ▶', set_rival_val:'{0}人', set_open:'ひらく ▶', rivals_topbar:'ライバルの名前', rivals_close:'◀ もどる',
+      set_rival_name:'人物設定', set_rival_ok:'けってい', set_edit:'変更 ▶', set_rival_val:'自分＋ライバル{0}人', set_open:'ひらく ▶', rivals_topbar:'人物設定', rivals_close:'◀ もどる', char_player:'自分', char_gender:'性別', char_job:'職業',
       set_keys:'キー設定', set_keys_val:'キーボード／パッド', keys_open:'ひらく ▶',
       set_aiworld:'AI世界', set_aiworld_val:'在庫生成・APIキー', aiworld_open:'ひらく ▶',
       aiworld_close:'◀ もどる', aiworld_topbar:'AI世界', aiworld_api_h:'Gemini API', aiworld_api_note:'APIキーは端末内だけに保存。ゲーム本体はAIなしで動作します。',
@@ -4663,7 +4672,7 @@ const AUDIO = (function(){
       inspect_h2:'Năng lực Biểu Tượng — Trỏ con trỏ vào để đọc', inspect_close:'◀ Quay lại', inspect_turnnow:'Lượt hiện tại',
       pause_h2:'Menu', pause_resume:'Tiếp tục', pause_help:'Cách chơi', pause_quit:'Về Menu',
       match_inspect:'🔍 Soi', match_menu:'☰ Menu',
-      result_run_title:'Tầng {0} kết quả', result_title:'Kết quả', result_win:'🏆 Bạn thắng!', result_head:'Công bố kết quả',
+      result_run_title:'Tầng {0} kết quả', result_title:'Kết quả', result_win:'🏆 Bạn thắng!', result_named_win:'🏆 {0} chiến thắng!', result_head:'Công bố kết quả',
       btn_to_lobby:'Về Sảnh', btn_leave_title:'Rời phòng về Menu', btn_again:'Chơi lại', btn_to_title:'Về Menu',
       next_see_result:'Xem kết quả', next_loot_win:'🏆 Chọn chiến lợi phẩm', next_loot:'Chọn chiến lợi phẩm', next_lifedown:'(Mạng -1) Sang tầng kế', next_lifedown2:'(Mạng -2) Sang tầng kế', next_lifedown3:'(Mạng -3) Sang tầng kế',
       result_tags_head:'Chiến tích trận này',
@@ -4775,7 +4784,7 @@ const AUDIO = (function(){
       set_sfx:'Âm thanh', set_gfx:'Chất lượng', gfx_hi:'Cao cấp', gfx_lite:'Ưu tiên hiệu năng (chuẩn)', set_rankmode:'Luật mạnh yếu', rankmode_2:'Lá 2 (heo) mạnh nhất (chuẩn)', rankmode_a:'Lá A mạnh nhất (biến thể)',
       set_budget:'Ngân sách trận', set_budget_val:'Chi phí {0}', set_unlocked:'Biểu tượng mở khóa', set_unlocked_val:'{0} / {1} (tăng khi lữ hành)',
       set_best:'Tầng cao nhất', set_best_val:'Tầng {0}', set_title_best:'Kỷ lục danh hiệu', set_title_best_none:'Chưa có kỷ lục', set_title_best_item:'{0} Tầng {1}', set_toggle:'Đổi ▶',
-      set_rival_name:'Tên đối thủ', set_rival_ok:'Xác nhận', set_edit:'Sửa ▶', set_rival_val:'{0} người', set_open:'Mở ▶', rivals_topbar:'Tên đối thủ', rivals_close:'◀ Quay lại',
+      set_rival_name:'Thiết lập nhân vật', set_rival_ok:'Xác nhận', set_edit:'Sửa ▶', set_rival_val:'Bạn + {0} đối thủ', set_open:'Mở ▶', rivals_topbar:'Thiết lập nhân vật', rivals_close:'◀ Quay lại', char_player:'Bạn', char_gender:'Giới tính', char_job:'Nghề nghiệp',
       set_keys:'Gán phím', set_keys_val:'Bàn phím / Tay cầm', keys_open:'Mở ▶',
       set_aiworld:'Thế giới AI', set_aiworld_val:'Kho nội dung / API key', aiworld_open:'Mở ▶',
       aiworld_close:'◀ Quay lại', aiworld_topbar:'Thế giới AI', aiworld_api_h:'Gemini API', aiworld_api_note:'API key chỉ lưu trên máy này. Game vẫn chạy khi không có AI.',
@@ -7094,12 +7103,14 @@ const AUDIO = (function(){
        正調ミラー(jp×jp・vn×vn)も balance 測定も完全に不変。変えるのは「CPUがどのエンブレムを積むか」だけ。
      ============================================================ */
   const RIVAL_NAMES=['ナギ','カイ','レン','ソラ','ユウ','ジン','ミナ','ハル','ツバサ','アサヒ'];
+  const CHARACTER_GENDERS=['未設定','男','女','その他'];
+  const CHARACTER_JOBS=['旅札師','騎士','魔女','商人','盗賊','傭兵','吟遊詩人','学者','神官','狩人','錬金術師','王国監察官','飛脚','旅芸人','商会主'];
   // 宿敵4人の定義(BOSSES と同順＝rival[i] は BOSSES[i] のボス姿を担う)。3人は固定流儀・1人(末尾)は学習型(あなたを読む)。
   const RIVAL_DEFS = [
-    { key:'r0', arche:'control', adaptive:false, priority:['aka05','aka03','aka01','aka12'] },  // 制圧/妨害型(逆さ玉座)
-    { key:'r1', arche:'tempo',   adaptive:false, priority:['ao02','ao04','ao01','aka01'] },     // 翻弄/手番型(重ね撃ちの舞)
-    { key:'r2', arche:'speed',   adaptive:false, priority:['set2','mi03','mi08','ki01'] },      // 速攻型(十手の刹那)
-    { key:'r3', arche:'vietnam', adaptive:true,  priority:[] },                                  // 学習型=あなたを読む(蕩尽の黄金)
+    { key:'r0', arche:'control', adaptive:false, gender:'女', job:'王国監察官', priority:['aka05','aka03','aka01','aka12'] },  // 制圧/妨害型(逆さ玉座)
+    { key:'r1', arche:'tempo',   adaptive:false, gender:'男', job:'旅芸人', priority:['ao02','ao04','ao01','aka01'] },     // 翻弄/手番型(重ね撃ちの舞)
+    { key:'r2', arche:'speed',   adaptive:false, gender:'女', job:'飛脚', priority:['set2','mi03','mi08','ki01'] },      // 速攻型(十手の刹那)
+    { key:'r3', arche:'vietnam', adaptive:true,  gender:'男', job:'商会主', priority:[] },                                  // 学習型=あなたを読む(蕩尽の黄金)
   ];
   function collectBuildIds(b){
     const out=[]; if(!b) return out;
@@ -7117,13 +7128,17 @@ const AUDIO = (function(){
         const adName = (old && old.name) ? old.name : null;
         const pool = shuffleArr(RIVAL_NAMES.filter(n=> n!==adName));   // 継承名は他スロットの抽選から除外(名前被り防止)
         let pi=0;
-        store.rivals = RIVAL_DEFS.map((d,i)=>({ key:d.key, name:(i===ad && adName) ? adName : pool[pi++], w:0, l:0, hist:[] }));
+        store.rivals = RIVAL_DEFS.map((d,i)=>({ key:d.key, name:(i===ad && adName) ? adName : pool[pi++], gender:d.gender, job:d.job, w:0, l:0, hist:[] }));
         if(old && ad>=0){ const r=store.rivals[ad]; r.w=old.w||0; r.l=old.l||0; r.hist=Array.isArray(old.hist)?old.hist.slice():[]; }
         if(old && old.prof && !store.rivalProf) store.rivalProf=Object.assign({}, old.prof);
         store.rival=null;
         if(!store.rivalProf) store.rivalProf={};
         store.save();
       }
+      store.playerProfile=Object.assign({name:'プレイヤー',gender:'未設定',job:'旅札師'},store.playerProfile||{});
+      let profileChanged=false;
+      store.rivals.forEach((r,i)=>{ const d=RIVAL_DEFS[i]; if(!r.gender){r.gender=d.gender;profileChanged=true;} if(!r.job){r.job=d.job;profileChanged=true;} });
+      if(profileChanged) store.save();
       if(!store.rivalProf) store.rivalProf={};
       return store.rivals;
     },
@@ -7133,6 +7148,7 @@ const AUDIO = (function(){
     adaptiveIndex(){ return RIVAL_DEFS.findIndex(d=>d.adaptive); },
     name(i){ return this.ensure()[i].name; },
     setName(i, nm){ this.ensure(); const v=String(nm||'').trim().slice(0,12); if(v){ store.rivals[i].name=v; store.save(); } },
+    setProfile(i, data){ this.ensure(); const target=i<0?store.playerProfile:store.rivals[i]; if(!target)return; const name=String(data.name||'').trim().slice(0,12); if(name)target.name=name; target.gender=CHARACTER_GENDERS.includes(data.gender)?data.gender:'未設定'; target.job=CHARACTER_JOBS.includes(data.job)?data.job:'旅札師'; store.save(); },
     // 人間が今戦で選んだビルド(=公開情報の傾向)を観測。直近を重く(減衰0.8)。学習型と meta-ban が使う(共有)。
     observe(build){ this.ensure(); const p=store.rivalProf; Object.keys(p).forEach(k=> p[k]*=0.8); collectBuildIds(build).forEach(id=> p[id]=(p[id]||0)+1); store.save(); },
     // 因縁の戦績(宿敵 i から見た勝/負)。直近100戦だけ履歴 hist に残す(1=あなたの勝ち/0=負け)。
@@ -7422,7 +7438,8 @@ const AUDIO = (function(){
 
   function beginMatch(){
     MODE.matchBanNames = (MODE.kind==='run') ? banNames() : [];   // ★v0.22 この対戦で封じられた名前を控える(結果画面の宿敵レポート用・深度前進前)
-    const human = { name:T('you'), isHuman:true, build: MODE.kind==='run' ? effectiveRunBuild() : cloneBuild(MODE.quickBuild) };
+    RIVAL.ensure();
+    const human = { name:String(store.playerProfile?.name||T('you')).slice(0,12), isHuman:true, build: MODE.kind==='run' ? effectiveRunBuild() : cloneBuild(MODE.quickBuild) };
     const manualCostBuild = MODE.kind==='run' ? runManualBuildForCost() : null;
     const cpuNames = MODE.kind==='run'
       ? [T('cpu_speed'),T('cpu_control'),T('cpu_tempo')]
@@ -7430,7 +7447,6 @@ const AUDIO = (function(){
     const depth = MODE.kind==='run'?MODE.run.depth:1;
     // CPU は名前と build をペアで持ち、席順をシャッフル(対戦の並びを毎回ランダムに)。あなたは席0のまま(UIの自分判定を保つ)。
     // CPU3体のうち1体は「宿敵」=あなたのビルド傾向(公開情報)を学習して対策ビルドを組む適応AI。残り2体は通常アーキタイプ。
-    RIVAL.ensure();
     const _bossNow = (MODE.kind==='run' && MODE.curNode && MODE.curNode.type==='boss') ? bossForNode(MODE.curNode) : null;
     // ★v0.26 宿敵は4人。基本は各々25%で参戦(0人〜CPU席いっぱいまで)。ボス戦はその幕のボス宿敵を必ず1人＋他は各25%。
     //   CPU席は3。参戦が3を超えたらボスを保持して3人に切り詰める。
@@ -7576,7 +7592,7 @@ const AUDIO = (function(){
     const me=G.players[meIdx()];
     const myTag=(typeof NET!=='undefined'&&NET.active)?(' <span style="font-size:22px;color:#9fd9a8;">('+me.name+')</span>'):'';
     const myLow = (!me.finished && me.hand.length<=3) ? ' low' : '';
-    $('#self-name').innerHTML=T('you')+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+chargeHTML(me)+(me.finished?paren(placeLabel(me.place)):'');
+    $('#self-name').innerHTML=worldEsc(me.name||store.playerProfile?.name||T('you'))+myTag+' <span class="selfcnt'+myLow+'">'+me.hand.length+T('cards_unit')+'</span>'+chargeHTML(me)+(me.finished?paren(placeLabel(me.place)):'');
     renderHand();
     renderActions();
     renderSelfFocusBuilds();
@@ -7985,7 +8001,7 @@ const AUDIO = (function(){
     const rd = (runDepth!=null) ? runDepth : (MODE.run ? MODE.run.depth : 1);
     $('#result-title').textContent = (!online && MODE.kind==='run') ? T('result_run_title', rd) : T('result_title');
     const me=G.players[meIdx()];
-    $('#result-head').textContent = me.place===1 ? T('result_win') : T('result_head');
+    $('#result-head').textContent = me.place===1 ? T('result_named_win',me.name||store.playerProfile?.name||T('you')) : T('result_head');
     // 巡業の1位報酬(=次戦コスト容量+25)を結果に出す。reward={head,line} or null。無ければ枠を消す。
     const rew=$('#result-reward');
     if(rew){
@@ -8414,7 +8430,7 @@ const AUDIO = (function(){
       } else {
         grid = '<div class="inspe none">'+T('no_emblem_inspect')+'</div>';
       }
-      box.innerHTML = '<div class="pnm">'+(p.isHuman?T('you_star'):p.name)+' '+done+' '+turnTag+'</div>'+
+      box.innerHTML = '<div class="pnm">'+(p.isHuman?'★ '+worldEsc(p.name||store.playerProfile?.name||T('you')):worldEsc(p.name))+' '+done+' '+turnTag+'</div>'+
         '<div class="inspgrid">'+grid+'</div>';
       host.appendChild(box);
     });
@@ -8564,8 +8580,8 @@ const AUDIO = (function(){
     return T('aiworld_err_other');
   }
   function aiWorldSystemPrompt(){ return 'あなたはRu-Le世界の脚本家。ゲーム結果やルールは絶対に決めず、保存用の短い世界コンテンツだけを書く。人格は固定し、変化するのは関係性だけ。出力はJSONのみ。文体は日本語、短く濃く、同じ言い換えを避ける。キャラを便利な説明役にしない。'; }
-  function aiWorldCastPrompt(){ return ['騎士: 勇敢で真面目。名誉を重んじ、曖昧な儲け話を嫌う。','魔女: 皮肉屋で知識人。人情はあるが直接は言わない。','商人: 利益優先。損得で語るが、町の物流には責任感がある。','盗賊: 自由人。軽口が多いが、弱い者には妙に甘い。'].join('\n'); }
-  function aiWorldUserPrompt(task){ const meta=AIWorldDB.meta(), rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=AIWorldDB.recent(10).map(x=>`${x.day}日 ${x.speaker||'語り手'}: ${x.text}`).join('\n'); return [`今日: Day ${task.day}`,`テーマ: ${task.theme}`,`種類: ${task.type}`,`使いどころ: ${task.context||'general'}`,`優先タグ: ${(task.tags||[]).join(', ')}`,`現在在庫: ${task.stockNow||0} / 目標 ${task.stockTarget||0}`,`必ず生成するitems件数: ${task.count}`,'最重要: itemsを空配列にしない。memorySummaryだけを返さない。指定件数の短文をitemsへ入れる。','固定人物:',aiWorldCastPrompt(),'現在の関係性:',rel||'なし','条件: 1件20〜70文字。昨日の話題を少し引き継いでよい。ゲーム勝敗やカード効果には触れない。','これは読みに行く記事ではなく、タイトル/対戦/巡業マップ/結果画面で1件ずつ引っ張り出すストック。単体で短く成立する文にする。','各itemのcontextには title / battle / map / result のどれかを入れる。tagsには使いどころを混ぜる: 酒場, 王都, 旅, 巡業, 噂, 新聞 など。','memorySummaryには、関係性と未回収の伏線だけを120〜220文字で更新して返す。','relationsは変化した関係だけを [{"pair":"騎士-商人","state":"短い状態"}] の形で返す。',meta.summary?`世界の要約:\n${meta.summary}`:'世界の要約: なし',recent?`最近の記憶:\n${recent}`:'最近の記憶: なし'].join('\n'); }
+  function aiWorldCastPrompt(){ RIVAL.ensure(); const p=store.playerProfile||{name:'プレイヤー',gender:'未設定',job:'旅札師'}, people=[`主人公 ${p.name}: ${p.gender}、${p.job}。プレイヤー本人なので勝手に悪人化・性格固定しない。`]; store.rivals.forEach((r,i)=>people.push(`宿敵${i+1} ${r.name}: ${r.gender}、${r.job}。${rivalStyleLine(i,null)}`)); return people.concat(['騎士: 勇敢で真面目。名誉を重んじ、曖昧な儲け話を嫌う。','魔女: 皮肉屋で知識人。人情はあるが直接は言わない。','商人: 利益優先。損得で語るが、町の物流には責任感がある。','盗賊: 自由人。軽口が多いが、弱い者には妙に甘い。']).join('\n'); }
+  function aiWorldUserPrompt(task){ const meta=AIWorldDB.meta(), rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=AIWorldDB.recent(10).map(x=>`${x.day}日 ${x.speaker||'語り手'}: ${x.text}`).join('\n'); return [`今日: Day ${task.day}`,`テーマ: ${task.theme}`,`種類: ${task.type}`,`使いどころ: ${task.context||'general'}`,`優先タグ: ${(task.tags||[]).join(', ')}`,`現在在庫: ${task.stockNow||0} / 目標 ${task.stockTarget||0}`,`必ず生成するitems件数: ${task.count}`,'最重要: itemsを空配列にしない。memorySummaryだけを返さない。指定件数の短文をitemsへ入れる。','固定人物:',aiWorldCastPrompt(),'人物名を優先して使い、主人公を「あなた」「プレイヤー」と呼ばない。設定済みの名前・性別・職業を矛盾させない。','現在の関係性:',rel||'なし','条件: 1件20〜70文字。昨日の話題を少し引き継いでよい。ゲーム勝敗やカード効果には触れない。','これは読みに行く記事ではなく、タイトル/対戦/巡業マップ/結果画面で1件ずつ引っ張り出すストック。単体で短く成立する文にする。','各itemのcontextには title / battle / map / result のどれかを入れる。tagsには使いどころを混ぜる: 酒場, 王都, 旅, 巡業, 噂, 新聞 など。','memorySummaryには、関係性と未回収の伏線だけを120〜220文字で更新して返す。','relationsは変化した関係だけを [{"pair":"騎士-商人","state":"短い状態"}] の形で返す。',meta.summary?`世界の要約:\n${meta.summary}`:'世界の要約: なし',recent?`最近の記憶:\n${recent}`:'最近の記憶: なし'].join('\n'); }
   function aiWorldParsePack(text){ const unpack=data=>{ const rel=Array.isArray(data?.relations)?Object.fromEntries(data.relations.filter(x=>x&&x.pair).map(x=>[String(x.pair),String(x.state||'')])):(data?.relations&&typeof data.relations==='object'?data.relations:null); return {items:Array.isArray(data?.items)?data.items:[],memorySummary:data?.memorySummary||'',relations:rel}; }; try{ return unpack(JSON.parse(text)); }catch(e){ const m=String(text||'').match(/\{[\s\S]*\}/); if(m){ try{ return unpack(JSON.parse(m[0])); }catch(_){} } } return {items:[],memorySummary:'',relations:null}; }
   function aiWorldRecordRunResult(place, depth, nodeType, tags){
     try{
@@ -8695,32 +8711,39 @@ const AUDIO = (function(){
       wrap.appendChild(row);
     });
   }
-  // 宿敵4人の名前一覧(管理画面)。各行タップで編集モーダル。
+  // 自分＋宿敵4人の人物一覧。各行から名前・性別・職業を編集する。
   function renderRivals(){
     RIVAL.ensure();
     const wrap=$('#rivals-rows'); if(!wrap) return; wrap.innerHTML='';
-    store.rivals.forEach((r,i)=>{
-      const row=el('div','setrow foc');
-      row.innerHTML='<div class="nm">'+T('rival_n', i+1)+'</div><div class="val">'+r.name+'</div><div class="btn small primary">'+T('set_edit')+'</div>';
-      row.onclick=()=>{ openRivalEdit(i); };
+    const people=[{idx:-1,label:T('char_player'),data:store.playerProfile}].concat(store.rivals.map((r,i)=>({idx:i,label:T('rival_n',i+1),data:r})));
+    people.forEach(person=>{
+      const r=person.data, row=el('div','setrow foc');
+      row.innerHTML='<div class="nm">'+person.label+'</div><div class="val">'+worldEsc(r.name)+'<br><span style="font-size:.78em;opacity:.78;">'+worldEsc(r.gender)+' / '+worldEsc(r.job)+'</span></div><div class="btn small primary">'+T('set_edit')+'</div>';
+      row.onclick=()=>{ openRivalEdit(person.idx); };
       wrap.appendChild(row);
     });
   }
-  // ライバル i の名前を変更(モーダル)。入力欄＝直接タイプ、Enter/けってい=確定、Esc/もどる=キャンセル。
+  function fillCharacterSelect(select, values, current){
+    select.innerHTML=values.map(v=>'<option value="'+worldEsc(v)+'"'+(v===current?' selected':'')+'>'+worldEsc(v)+'</option>').join('');
+  }
+  // 人物を変更。i=-1 はプレイヤー、0〜3 は宿敵。
   let rivalEditIdx=0;
   function openRivalEdit(i){
     rivalEditIdx=i; AUDIO.confirm();
-    const inp=$('#rival-name-input'); inp.value=RIVAL.name(i);
-    $('#rival-edit-title').textContent=T('rival_n', i+1);
+    const person=i<0?store.playerProfile:RIVAL.get(i);
+    const inp=$('#rival-name-input'); inp.value=person.name||'';
+    fillCharacterSelect($('#rival-gender-input'),CHARACTER_GENDERS,person.gender||'未設定');
+    fillCharacterSelect($('#rival-job-input'),CHARACTER_JOBS,person.job||'旅札師');
+    $('#rival-edit-title').textContent=i<0?T('char_player'):T('rival_n',i+1);
     $('#rival-cancel').textContent=T('confirm_cancel');
     $('#rival-ok').textContent=T('set_rival_ok');
     $('#ovl-rival').classList.add('active');
-    setFocus($('#rival-ok'));   // Enter(入力欄)→blur→activate がけってい側を押す
+    setFocus($('#rival-ok'));
     setTimeout(()=>{ inp.focus(); inp.select&&inp.select(); },0);
   }
   function closeRivalEdit(){ $('#ovl-rival').classList.remove('active'); setTimeout(()=>{ renderRivals(); focusFirst(); },0); }
   function commitRivalName(){
-    RIVAL.setName(rivalEditIdx, $('#rival-name-input').value); AUDIO.emb();
+    RIVAL.setProfile(rivalEditIdx,{name:$('#rival-name-input').value,gender:$('#rival-gender-input').value,job:$('#rival-job-input').value}); AUDIO.emb();
     closeRivalEdit();
   }
   $('#rival-ok').onclick=()=> commitRivalName();
