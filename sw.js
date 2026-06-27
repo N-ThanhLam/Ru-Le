@@ -1,5 +1,6 @@
-const SW_VERSION = 'ru-le-2026-06-25-01';
-const CACHE_NAME = `ru-le-${SW_VERSION}`;
+// Stable network-first service worker.
+// Keep this file unchanged across normal releases; update only if the cache strategy itself changes.
+const CACHE_NAME = 'ru-le-runtime';
 const APP_SHELL = [
   './',
   './index.html',
@@ -18,7 +19,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(name => name !== CACHE_NAME).map(name => caches.delete(name)));
+    await Promise.all(names.filter(name => name.startsWith('ru-le-') && name !== CACHE_NAME).map(name => caches.delete(name)));
     await self.clients.claim();
   })());
 });
