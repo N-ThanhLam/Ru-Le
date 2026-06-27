@@ -4969,8 +4969,8 @@ const AUDIO = (function(){
     setTimeout(()=> focusFirst(), 0);
   }
   function activeRoot(){
-    // オーバーレイが開いていればそれをフォーカス領域に
-    const ovl = $$('.ovl.active').filter(o=> o.closest('.screen.active'));
+    // ページ型は画面レイアウトの一部。指名・ポーズ等の本物のモーダルだけにフォーカスを閉じ込める。
+    const ovl = $$('.ovl.active:not(.ovl-page)').filter(o=> o.closest('.screen.active'));
     if(ovl.length) return ovl[ovl.length-1];
     return $('#'+currentScreen);
   }
@@ -5307,6 +5307,7 @@ const AUDIO = (function(){
       case 's-lobby': NET.leave(); buildTitle(); show('s-title'); break;
       case 's-help': closeHelp(); break;
       case 's-world': buildTitle(); show('s-title'); break;
+      case 's-aiworld': store.save(); show('s-set'); break;
       case 's-set': show('s-title'); break;
       case 's-rivals': show('s-set'); break;
       case 's-keys': endCapture(); show('s-set'); break;
