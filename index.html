@@ -210,8 +210,8 @@
   #s-title .stbox{ position:absolute; bottom:26px; left:34px; color:#9fd9a8; font-size:24px; }
   .worldline{ display:none; background:rgba(255,253,244,.94); border:4px solid #2a2f55; border-radius:16px; padding:11px 18px; box-shadow:0 8px 24px rgba(0,0,0,.36); color:#26304a; }
   .worldline.show{ display:block; }
-  .worldline .who{ font-size:20px; font-weight:900; color:#8a681e; margin-bottom:3px; }
-  .worldline .txt{ font-size:26px; font-weight:900; line-height:1.28; }
+  .worldline .who{ font-size:24px; font-weight:900; color:#8a681e; margin-bottom:3px; }
+  .worldline .txt{ font-size:31px; font-weight:900; line-height:1.28; }
   #title-worldline{ position:absolute; top:324px; left:50%; transform:translateX(-50%); width:980px; text-align:center; z-index:2; }
   #map-worldline{ max-width:1120px; margin:0 auto 14px; text-align:center; }
   #result-worldline{ width:100%; }
@@ -475,7 +475,8 @@
   .opp .builds .no-emb, #s-match .selfbar .builds .no-emb{ color:#cdd6ff; font-size:24px; font-weight:800; }
   .opp .place{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:46px; font-weight:900; color:#fff; text-shadow:0 3px 8px #000; }
 
-  #s-match .center{ position:absolute; top:316px; left:0; right:0; height:300px; display:flex; align-items:center; justify-content:center; gap:40px; }
+  #s-match .center{ position:absolute; top:316px; left:0; right:0; height:300px; display:flex; align-items:center; justify-content:center; }
+  #s-match .center .statecol{ position:absolute; left:calc(50% + 180px); top:50%; transform:translateY(-50%); }
   .fieldzone{ display:flex; flex-direction:column; align-items:center; gap:12px; }
   .fieldcard{ width:200px; height:280px; border-radius:20px; border:6px solid var(--line);
     background:
@@ -503,14 +504,14 @@
     display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none; }
   .toast-it{ font-size:40px; font-weight:900; color:#fff; padding:14px 36px; border-radius:18px;
     border:5px solid #fff; box-shadow:0 10px 30px rgba(0,0,0,.5); animation:pop .3s ease; }
-  #match-talk{ position:absolute; top:304px; left:46px; width:500px; height:304px; z-index:24; pointer-events:none; display:none; flex-direction:column; justify-content:flex-end; gap:7px; overflow:hidden; }
+  #match-talk{ position:absolute; top:304px; left:46px; width:560px; height:304px; z-index:24; pointer-events:none; display:none; flex-direction:column; justify-content:flex-end; gap:7px; overflow:hidden; }
   #match-talk.show{ display:flex; }
   .talkbubble{ flex:none; background:rgba(255,253,244,.9); border:3px solid #59617f; border-radius:10px; padding:7px 13px; box-shadow:0 5px 14px rgba(0,0,0,.32); opacity:.72; }
-  .talkbubble .who{ font-size:17px; font-weight:900; color:#8a681e; margin-bottom:1px; }
-  .talkbubble .txt{ font-size:20px; font-weight:850; line-height:1.24; color:#26304a; }
+  .talkbubble .who{ font-size:19px; font-weight:900; color:#8a681e; margin-bottom:1px; }
+  .talkbubble .txt{ font-size:23px; font-weight:850; line-height:1.24; color:#26304a; }
   .talkbubble:last-child{ background:#fffdf4; border:4px solid #2a2f55; padding:9px 15px; box-shadow:0 9px 22px rgba(0,0,0,.42); opacity:1; animation:talkIn .16s ease-out; }
-  .talkbubble:last-child .who{ font-size:19px; margin-bottom:2px; }
-  .talkbubble:last-child .txt{ font-size:24px; line-height:1.28; }
+  .talkbubble:last-child .who{ font-size:22px; margin-bottom:2px; }
+  .talkbubble:last-child .txt{ font-size:28px; line-height:1.28; }
   @keyframes pop{ from{ transform:scale(.7); opacity:0;} to{ transform:scale(1); opacity:1;} }
   @keyframes talkIn{ from{ transform:translateY(10px); opacity:0;} to{ transform:none; opacity:1;} }
 
@@ -986,14 +987,20 @@
     min-height:0; display:grid; grid-template-columns:minmax(780px,1fr) minmax(0,.92fr);
     gap:26px; align-items:start;
   }
+  #s-result .result-main{ min-width:0; min-height:0; display:flex; flex-direction:column; gap:12px; }
   #s-result .result-side{ min-width:0; display:flex; flex-direction:column; gap:14px; }
   #s-result .ranklist{ min-width:0; gap:12px; }
   #s-result .rankrow{ min-height:105px; }
   #s-result #result-reward.show{ width:100%; max-width:none; margin:0; }
   #s-result #result-rival.show{
-    width:100%; max-width:none; margin:0; gap:10px 14px; padding:14px 18px;
+    width:100%; max-width:none; margin:0; gap:7px 10px; padding:10px 12px;
   }
-  #s-result #result-rival .rv-card{ flex:1 1 300px; max-width:none; }
+  #s-result #result-rival .rv-card{ flex:1 1 280px; max-width:none; padding:5px 9px; }
+  #s-result #result-rival .rv-h{ font-size:25px; }
+  #s-result #result-rival .rv-h .rv-p{ font-size:21px; }
+  #s-result #result-rival .rv-l{ font-size:23px; margin-top:3px; }
+  #s-result #result-rival .rv-rec{ font-size:21px; margin-top:2px; }
+  #s-result #result-rival .rv-ban{ font-size:22px; margin-top:1px; }
   #s-result #result-btns{ margin-top:0; align-self:center; }
 
   /* ドラフト */
@@ -1027,6 +1034,12 @@
   .mapnode .nnm{ font-size:36px; font-weight:900; color:var(--ink); line-height:1.05; }
   .mapnode .nds{ font-size:27px; color:#333; line-height:1.22; min-height:82px; font-weight:750; }
   .mapnode .nbadge{ font-size:25px; font-weight:900; color:#b25a00; background:#fff2d6; border-radius:10px; padding:3px 10px; line-height:1.15; }
+  .mapcol.dense{ gap:8px; }
+  .mapcol.dense .mapnode{ padding:8px 10px; gap:3px; }
+  .mapcol.dense .mapnode .nic{ font-size:42px; }
+  .mapcol.dense .mapnode .nnm{ font-size:31px; }
+  .mapcol.dense .mapnode .nds{ font-size:24px; line-height:1.15; min-height:56px; }
+  .mapcol.dense .mapnode .nbadge{ font-size:22px; padding:2px 8px; }
   .mapnode.battle{ border-color:#9aa6c8; }
   .mapnode.elite{ border-color:#ef5350; background:linear-gradient(160deg,#fff,#ffe6e3); }
   .mapnode.mutator{ border-color:#42a5f5; background:linear-gradient(160deg,#fff,#e6f1ff); }
@@ -1553,14 +1566,16 @@
       <div class="card-modal">
         <h2 id="result-head">けっか</h2>
       <div class="result-layout">
-        <div class="ranklist" id="result-list"></div>
+        <div class="result-main">
+          <div class="ranklist" id="result-list"></div>
+          <div id="result-rival"></div>
+        </div>
         <div class="result-side">
           <div class="worldline" id="result-worldline"></div>
           <div id="result-reward"></div>
-            <div id="result-tags"></div>
-            <div id="result-rival"></div>
-          </div>
+          <div id="result-tags"></div>
         </div>
+      </div>
         <div class="rowbtns" id="result-btns"></div>
       </div>
     </div>
@@ -5633,6 +5648,7 @@ const AUDIO = (function(){
     m.rows.forEach((row,ri)=>{
       const state = ri<m.cur?'past':(ri===m.cur?'cur':'future');
       const col=el('div','mapcol '+state);
+      if(row.opts.length>=3) col.classList.add('dense');
       col.appendChild(el('div','mapcol-hd', ri===last? T('map_boss_hd') : T('map_step_hd', ri+1)));
       row.opts.forEach((node,ci)=>{
         if(state==='past' && row.chosen!==ci) return;   // 通らなかった枝は隠す
