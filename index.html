@@ -1132,7 +1132,9 @@
   .setrow{ display:flex; align-items:center; gap:24px; background:#fff; border:5px solid var(--line); border-radius:16px; padding:16px 26px; margin:12px 0; }
   .setrow .nm{ font-size:34px; font-weight:900; flex:1; }
   .setrow .val{ font-size:32px; font-weight:900; color:#b25a00; min-width:220px; text-align:center; }
-  .aiworld-page{ width:min(1500px, calc(100% - 120px)); max-height:calc(100% - 150px); overflow-y:auto; }
+  #s-aiworld>.topbar{ z-index:50; }
+  #s-aiworld>.ovl-page{ top:96px; }
+  .aiworld-page{ width:min(1500px, calc(100% - 120px)); max-height:calc(100% - 54px); overflow-y:auto; }
   .aiworld-grid{ display:grid; grid-template-columns:1.08fr .92fr; gap:22px; align-items:start; }
   .aiworld-panel{ background:#fff; border:5px solid var(--line); border-radius:16px; padding:18px; }
   .aiworld-panel h3{ font-size:30px; margin:0 0 12px; color:var(--ink); }
