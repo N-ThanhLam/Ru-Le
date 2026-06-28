@@ -8656,7 +8656,7 @@ const AUDIO = (function(){
       if(!text) return null;
       const fixedScene=(task.sceneTags&&task.sceneTags.length===1)?task.sceneTags:[];
       const tags=(task.tags||[]).concat(fixedScene,Array.isArray(x.tags)?x.tags:[]).map(v=>String(v).slice(0,20)).filter(Boolean);
-      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,task.daily?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context:String(x.context||task.context||'').slice(0,20), speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), tags:[...new Set(tags)].slice(0,8) };
+      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,task.daily?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context:String(x.context||task.context||'').slice(0,20), speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), storyKey:task.story?String(task.storyKey||'').slice(0,80):String(x.storyKey||'').slice(0,80), tags:[...new Set(tags)].slice(0,8) };
     };
     const inferUse=(x)=>{
       const s=[x.type,x.theme,x.speaker,x.text].join(' ');
@@ -8672,16 +8672,16 @@ const AUDIO = (function(){
       add(items, task, memorySummary, relations, model){ const db=load(), seen=new Set(); TYPES.forEach(t=>db[t].forEach(x=>seen.add((x.text||'').trim()))); let added=0,lastDay=0; (Array.isArray(items)?items:[]).forEach(raw=>{ const it=normalizeItem(raw,task); if(!it||seen.has(it.text))return; seen.add(it.text); db[it.type].push(it); added++; lastDay=it.day||lastDay; }); if(added){ const lang=task.lang||aiWorldLang(); db._meta.day=lastDay||db._meta.day||1; db._meta.packs=(db._meta.packs||0)+1; db._meta.lastTheme=task.theme||db._meta.lastTheme||''; db._meta.lastModel=model||db._meta.lastModel||''; db._meta.lastGeneratedAt=new Date().toISOString(); db._meta.lastError=''; db._meta.summaryByLang=db._meta.summaryByLang||{}; db._meta.relationsByLang=db._meta.relationsByLang||{}; if(memorySummary){ db._meta.summaryByLang[lang]=String(memorySummary).slice(0,900); if(lang==='ja')db._meta.summary=db._meta.summaryByLang[lang]; } if(relations&&typeof relations==='object'){ db._meta.relationsByLang[lang]=Object.assign({},db._meta.relationsByLang[lang]||{},relations); if(lang==='ja')db._meta.relations=Object.assign(defaultRelations(),db._meta.relations||{},relations); } } TYPES.forEach(t=>{ db[t]=db[t].slice(-500); }); save(db); return added; },
       markError(err){ const db=load(); db._meta.lastError=String(err||'unknown').slice(0,220); save(db); },
       migrateContexts(){ const db=load(); if((db._meta.ctxMigrated||0)>=1) return 0; let n=0; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x.context || !Array.isArray(x.tags) || !x.tags.length){ const inf=inferUse(x); if(!x.context) x.context=inf.context; x.tags=[...new Set([...(x.tags||[]),...inf.tags])].slice(0,8); n++; } })); db._meta.ctxMigrated=1; save(db); return n; },
-      migrateContent(){ const db=load(); if((db._meta.contentVersion||0)>=2)return 0; let removed=0; TYPES.forEach(t=>{ db[t]=(db[t]||[]).filter(x=>{ const tags=new Set((x.tags||[]).map(String)), story=tags.has('story'), dated=[...tags].some(v=>v.startsWith('date:')), timeless=tags.has('timeless'), scene=[...tags].find(v=>v.startsWith('scene:')); const obsoleteResult=tags.has('scene:win')||tags.has('scene:lose'); const obsoleteAmbient=(x.context==='title'||x.context==='map')&&!story&&!dated; const obsoleteBattle=x.context==='battle'&&scene&&!story&&!dated&&!timeless; const drop=obsoleteResult||obsoleteAmbient||obsoleteBattle; if(drop)removed++; return !drop; }); }); db._meta.contentVersion=2; db._meta.useLog={}; db._meta.useCycles={}; save(db); return removed; },
+      migrateContent(){ const db=load(); if((db._meta.contentVersion||0)>=3)return 0; let changed=0; TYPES.forEach(t=>{ db[t]=(db[t]||[]).filter(x=>{ const tags=new Set((x.tags||[]).map(String)), story=tags.has('story'), dated=[...tags].some(v=>v.startsWith('date:')), timeless=tags.has('timeless'), scene=[...tags].find(v=>v.startsWith('scene:')); if(story&&!x.storyKey){ const arc=[...tags].find(v=>v.startsWith('arc:')), season=[...tags].find(v=>v.startsWith('season:')), chapter=[...tags].find(v=>v.startsWith('chapter:')); if(arc&&chapter){ x.storyKey=[arc.slice(4),season?season.slice(7):'0',chapter.slice(8)].join('|'); changed++; } } const obsoleteResult=tags.has('scene:win')||tags.has('scene:lose'); const obsoleteAmbient=(x.context==='title'||x.context==='map')&&!story&&!dated; const obsoleteBattle=x.context==='battle'&&scene&&!story&&!dated&&!timeless; const drop=obsoleteResult||obsoleteAmbient||obsoleteBattle; if(drop)changed++; return !drop; }); }); db._meta.contentVersion=3; db._meta.useLog={}; db._meta.useCycles={}; save(db); return changed; },
       prune(maxPerType){ const db=load(), max=Math.max(80, maxPerType||360); TYPES.forEach(t=>{ const sorted=(db[t]||[]).slice().sort((a,b)=>(a.day-b.day)||String(a.createdAt).localeCompare(String(b.createdAt))), ja=sorted.filter(x=>(x.lang||'ja')==='ja').slice(-max), vi=sorted.filter(x=>x.lang==='vi').slice(-max); db[t]=ja.concat(vi).sort((a,b)=>(a.day-b.day)||String(a.createdAt).localeCompare(String(b.createdAt))); }); save(db); },
       counts(){ const db=load(), out={}; TYPES.forEach(t=>out[t]=(db[t]||[]).filter(x=>(x.lang||'ja')===aiWorldLang()).length); return out; },
       meta(){ const m=load()._meta||defaultMeta(), lang=aiWorldLang(); return Object.assign({},m,{summary:(m.summaryByLang&&m.summaryByLang[lang])||(lang==='ja'?m.summary:''),relations:(m.relationsByLang&&m.relationsByLang[lang])||(lang==='ja'?m.relations:{})}); },
       list(type,n){ const db=load(), arr=TYPES.includes(type)?(db[type]||[]):[]; return arr.slice().sort((a,b)=>(b.day-a.day)||String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||80); },
       dayItems(day,n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if((x.day||0)===day) all.push(x); })); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
-      pick(types, context, tags, n, strictTags, strictContext){
+      pick(types, context, tags, n, strictTags, strictContext, requiredStoryKey){
         const db=load(), want=Array.isArray(types)?types:TYPES, ctx=context||'general', tagSet=new Set((tags||[]).map(String)), used=(db._meta.useLog&&db._meta.useLog[ctx])||[], all=[];
         const strictSet=new Set((strictTags||[]).map(String));
-        want.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!x.text||(x.lang||'ja')!==aiWorldLang())return; if(strictContext&&x.context!==ctx)return; const xt=new Set((x.tags||[]).map(String)); if(strictSet.size&&![...strictSet].every(tag=>xt.has(tag)))return; all.push(x); }));
+        want.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!x.text||(x.lang||'ja')!==aiWorldLang())return; if(strictContext&&x.context!==ctx)return; if(requiredStoryKey&&x.storyKey!==requiredStoryKey)return; const xt=new Set((x.tags||[]).map(String)); if(strictSet.size&&![...strictSet].every(tag=>xt.has(tag)))return; all.push(x); }));
         if(!all.length) return null;
         db._meta.useCycles=db._meta.useCycles||{};
         const cycleKey=ctx+'|'+(strictSet.size?[...strictSet].sort().join(','):'all');
@@ -8759,9 +8759,10 @@ const AUDIO = (function(){
     const save=s=>{ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} return s; };
     const arcFor=s=>ARCS.find(a=>a.id===s.arcId)||ARCS[0];
     const tagsFor=s=>['story','arc:'+s.arcId,'season:'+s.season,'chapter:'+s.chapter];
+    const keyFor=s=>[s.arcId,s.season,s.chapter].join('|');
     const stock=s=>{
-      const req=tagsFor(s);
-      return ['conversation','event','news','rumor','diary'].reduce((n,t)=>n+AIWorldDB.list(t,500).filter(x=>(x.lang||'ja')===aiWorldLang()&&req.every(tag=>(x.tags||[]).includes(tag))).length,0);
+      const key=keyFor(s);
+      return ['conversation','event','news','rumor','diary'].reduce((n,t)=>n+AIWorldDB.list(t,500).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.storyKey===key).length,0);
     };
     const playerName=()=>String(store.playerProfile?.name||T('you')).slice(0,12);
     const rivalName=()=>{ try{ RIVAL.ensure(); return RIVAL.get(0)?.name||T('rival_word'); }catch(e){ return T('rival_word'); } };
@@ -8770,7 +8771,7 @@ const AUDIO = (function(){
       const s=load(), arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)], n=stock(s);
       return {id:'story_arc',lang:aiWorldLang(),type:'conversation',types:['conversation','event','news','rumor','diary'],
         theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:18,label:'物語 第'+(s.chapter+1)+'章',context:'battle',stockTarget:14,stockNow:n,
-        tags:tagsFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
+        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
     }
     function prompt(task){
       const q=task.storyState, vi=aiWorldLang()==='vi';
@@ -8822,7 +8823,7 @@ const AUDIO = (function(){
     }
     function pick(context){
       const s=load(), strict=tagsFor(s), types=context==='battle'?['conversation','rumor']:['event','news','rumor','diary','conversation'];
-      return AIWorldDB.pick(types,context,['story'],8,strict,true)||localItem(context);
+      return AIWorldDB.pick(types,context,['story'],8,strict,true,keyFor(s))||localItem(context);
     }
     function recordAction(action, detail){
       const s=load(); s.actions=s.actions||{}; s.actions[action]=(s.actions[action]||0)+1;
