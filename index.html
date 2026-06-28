@@ -8718,7 +8718,7 @@ const AUDIO = (function(){
       if(!text) return null;
       const fixedScene=(task.sceneTags&&task.sceneTags.length===1)?task.sceneTags:[];
       const tags=(task.tags||[]).concat(fixedScene,Array.isArray(x.tags)?x.tags:[]).map(v=>String(v).slice(0,20)).filter(Boolean);
-      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,task.daily?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context, speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), storyKey:String(task.storyKey||x.storyKey||'').slice(0,80), tags:[...new Set(tags)].slice(0,8) };
+      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,(task.daily||task.story)?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context, speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), storyKey:String(task.storyKey||x.storyKey||'').slice(0,80), tags:[...new Set(tags)].slice(0,8) };
     };
     const inferUse=(x)=>{
       const s=[x.type,x.theme,x.speaker,x.text].join(' ');
@@ -9141,6 +9141,9 @@ const AUDIO = (function(){
         AIStory.afterGenerated(task,pack.memorySummary);
         AIWorldDB.prune(360);
         const storyNow=task.story?AIStory.task():null;
+        if(task.story&&storyNow.stockNow<=(task.stockNow||0)){
+          const msg=T('aiworld_err_empty'); AIWorldDB.markError(msg); aiWorldStatus(msg,'bad'); renderAIWorld(); return;
+        }
         const stockLine=storyNow?'\n'+(aiWorldLang()==='vi'?'Kho truyện ':'物語在庫 ')+storyNow.stockNow+'/'+storyNow.stockTarget:'';
         aiWorldStatus(T('aiworld_generated',added,res.model||'—')+stockLine,'ok');
         renderAIWorld();
