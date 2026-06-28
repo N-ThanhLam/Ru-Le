@@ -1210,6 +1210,8 @@
   .world-tab.on{ color:#2a2100; background:#ffcf4d; border-color:#fff1a6; box-shadow:0 4px 0 #a87900; }
   .world-list{ flex:1; min-height:0; overflow-y:auto; padding-right:8px; display:flex; flex-direction:column; gap:12px; }
   .world-list.story-reader{ padding:4px 12px 24px 4px; }
+  .world-reader-nav{ display:flex; justify-content:center; gap:16px; }
+  .world-reader-nav .btn{ min-width:220px; }
   .story-series{ padding:11px 18px; border-radius:12px; background:#6b4813; color:#fff0b5; border:3px solid #d6a63e; font-size:29px; font-weight:900; }
   .story-chapter{ position:sticky; top:0; z-index:2; padding:8px 15px; border-radius:10px; background:#29335d; color:#ffe27a; border:2px solid #7c88b8; font-size:25px; font-weight:900; }
   .story-card{ border-left:8px solid #d18b2f; }
@@ -1799,6 +1801,10 @@
           <div class="world-tab foc" id="world-tab-today">今日の世界</div>
         </div>
         <div class="world-list" id="world-list"></div>
+        <div class="world-reader-nav" id="world-reader-nav">
+          <div class="btn small foc" id="world-story-prev">▲ 前へ</div>
+          <div class="btn small primary foc" id="world-story-next">▼ 次へ</div>
+        </div>
       </div>
     </div>
   </section>
@@ -4621,6 +4627,7 @@ const AUDIO = (function(){
       world_close:'◀ もどる', world_topbar:'Ru-Leの世界', world_empty:'今日はまだ新しい話が届いていません。', world_today_title:'今日のRu-Le', world_theme:'今日のテーマ：{0}',
       world_tab_story:'連載物語を読む', world_tab_today:'今日の世界', world_story_empty:'ゲーム内で表示された物語はまだありません。', world_story_count:'既読{0}件・現在 第{1}章', world_chapter:'第{0}章',
       world_series:'連載{0}「{1}」',
+      world_prev:'▲ 前へ', world_next:'▼ 次へ',
       world_ctx_title:'タイトル', world_ctx_battle:'対戦', world_ctx_map:'道中', world_ctx_result:'結果',
       world_today:'今日', world_conversation:'酒場', world_news:'新聞', world_diary:'日記', world_event:'出来事', world_rumor:'噂',
       /* キーコンフィグ */
@@ -4868,6 +4875,7 @@ const AUDIO = (function(){
       world_close:'◀ Quay lại', world_topbar:'Thế giới Ru-Le', world_empty:'Hôm nay chưa có tin mới.', world_today_title:'Ru-Le hôm nay', world_theme:'Chủ đề hôm nay: {0}',
       world_tab_story:'Đọc truyện dài kỳ', world_tab_today:'Thế giới hôm nay', world_story_empty:'Chưa có đoạn truyện nào xuất hiện trong game.', world_story_count:'Đã đọc {0} mục・Hiện tại Chương {1}', world_chapter:'Chương {0}',
       world_series:'Phần {0} “{1}”',
+      world_prev:'▲ Trước', world_next:'▼ Tiếp',
       world_ctx_title:'Tiêu đề', world_ctx_battle:'Trận đấu', world_ctx_map:'Trên đường', world_ctx_result:'Kết quả',
       world_today:'Hôm nay', world_conversation:'Quán rượu', world_news:'Báo', world_diary:'Nhật ký', world_event:'Sự kiện', world_rumor:'Tin đồn',
       /* Gán phím */
@@ -5221,6 +5229,10 @@ const AUDIO = (function(){
   /* ---------- 入力アクション・ディスパッチ（キーボード/パッド共通） ---------- */
   // 論理アクション → 実動作。キーボードもパッドも、最終的にここを叩く(操作系を一元化)。
   function dispatchAction(a){
+    if(currentScreen==='s-world'&&worldViewMode==='story'&&(a==='up'||a==='down')){
+      worldStoryScroll(a==='down'?1:-1);
+      return;
+    }
     if(currentScreen==='s-map' && !focusedEl && !['back','pause'].includes(a)){
       focusFirstMapNode();
       AUDIO.move();
@@ -8846,7 +8858,7 @@ const AUDIO = (function(){
     };
     function advanceIfComplete(s){
       const items=storyItems(s), shown=shownIds(s);
-      if(items.length<14||items.some(x=>!shown.has(String(x.id||''))))return s;
+      if(items.length<18||items.some(x=>!shown.has(String(x.id||''))))return s;
       if(s.chapter<MAX_CHAPTER){ s.chapter++; s.progress=0; return s; }
       const next=fresh((s.season||0)+1);
       next.facts=['前の事件を解決した']; next.revealed=(s.revealed||[]).slice(-600);
@@ -8861,7 +8873,7 @@ const AUDIO = (function(){
       const label=aiWorldLang()==='vi'?('Truyện Chương '+(s.chapter+1)):('物語 第'+(s.chapter+1)+'章');
       const canon=(s.canonByLang&&s.canonByLang[aiWorldLang()])||(aiWorldLang()==='ja'?s.canon:'');
       return {id:'story_arc',lang:aiWorldLang(),type:'conversation',types:['conversation','event','news','rumor','diary'],
-        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:18,label,context:'battle',stockTarget:14,stockNow:n,readNow:read,
+        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:Math.max(1,18-n),label,context:'battle',stockTarget:18,stockNow:n,readNow:read,
         tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,canon,recentStory,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
     }
     function prompt(task){
@@ -8874,7 +8886,7 @@ const AUDIO = (function(){
         'Người chơi: '+q.playerName,'Đối thủ: '+q.rivalName,'Sự kiện chơi gần đây: '+q.facts,
         q.canon?'Nội dung đã công khai: '+q.canon:'',
         q.recentStory?'Các đoạn truyện người chơi đã thực sự thấy, theo thứ tự:\n'+q.recentStory:'',
-        'Tạo 18 items. Chia context: title 2, battle 8, map 4, result 4.',
+        'Tạo đúng '+task.count+' items. Chia context theo tỷ lệ title 2, battle 8, map 4, result 4.',
         'Gán order từ 1 đến 18. Trong từng context, đọc theo order phải thành một chuỗi diễn biến tự nhiên và không được lặp lại cùng một thông tin.',
         'Mỗi context phải tự hiểu được ngay cả khi người chơi chưa thấy item của context khác. Các item cuối của mỗi context phải dẫn tự nhiên sang chương sau.',
         'battle phải là câu có thể bật lên giữa lượt chơi. result phản ứng theo thành tích gần đây. map là phát hiện trên đường.',
@@ -8890,7 +8902,7 @@ const AUDIO = (function(){
         '主人公: '+q.playerName,'宿敵: '+q.rivalName,'直近のプレイ事実: '+q.facts,
         q.canon?'公開済みの物語記憶: '+q.canon:'',
         q.recentStory?'プレイヤーが実際に見た物語（表示順）:\n'+q.recentStory:'',
-        'itemsを18件作る。contextの内訳は title 2件、battle 8件、map 4件、result 4件。',
+        'itemsを必ず'+task.count+'件作る。contextは title 2、battle 8、map 4、result 4 の比率で分ける。',
         '全itemにorderを1〜18で付ける。同じcontextの文だけをorder順に読んでも、情報の重複がなく自然に事件が進む連続文にする。',
         '別contextの文を未読でも意味が通じるようにする。各contextの最後は次章へ自然につながる引きにする。',
         'battleは対戦中に突然出ても自然な短いセリフ。resultは直近の成績や戦い方を物語へ結びつける。mapは道中で見つける手がかり。',
@@ -9044,14 +9056,14 @@ const AUDIO = (function(){
   function aiWorldDailyTask(offset){
     const d=new Date(); d.setDate(d.getDate()+(offset||0));
     const day=aiWorldCalendarDay(d), theme=aiWorldThemeForDate(d), dateTag=aiWorldDailyTag(d), tomorrow=(offset||0)>0;
-    const vi=aiWorldLang()==='vi';
-    return {id:tomorrow?'daily_theme_next':'daily_theme',lang:aiWorldLang(),type:'conversation',types:['conversation'],theme:vi?('Trò chuyện tự nhiên về '+theme):(theme+'の日の自然な雑談'),count:tomorrow?18:24,label:'Day '+day+' '+(vi?(tomorrow?'Hội thoại ngày mai':'Hội thoại hôm nay'):(tomorrow?'明日の会話':'今日の会話')),context:'battle',stockTarget:tomorrow?12:18,stockNow:aiWorldDailyStock(d),tags:['battle','対戦',dateTag],sceneTags:['scene:chatter'],day,dateLabel:aiWorldDateLabel(d),daily:true};
+    const vi=aiWorldLang()==='vi', stockNow=aiWorldDailyStock(d), stockTarget=18;
+    return {id:tomorrow?'daily_theme_next':'daily_theme',lang:aiWorldLang(),type:'conversation',types:['conversation'],theme:vi?('Trò chuyện tự nhiên về '+theme):(theme+'の日の自然な雑談'),count:Math.max(1,stockTarget-stockNow),label:'Day '+day+' '+(vi?(tomorrow?'Hội thoại ngày mai':'Hội thoại hôm nay'):(tomorrow?'明日の会話':'今日の会話')),context:'battle',stockTarget,stockNow,tags:['battle','対戦',dateTag],sceneTags:['scene:chatter'],day,dateLabel:aiWorldDateLabel(d),daily:true};
   }
   function aiWorldDailyStock(date){
     const day=aiWorldCalendarDay(date), dateTag=aiWorldDailyTag(date);
     return AIWorldDB.list('conversation',360).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.day===day&&(x.tags||[]).includes(dateTag)&&(x.tags||[]).includes('scene:chatter')).length;
   }
-  const AI_WORLD_SCHEMA={type:'OBJECT',properties:{items:{type:'ARRAY',minItems:8,items:{type:'OBJECT',properties:{type:{type:'STRING'},order:{type:'NUMBER'},day:{type:'NUMBER'},theme:{type:'STRING'},context:{type:'STRING'},speaker:{type:'STRING'},target:{type:'STRING'},text:{type:'STRING'},continuity:{type:'STRING'},tags:{type:'ARRAY',items:{type:'STRING'}}},required:['type','day','theme','context','text']}},memorySummary:{type:'STRING'},relations:{type:'ARRAY',items:{type:'OBJECT',properties:{pair:{type:'STRING'},state:{type:'STRING'}},required:['pair','state']}}},required:['items','memorySummary']};
+  const AI_WORLD_SCHEMA={type:'OBJECT',properties:{items:{type:'ARRAY',items:{type:'OBJECT',properties:{type:{type:'STRING'},order:{type:'NUMBER'},day:{type:'NUMBER'},theme:{type:'STRING'},context:{type:'STRING'},speaker:{type:'STRING'},target:{type:'STRING'},text:{type:'STRING'},continuity:{type:'STRING'},tags:{type:'ARRAY',items:{type:'STRING'}}},required:['type','day','theme','context','text']}},memorySummary:{type:'STRING'},relations:{type:'ARRAY',items:{type:'OBJECT',properties:{pair:{type:'STRING'},state:{type:'STRING'}},required:['pair','state']}}},required:['items','memorySummary']};
   let aiWorldBusy=false, aiWorldTaskIndex=0, aiWorldLastModel='—';
   function aiWorldTaskStock(task){
     const tags=new Set((task.tags||[]).map(String)), types=task.types||[task.type]; let n=0;
@@ -9062,7 +9074,7 @@ const AUDIO = (function(){
   }
   function aiWorldStockRows(){
     const st=AIStory.task();
-    return [[st.label,st.stockNow,st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',aiWorldDailyStock(),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),aiWorldTaskStock(t),t.stockTarget||0]));
+    return [[st.label,Math.min(st.stockNow,st.stockTarget),st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',Math.min(aiWorldDailyStock(),18),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),Math.min(aiWorldTaskStock(t),t.stockTarget||0),t.stockTarget||0]));
   }
   function aiWorldNextTask(){
     const story=AIStory.task();
@@ -9071,13 +9083,14 @@ const AUDIO = (function(){
     if(daily.stockNow<daily.stockTarget) return daily;
     const tomorrow=aiWorldDailyTask(1);
     if(tomorrow.stockNow<tomorrow.stockTarget) return tomorrow;
-    const meta=AIWorldDB.meta(), ranked=AI_WORLD_TASKS.map((t,i)=>{ const n=aiWorldTaskStock(t); return {t,i,n,ratio:n/Math.max(1,t.stockTarget||50)}; }).sort((a,b)=>(a.ratio-b.ratio)||(((a.i-aiWorldTaskIndex+AI_WORLD_TASKS.length)%AI_WORLD_TASKS.length)-((b.i-aiWorldTaskIndex+AI_WORLD_TASKS.length)%AI_WORLD_TASKS.length)));
+    const meta=AIWorldDB.meta(), ranked=AI_WORLD_TASKS.map((t,i)=>{ const n=aiWorldTaskStock(t); return {t,i,n,ratio:n/Math.max(1,t.stockTarget||50)}; }).filter(x=>x.n<(x.t.stockTarget||0)).sort((a,b)=>(a.ratio-b.ratio)||(((a.i-aiWorldTaskIndex+AI_WORLD_TASKS.length)%AI_WORLD_TASKS.length)-((b.i-aiWorldTaskIndex+AI_WORLD_TASKS.length)%AI_WORLD_TASKS.length)));
+    if(!ranked.length)return null;
     const pick=ranked[0]||{t:AI_WORLD_TASKS[aiWorldTaskIndex%AI_WORLD_TASKS.length],i:aiWorldTaskIndex};
     aiWorldTaskIndex=(pick.i+1)%AI_WORLD_TASKS.length;
     const base=pick.t, day=aiWorldCalendarDay();
     const timeless=(base.tags||[]).includes('timeless');
     const theme=timeless?aiWorldTaskTheme(base):(aiWorldThemeForDate()+' / '+aiWorldTaskTheme(base));
-    return Object.assign({},base,{lang:aiWorldLang(),day,theme,label:'Day '+day+' '+aiWorldTaskLabel(base),stockNow:pick.n||0,timeless});
+    return Object.assign({},base,{lang:aiWorldLang(),day,theme,label:'Day '+day+' '+aiWorldTaskLabel(base),stockNow:pick.n||0,count:Math.max(1,Math.min(base.count||1,(base.stockTarget||1)-(pick.n||0))),timeless});
   }
   function aiWorldKeys(){ return (store.aiKeys||[]).map(k=>String(k||'').trim()).filter(Boolean); }
   function aiWorldStatus(msg, kind){ const e=$('#aiworld-status'); if(e){ e.textContent=msg||T('aiworld_idle'); e.classList.remove('ok','bad','wait'); if(kind)e.classList.add(kind); } }
@@ -9144,7 +9157,9 @@ const AUDIO = (function(){
     aiWorldNextAllowedAt=now+AI_WORLD_INTERVAL_MS;
     if(aiWorldBusy)return;
     const keys=aiWorldKeys(); if(!keys.length){ aiWorldStatus(T('aiworld_no_key'), 'bad'); return; }
-    aiWorldBusy=true; const task=aiWorldNextTask(); aiWorldStatus(T('aiworld_generating',task.label), 'wait');
+    const task=aiWorldNextTask();
+    if(!task){ aiWorldStatus(aiWorldLang()==='vi'?'Kho đã đủ.':'在庫はすべて補充済みです。','ok'); return; }
+    aiWorldBusy=true; aiWorldStatus(T('aiworld_generating',task.label), 'wait');
     try{
       let last=null;
       for(const key of keys){
@@ -9166,7 +9181,7 @@ const AUDIO = (function(){
         if(task.story&&storyNow.stockNow<=(task.stockNow||0)){
           const msg=T('aiworld_err_empty'); AIWorldDB.markError(msg); aiWorldStatus(msg,'bad'); renderAIWorld(); return;
         }
-        const stockLine=storyNow?'\n'+(aiWorldLang()==='vi'?'Kho truyện ':'物語在庫 ')+storyNow.stockNow+'/'+storyNow.stockTarget:'';
+        const stockLine=storyNow?'\n'+(aiWorldLang()==='vi'?'Kho truyện ':'物語在庫 ')+Math.min(storyNow.stockNow,storyNow.stockTarget)+'/'+storyNow.stockTarget:'';
         aiWorldStatus(T('aiworld_generated',added,res.model||'—')+stockLine,'ok');
         renderAIWorld();
         if(currentScreen==='s-world')renderWorld();
@@ -9201,9 +9216,10 @@ const AUDIO = (function(){
     if(cwrap){
       cwrap.innerHTML='';
       const story=AIStory.task();
+      const visibleStoryStock=Math.min(story.stockNow,story.stockTarget), visibleStoryRead=Math.min(story.readNow,visibleStoryStock);
       const storyProgress=aiWorldLang()==='vi'
-        ? ('Kho '+story.stockNow+'/'+story.stockTarget+' ・ Đã đọc '+story.readNow+'/'+story.stockNow)
-        : ('在庫 '+story.stockNow+'/'+story.stockTarget+' ・ 既読 '+story.readNow+'/'+story.stockNow);
+        ? ('Kho '+visibleStoryStock+'/'+story.stockTarget+' ・ Đã đọc '+visibleStoryRead+'/'+visibleStoryStock)
+        : ('在庫 '+visibleStoryStock+'/'+story.stockTarget+' ・ 既読 '+visibleStoryRead+'/'+visibleStoryStock);
       cwrap.appendChild(el('div','aiworld-count story','<span class="nm">'+worldEsc(story.label)+'</span><span class="val">'+worldEsc(storyProgress)+'</span>'));
       AIWorldDB.types.forEach(t=>{ cwrap.appendChild(el('div','aiworld-count','<span class="nm">'+worldEsc(worldLabel(t))+'</span><span class="val">'+(counts[t]||0)+'</span>')); });
     }
@@ -9217,9 +9233,12 @@ const AUDIO = (function(){
   let worldViewMode='story';
   function renderWorld(){
     const list=$('#world-list'); if(!list)return;
-    const storyBtn=$('#world-tab-story'), todayBtn=$('#world-tab-today');
+    const storyBtn=$('#world-tab-story'), todayBtn=$('#world-tab-today'), readerNav=$('#world-reader-nav');
     if(storyBtn){ storyBtn.textContent=T('world_tab_story'); storyBtn.classList.toggle('on',worldViewMode==='story'); }
     if(todayBtn){ todayBtn.textContent=T('world_tab_today'); todayBtn.classList.toggle('on',worldViewMode==='today'); }
+    if(readerNav)readerNav.style.display=worldViewMode==='story'?'flex':'none';
+    if($('#world-story-prev'))$('#world-story-prev').textContent=T('world_prev');
+    if($('#world-story-next'))$('#world-story-next').textContent=T('world_next');
     list.classList.toggle('story-reader',worldViewMode==='story');
     if(worldViewMode==='story'){
       const story=AIStory.reader(), items=story.items;
@@ -9249,6 +9268,11 @@ const AUDIO = (function(){
     if(!item){ list.innerHTML='<div class="world-digest"><div class="theme">'+worldEsc(T('world_theme',theme))+'</div><div class="world-card"><div class="txt">'+worldEsc(T('world_empty'))+'</div></div></div>'; return; }
     const who=item.speaker?'<div class="meta">'+worldEsc(item.speaker)+'</div>':'';
     list.innerHTML='<div class="world-digest"><div class="theme">'+worldEsc(T('world_theme',theme))+'</div><div class="world-card">'+who+'<div class="txt">'+worldEsc(item.text)+'</div></div></div>';
+  }
+  function worldStoryScroll(dir){
+    const list=$('#world-list'); if(!list||worldViewMode!=='story')return;
+    list.scrollTop+=dir*Math.max(240,list.clientHeight*.72);
+    AUDIO.move();
   }
 
   /* ============================================================
@@ -9311,18 +9335,23 @@ const AUDIO = (function(){
   }
   $('#rival-ok').onclick=()=> commitRivalName();
   $('#rival-cancel').onclick=()=>{ AUDIO.back(); closeRivalEdit(); };
-  $('#rivals-close').onclick=()=>{ AUDIO.back(); show('s-set'); };
+  wireReliablePointerButton($('#rivals-close'),()=>{ AUDIO.back(); show('s-set'); });
+  function wireReliablePointerButton(node, action){
+    let pointerAt=0;
+    node.onpointerup=e=>{ if(e.button!=null&&e.button!==0)return; pointerAt=Date.now(); e.preventDefault(); e.stopPropagation(); action(); };
+    node.onclick=e=>{ if(Date.now()-pointerAt<700){ e.preventDefault(); return; } action(); };
+  }
   const closeAIWorld=()=>{ AUDIO.back(); store.save(); show('s-set'); };
-  let aiWorldClosePointerAt=0;
-  $('#aiworld-close').onpointerup=e=>{ aiWorldClosePointerAt=Date.now(); e.preventDefault(); e.stopPropagation(); closeAIWorld(); };
-  $('#aiworld-close').onclick=()=>{ if(Date.now()-aiWorldClosePointerAt>600) closeAIWorld(); };
+  wireReliablePointerButton($('#aiworld-close'),closeAIWorld);
   $('#aiworld-add-key').onclick=()=>{ if((store.aiKeys||[]).length<4){ store.aiKeys=(store.aiKeys||['']).concat(['']).slice(0,4); AUDIO.confirm(); renderAIWorld(); } };
   $('#aiworld-save-keys').onclick=()=>{ store.aiKeys=(store.aiKeys||['']).map(k=>String(k||'').trim()).filter(Boolean); if(!store.aiKeys.length) store.aiKeys=['']; store.save(); AUDIO.confirm(); aiWorldStatus(T('aiworld_saved')); renderAIWorld(); };
   $('#aiworld-refresh-models').onclick=()=>{ AUDIO.confirm(); aiWorldRefreshModels(); };
   $('#aiworld-generate').onclick=()=>{ AUDIO.confirm(); aiWorldGenerateOnce(); };
   $('#world-tab-story').onclick=()=>{ AUDIO.confirm(); worldViewMode='story'; renderWorld(); };
   $('#world-tab-today').onclick=()=>{ AUDIO.confirm(); worldViewMode='today'; renderWorld(); };
-  $('#world-close').onclick=()=>{ AUDIO.back(); buildTitle(); show('s-title'); };
+  $('#world-story-prev').onclick=()=>worldStoryScroll(-1);
+  $('#world-story-next').onclick=()=>worldStoryScroll(1);
+  wireReliablePointerButton($('#world-close'),()=>{ AUDIO.back(); buildTitle(); show('s-title'); });
 
   /* ============================================================
      キーコンフィグ（キーボード/ゲームパッドのリバインド）
@@ -9392,9 +9421,9 @@ const AUDIO = (function(){
       keyCapture=(kn)=>{ if(kn==='escape'){ endCapture(); AUDIO.back(); renderKeys(); refocusCell(act,kind); } };
     }
   }
-  $('#keys-close').onclick=()=>{ AUDIO.back(); endCapture(); show('s-set'); };
+  wireReliablePointerButton($('#keys-close'),()=>{ AUDIO.back(); endCapture(); show('s-set'); });
   $('#keys-reset').onclick=()=>{ store.resetInput(); AUDIO.confirm(); renderKeys(); };
-  $('#set-close').onclick=()=>{ AUDIO.back(); show('s-title'); };
+  wireReliablePointerButton($('#set-close'),()=>{ AUDIO.back(); show('s-title'); });
   // 設定画面表示時にレンダリング
   const _show=show;
   function showWrapped(id){ if(id==='s-set') renderSet(); if(id==='s-rivals') renderRivals(); if(id==='s-keys') renderKeys(); if(id==='s-aiworld') renderAIWorld(); if(id==='s-world') renderWorld(); _show(id); }
