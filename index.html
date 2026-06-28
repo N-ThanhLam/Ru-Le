@@ -212,6 +212,7 @@
   .worldline.show{ display:block; }
   .worldline .who{ font-size:24px; font-weight:900; color:#8a681e; margin-bottom:3px; }
   .worldline .txt{ font-size:31px; font-weight:900; line-height:1.28; }
+  .worldline.storyline{ border-color:#d18b2f; background:#fff8df; box-shadow:0 8px 24px rgba(0,0,0,.36), inset 7px 0 0 #d18b2f; }
   #title-worldline{ position:absolute; top:306px; left:50%; transform:translateX(-50%); width:1052px; min-height:112px; max-height:138px; overflow:hidden; text-align:center; z-index:2; }
   #map-worldline{ max-width:1120px; margin:0 auto 14px; text-align:center; }
   #result-worldline{ width:100%; }
@@ -512,6 +513,7 @@
   .talkbubble:last-child{ background:#fffdf4; border:4px solid #2a2f55; padding:9px 15px; box-shadow:0 9px 22px rgba(0,0,0,.42); opacity:1; animation:talkIn .16s ease-out; }
   .talkbubble:last-child .who{ font-size:22px; margin-bottom:2px; }
   .talkbubble:last-child .txt{ font-size:28px; line-height:1.28; }
+  .talkbubble.story{ border-color:#d18b2f; background:#fff8df; box-shadow:inset 6px 0 0 #d18b2f, 0 9px 22px rgba(0,0,0,.42); }
   @keyframes pop{ from{ transform:scale(.7); opacity:0;} to{ transform:scale(1); opacity:1;} }
   @keyframes talkIn{ from{ transform:translateY(10px); opacity:0;} to{ transform:none; opacity:1;} }
 
@@ -1759,7 +1761,6 @@
             <div class="aiworld-status" id="aiworld-status">—</div>
             <div class="aiworld-actions">
               <div class="btn small primary foc" id="aiworld-generate" data-i18n="aiworld_generate">在庫を補充</div>
-              <div class="btn small foc" id="aiworld-auto" data-i18n="aiworld_auto">自動補充: OFF</div>
             </div>
           </div>
           <div class="aiworld-panel">
@@ -2214,12 +2215,6 @@ const RL = (function(){
   }
   function effectsForCard(build, card){ return emblemsForCard(build,card).reduce((a,id)=> emblemFiresOnCard(id, card) ? a.concat(effList(emblem(id))) : a, []); }
   function hasEffect(build, card, eff){ return effectsForCard(build,card).includes(eff); }
-  // その札で eff を発火させているエンブレムidを返す(トースト表示を実際のエンブレムに正しく対応させる)。
-  function embIdForEffect(build, card, eff){
-    for(const id of emblemsForCard(build,card)){ if(emblemFiresOnCard(id, card) && effList(emblem(id)).includes(eff)) return id; }
-    return null;
-  }
-
   /* =====================================================================
      コンボ(複数枚出し) — 構造的グラマー。rank 直書きはせず strength()/RANKS で判断する。
      type: single / set(同ランク2〜4) / run(階段) / pairRun(ペア階段)
@@ -4372,7 +4367,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', gfx:'lite', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
-    keymap:null, padmap:null, netKw:'', netName:'', playerProfile:null, rival:null, rivals:null, rivalProf:null, heatBest:{}, titleBest:{}, aiKeys:[''], aiWorldAuto:false,
+    keymap:null, padmap:null, netKw:'', netName:'', playerProfile:null, rival:null, rivals:null, rivalProf:null, heatBest:{}, titleBest:{}, aiKeys:[''],
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -4395,12 +4390,11 @@ const AUDIO = (function(){
       this.titleBest = (this.titleBest && typeof this.titleBest==='object') ? this.titleBest : {};   // ラン称号→最高到達深度(名誉記録)
       this.aiKeys = Array.isArray(this.aiKeys) ? this.aiKeys.slice(0,4) : [''];
       this.aiKeys = this.aiKeys.length ? this.aiKeys.map(k=> typeof k==='string' ? k : '') : [''];
-      this.aiWorldAuto = !!this.aiWorldAuto;
       this.save();   // 移行(コレクション初期化)や欠落フィールドの補完を確定させる
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, playerProfile:this.playerProfile, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest, titleBest:this.titleBest, aiKeys:this.aiKeys, aiWorldAuto:this.aiWorldAuto})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, playerProfile:this.playerProfile, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest, titleBest:this.titleBest, aiKeys:this.aiKeys})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -4608,7 +4602,7 @@ const AUDIO = (function(){
       set_keys:'キー設定', set_keys_val:'キーボード／パッド', keys_open:'ひらく ▶',
       set_aiworld:'AI世界', set_aiworld_val:'在庫生成・APIキー', aiworld_open:'ひらく ▶',
       aiworld_close:'◀ もどる', aiworld_topbar:'AI世界', aiworld_api_h:'Gemini API', aiworld_api_note:'APIキーは端末内だけに保存。ゲーム本体はAIなしで動作します。',
-      aiworld_add_key:'＋ キー追加', aiworld_save_keys:'保存', aiworld_refresh_models:'モデル確認', aiworld_stock_h:'コンテンツ在庫', aiworld_generate:'在庫を補充', aiworld_auto:'自動補充: {0}', aiworld_counts_h:'DB件数', aiworld_preview_h:'生成状況',
+      aiworld_add_key:'＋ キー追加', aiworld_save_keys:'保存', aiworld_refresh_models:'モデル確認', aiworld_stock_h:'コンテンツ在庫', aiworld_generate:'在庫を補充', aiworld_counts_h:'DB件数', aiworld_preview_h:'生成状況',
       aiworld_key_ph:'APIキー {0}', aiworld_no_key:'APIキー未入力', aiworld_saved:'APIキーを保存しました', aiworld_model_ok:'使用候補: {0}', aiworld_generating:'生成中… {0}', aiworld_generated:'{0}件追加しました（{1}）', aiworld_failed:'生成できませんでした: {0}', aiworld_idle:'待機中', aiworld_empty:'まだありません',
       aiworld_wait:'次の補充まで {0}秒', aiworld_err_auth:'APIキーが通りません。キーを確認してください。', aiworld_err_rate:'制限または混雑中です。2分間隔のまま次回に回します。', aiworld_err_net:'通信できません。オフラインでもゲーム本体は遊べます。', aiworld_err_model:'使用できるGeminiモデルが見つかりません。モデル確認を試してください。', aiworld_err_empty:'生成内容が0件でした。メモリーは更新せず、次回に再試行します。', aiworld_err_other:'補充に失敗しました。次回の自動補充で再試行します。',
       world_close:'◀ もどる', world_topbar:'Ru-Leの世界', world_empty:'今日はまだ新しい話が届いていません。', world_today_title:'今日のRu-Le', world_theme:'今日のテーマ：{0}',
@@ -4852,7 +4846,7 @@ const AUDIO = (function(){
       set_keys:'Gán phím', set_keys_val:'Bàn phím / Tay cầm', keys_open:'Mở ▶',
       set_aiworld:'Thế giới AI', set_aiworld_val:'Kho nội dung / API key', aiworld_open:'Mở ▶',
       aiworld_close:'◀ Quay lại', aiworld_topbar:'Thế giới AI', aiworld_api_h:'Gemini API', aiworld_api_note:'API key chỉ lưu trên máy này. Game vẫn chạy khi không có AI.',
-      aiworld_add_key:'＋ Thêm key', aiworld_save_keys:'Lưu', aiworld_refresh_models:'Kiểm tra model', aiworld_stock_h:'Kho nội dung', aiworld_generate:'Bổ sung kho', aiworld_auto:'Tự động: {0}', aiworld_counts_h:'Số lượng DB', aiworld_preview_h:'Trạng thái tạo',
+      aiworld_add_key:'＋ Thêm key', aiworld_save_keys:'Lưu', aiworld_refresh_models:'Kiểm tra model', aiworld_stock_h:'Kho nội dung', aiworld_generate:'Bổ sung kho', aiworld_counts_h:'Số lượng DB', aiworld_preview_h:'Trạng thái tạo',
       aiworld_key_ph:'API key {0}', aiworld_no_key:'Chưa nhập API key', aiworld_saved:'Đã lưu API key', aiworld_model_ok:'Ứng viên: {0}', aiworld_generating:'Đang tạo… {0}', aiworld_generated:'Đã thêm {0} mục ({1})', aiworld_failed:'Không tạo được: {0}', aiworld_idle:'Đang chờ', aiworld_empty:'Chưa có',
       aiworld_wait:'Lần bổ sung tiếp theo sau {0} giây', aiworld_err_auth:'API key không hợp lệ. Hãy kiểm tra lại key.', aiworld_err_rate:'Đang bị giới hạn hoặc máy chủ bận. Sẽ thử lại theo nhịp 2 phút.', aiworld_err_net:'Không kết nối được. Game vẫn chơi được khi offline.', aiworld_err_model:'Không tìm thấy model Gemini dùng được. Hãy thử kiểm tra model.', aiworld_err_empty:'Không có nội dung nào được tạo. Bộ nhớ không được cập nhật và sẽ thử lại lần sau.', aiworld_err_other:'Bổ sung thất bại. Sẽ thử lại ở lần tự động tiếp theo.',
       world_close:'◀ Quay lại', world_topbar:'Thế giới Ru-Le', world_empty:'Hôm nay chưa có tin mới.', world_today_title:'Ru-Le hôm nay', world_theme:'Chủ đề hôm nay: {0}',
@@ -4921,10 +4915,8 @@ const AUDIO = (function(){
     return s;
   }
   function paren(s){ return LANG==='vi' ? (' ('+s+')') : ('（'+s+'）'); }
-  function sepDot(){ return LANG==='vi' ? ' · ' : ' ・ '; }
   /* ---- データ(エンブレム/お題/プリセット/色)の言語別アクセサ ---- */
   function embName(e){ return LANG==='vi' ? (e.nameVi||e.name) : e.name; }
-  function embShort(e){ return LANG==='vi' ? (e.abbrVi||e.nameVi||e.name) : e.name; }
   function embDesc(e){ return LANG==='vi' ? (e.descVi||e.desc) : e.desc; }
   function embCode(e){ return LANG==='vi' ? (e.codeVi||e.code) : e.code; }
   const GLYPH_CACHE = {};
@@ -5481,7 +5473,7 @@ const AUDIO = (function(){
     $('#title-sub').textContent = T('title_sub');
     $('#title-st').textContent = T('unlocked_emblems')+' '+store.unlocked.length+'/'+VISIBLE_EMB_TOTAL;
     $('#title-st').style.color = '#b9c4ef';
-    renderWorldLine('title-worldline', ['news','rumor','event','conversation'], store.lang==='vi'?'Báo Kinh thành':'王都新聞', 'title', ['王都','噂','新聞']);
+    renderStoryLine('title-worldline','title',store.lang==='vi'?'Chuyện đang tiếp diễn':'つづきの物語');
   }
 
   /* ----- 汎用 確認ダイアログ(誤操作防止) ----- */
@@ -5712,7 +5704,7 @@ const AUDIO = (function(){
       });
       wrap.appendChild(col);
     });
-    renderWorldLine('map-worldline', ['event','diary','rumor','conversation'], store.lang==='vi'?'Chuyện dọc đường':'旅の噂', 'map', ['旅','巡業','酒場']);
+    renderStoryLine('map-worldline','map',store.lang==='vi'?'Manh mối trên đường':'道中の手がかり');
     show('s-map');
     setTimeout(()=>setFocus(null),0);
   }
@@ -6227,8 +6219,10 @@ const AUDIO = (function(){
       this.matchId='m'+Date.now(); this.stateVer=0; this.paused=false; endedShown=false; busy=false; pendingChoose=null;
       this.conns.forEach(c=> this._send(c,{type:'start', matchId:this.matchId}));
       show('s-match'); $('#match-title').textContent=T('mt_online'); renderMatch();
-      matchTalkLastAt=0; matchThemeTalkShown=false;
+      matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false;
       setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
+      scheduleMatchThemeTalk(1800);
+      scheduleMatchStoryTalk(4300);
       this.broadcast();
       afterStep();
     },
@@ -6474,10 +6468,6 @@ const AUDIO = (function(){
   function currentDiscountIds(){
     return (MODE.kind==='run' && MODE.run) ? discountIdsFor(MODE.run) : [];
   }
-  function currentDiscountId(){
-    const ids=currentDiscountIds();
-    return ids[0]||null;
-  }
   const RUN_COST_MOD_STEP = 0.10;
   const RUN_COST_MOD_MIN = 0.50;
   const RUN_COST_MOD_MAX = 2.00;
@@ -6530,7 +6520,6 @@ const AUDIO = (function(){
     const mods=normalizeRunCostMods(MODE.run);
     return mods[id] || 1;
   }
-  function runCostModPct(id){ return Math.round(runCostMod(id)*100); }
   function runSlotCost(id, slotType){
     let base = Math.max(1, Math.round(RL.slotCost(id, slotType) * runCostMod(id)));
     return currentDiscountIds().includes(id) ? Math.max(1, Math.ceil(base/2)) : base;
@@ -6814,17 +6803,6 @@ const AUDIO = (function(){
     const sel=buildState.selSlot;
     const e=$$('#s-build .slot').find(s=> s.dataset.type===sel.type && s.dataset.key===sel.key);
     if(e) setFocus(e);
-  }
-  function clearSelectedSlot(){
-    const sel=buildState.selSlot, b=buildState.build;
-    const arr = sel.type==='rule' ? b.ruleSlots : (sel.type==='rank' ? b.rankSlots[sel.key] : b.suitSlots[sel.key]);
-    if(arr.length){
-      arr.length=0; AUDIO.back(); renderBuild();
-      // シートが開いていればそのまま継続(一覧へフォーカスを残す)、閉じていればスロットへ戻る
-      if(pickerOpen()){ const f=focusables().find(x=>x.classList.contains('emb'))||focusables()[0]; if(f) setFocus(f); }
-      else refocusSlot();
-    }
-    else AUDIO.bad();
   }
   /* ===== 解除モード（トグル） =====
      ON の間は、スロットをタップ／決定すると そのスロットのエンブレムを全部はずす（ピッカーは開かない）。
@@ -7397,17 +7375,6 @@ const AUDIO = (function(){
      ・効果は「対戦開始時に build と randomBuild を統合」して反映する＝既存エンブレム処理は無改造。
      ・コスト消費なし・解放(store.unlocked)とも無関係。巡業を抜けるとリセット(freshRun で空に戻る)。
      ============================================================ */
-  // run.randomBuild に今ついている全エンブレムidの集合(通常ビルドへ同じidを付けさせない判定に使う)。
-  function randEmblemIdSet(){
-    const set=new Set();
-    if(MODE.kind==='run' && MODE.run && MODE.run.randomBuild){
-      const rb=MODE.run.randomBuild;
-      RL.DISPLAY_RANKS.forEach(r=> (rb.rankSlots[r]||[]).forEach(id=>set.add(id)));
-      RL.SUITS.forEach(s=> (rb.suitSlots[s]||[]).forEach(id=>set.add(id)));
-      (rb.ruleSlots||[]).forEach(id=>set.add(id));
-    }
-    return set;
-  }
   // 指定スロットに付いているランダムエンブレムid配列(ビルド画面で金枠チップとして上乗せ表示する用)。
   function randIdsFor(type, key){
     if(!(MODE.kind==='run' && MODE.run && MODE.run.randomBuild)) return [];
@@ -7527,7 +7494,8 @@ const AUDIO = (function(){
   function beginMatch(){
     const talkBox=$('#match-talk'); if(talkBox){ talkBox.innerHTML=''; talkBox.classList.remove('show'); }
     matchTalkLastAt=0;
-    matchThemeTalkShown=false;
+    matchThemeTalkCount=0;
+    matchStoryTalkShown=false;
     MODE.matchBanNames = (MODE.kind==='run') ? banNames() : [];   // ★v0.22 この対戦で封じられた名前を控える(結果画面の宿敵レポート用・深度前進前)
     RIVAL.ensure();
     const human = { name:String(store.playerProfile?.name||T('you')).slice(0,12), isHuman:true, build: MODE.kind==='run' ? effectiveRunBuild() : cloneBuild(MODE.quickBuild) };
@@ -7583,6 +7551,8 @@ const AUDIO = (function(){
     show('s-match');
     renderMatch();
     setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
+    scheduleMatchThemeTalk(1800);
+    scheduleMatchStoryTalk(4300);
     afterStep();
   }
   function cpuBuildQuick(i){
@@ -7786,7 +7756,7 @@ const AUDIO = (function(){
     t.appendChild(it);
     setTimeout(()=>{ it.style.transition='opacity .4s'; it.style.opacity='0'; setTimeout(()=>it.remove(),420); }, 900);
   }
-  let matchTalkLastAt=0, matchTalkSeen=[], matchThemeTalkShown=false;
+  let matchTalkLastAt=0, matchTalkSeen=[], matchThemeTalkCount=0, matchStoryTalkShown=false;
   const MATCH_TALK_FALLBACK={
     greeting:['よろしく。','じゃあ、始めよう。','今日は負けないよ。'],
     first_play:['まずはこれで。','ここから始めるよ。'],
@@ -7805,8 +7775,7 @@ const AUDIO = (function(){
     bomb:['そこに重ねるの？','まだ返してくるんだ。'],
     activate:['ここで使うよ。','今が使いどきだね。'],
     finish_self:['よし、上がり。','先に上がるね。'],
-    finish_other:['上がられたか。','先に行かれたね。'],
-    win:['今回は私の勝ち。'], lose:['負けた。次は勝つよ。']
+    finish_other:['上がられたか。','先に行かれたね。']
   };
   const MATCH_TALK_FALLBACK_VI={
     greeting:['Chơi vui nhé.','Bắt đầu thôi.','Hôm nay tôi không thua đâu.'],first_play:['Bắt đầu bằng lá này.','Tôi đi trước nhé.'],
@@ -7815,23 +7784,27 @@ const AUDIO = (function(){
     skipped:['Ơ, lượt của tôi đâu?','Tôi bị bỏ một lượt rồi.'],chosen:['Chọn tôi à?','Đưa lượt sang đây sao.'],clear:['Dọn bàn nhé.','Làm lại từ đầu thôi.'],
     revolution:['Mạnh yếu đảo ngược rồi.','Từ giờ thứ tự mạnh yếu đổi nhé.'],top_beaten:['Đó là lá mạnh nhất mà.','Không ngờ vẫn chặn được.'],
     react:['Khoan, tôi chặn.','Chờ một chút.'],bomb:['Vẫn chồng bom nữa à?','Còn chặn tiếp sao.'],activate:['Dùng ngay lúc này.','Đến lúc dùng rồi.'],
-    finish_self:['Xong, tôi về rồi.','Tôi hết bài trước nhé.'],finish_other:['Bị về trước rồi.','Họ hết bài trước mất rồi.'],
-    win:['Lần này tôi thắng.'],lose:['Tôi thua rồi. Lần sau sẽ thắng.']
+    finish_self:['Xong, tôi về rồi.','Tôi hết bài trước nhé.'],finish_other:['Bị về trước rồi.','Họ hết bài trước mất rồi.']
   };
-  function matchTalkFallback(scene){ return (aiWorldLang()==='vi'?MATCH_TALK_FALLBACK_VI:MATCH_TALK_FALLBACK)[scene]||(aiWorldLang()==='vi'?MATCH_TALK_FALLBACK_VI:MATCH_TALK_FALLBACK).chatter; }
-  function worldLineEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function aiWorldPickLine(types, context, tags){
-    try{ return AIWorldDB.pick(types, context||'general', tags||[], 6); }catch(e){ return null; }
+  function matchTalkFallback(scene){
+    if(scene==='chatter'){
+      const theme=aiWorldThemeForDate();
+      return aiWorldLang()==='vi'
+        ? ['Hôm nay nói chuyện '+theme+' nhé.','Lát nữa kể tôi nghe chuyện '+theme+' đi.']
+        : ['今日は'+theme+'の話でもしようか。',theme+'のこと、あとで聞かせてよ。'];
+    }
+    return (aiWorldLang()==='vi'?MATCH_TALK_FALLBACK_VI:MATCH_TALK_FALLBACK)[scene]||(aiWorldLang()==='vi'?MATCH_TALK_FALLBACK_VI:MATCH_TALK_FALLBACK).chatter;
   }
-  function renderWorldLine(id, types, fallbackSpeaker, context, tags){
-    const box=$('#'+id); if(!box) return;
-    const item=aiWorldPickLine(types, context, tags);
-    if(!item){ box.innerHTML=''; box.classList.remove('show'); return; }
-    const who=worldLineEsc(item.speaker||fallbackSpeaker||worldLabel(item.type)||'');
-    const maxLen=context==='title'?52:(context==='map'?64:68);
-    const txt=worldLineEsc(String(item.text||'').slice(0,maxLen));
-    box.innerHTML='<div class="who">'+who+'</div><div class="txt">'+txt+'</div>';
-    box.classList.add('show');
+  function worldLineEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function renderStoryLine(id, context, fallbackSpeaker){
+    const box=$('#'+id); if(!box)return false;
+    let item=null; try{ item=AIStory.pick(context); }catch(e){}
+    if(!item||!item.text)return false;
+    const who=worldLineEsc(item.speaker||fallbackSpeaker||'物語');
+    const maxLen=context==='title'?58:(context==='map'?70:76);
+    box.innerHTML='<div class="who">'+who+'</div><div class="txt">'+worldLineEsc(String(item.text).slice(0,maxLen))+'</div>';
+    box.classList.add('show','storyline');
+    return true;
   }
   function matchTalkPick(scene){
     try{
@@ -7859,12 +7832,30 @@ const AUDIO = (function(){
     box.classList.add('show'); matchTalkLastAt=now;
     return true;
   }
-  function renderMatchResultTalk(me){
-    const box=$('#result-worldline'); if(!box||!me)return;
-    const scene=me.place===1?'win':'lose', item=matchTalkPick(scene), fall=matchTalkFallback(scene);
-    const text=item&&item.text?item.text:fall[Math.floor(Math.random()*fall.length)];
-    box.innerHTML='<div class="who">'+worldEsc(me.name||store.playerProfile?.name||T('you'))+'</div><div class="txt">'+worldEsc(text)+'</div>';
-    box.classList.add('show');
+  function emitMatchThemeTalk(speakerIdx){
+    if(!G || currentScreen!=='s-match' || matchThemeTalkCount>=2) return false;
+    if(matchTalkEvent('chatter',speakerIdx==null?G.turn:speakerIdx,true)){ matchThemeTalkCount++; return true; }
+    return false;
+  }
+  function scheduleMatchThemeTalk(delay){
+    setTimeout(()=>{
+      if(!G || currentScreen!=='s-match' || matchThemeTalkCount>0) return;
+      const speakers=G.players.map((p,i)=>({p,i})).filter(x=>!x.p.finished && !x.p.isHuman);
+      emitMatchThemeTalk(speakers.length?speakers[Math.floor(Math.random()*speakers.length)].i:G.turn);
+    }, delay||1800);
+  }
+  function emitMatchStoryTalk(){
+    if(!G||currentScreen!=='s-match'||matchStoryTalkShown)return false;
+    let item=null; try{ item=AIStory.pick('battle'); }catch(e){}
+    if(!item||!item.text)return false;
+    const box=$('#match-talk'); if(!box)return false;
+    box.insertAdjacentHTML('beforeend','<div class="talkbubble story"><div class="who">'+worldEsc(item.speaker||'物語')+'</div><div class="txt">'+worldEsc(String(item.text).slice(0,76))+'</div></div>');
+    while(box.children.length>3)box.firstElementChild.remove();
+    box.classList.add('show'); matchTalkLastAt=Date.now(); matchStoryTalkShown=true;
+    return true;
+  }
+  function scheduleMatchStoryTalk(delay){
+    setTimeout(()=>{ if(G&&currentScreen==='s-match')emitMatchStoryTalk(); },delay||4300);
   }
   function matchTalkSnapshot(){
     const c=G&&G.field&&G.field.combo, owner=G&&G.field?G.field.ownerIndex:null;
@@ -7874,6 +7865,16 @@ const AUDIO = (function(){
     const ev=(result&&result.events)||[], embIds=ev.filter(x=>x.kind==='emb'&&x.emb).map(x=>x.emb);
     const hasEff=eff=>embIds.some(id=>{ const e=RL.emblem(id); return e&&String(e.effect||'').split('+').includes(eff); });
     const rules=G.players[actorIdx]&&G.players[actorIdx].rules, playedCombo=cards&&cards.length?RL.classifyCombo(cards,rules):null, playedBomb=!!(playedCombo&&RL.isBomb(playedCombo,rules));
+    if(actorIdx===meIdx()){
+      let special='';
+      if(playedBomb)special='ボムで場を返した';
+      else if(ev.some(x=>x.kind==='revolution'))special='革命を起こした';
+      else if(hasEff('SKIP'))special='加速で相手の順番を飛ばした';
+      else if(hasEff('CHOOSE_NEXT'))special='指名で次の相手を選んだ';
+      else if(action==='react')special='反撃で場を奪った';
+      AIStory.recordAction(action,{special});
+      if(special&&!matchStoryTalkShown)setTimeout(()=>{ if(G&&currentScreen==='s-match')emitMatchStoryTalk(); },500);
+    }
     const finish=ev.find(x=>x.kind==='finish');
     if(finish){
       if(actorIdx===meIdx()) return matchTalkEvent('finish_self',actorIdx,true);
@@ -7896,9 +7897,8 @@ const AUDIO = (function(){
     if(action==='play'&&p&&!p.finished&&p.hand.length<=2) return matchTalkEvent('low_hand',actorIdx,true);
     if(action==='play'&&cards&&cards.some(c=>RL.effStrength(G,c.rank)===RL.RANKS.length-1)) return matchTalkEvent('strong_play',actorIdx,true);
     if(action==='play'&&before&&before.actions===0) return matchTalkEvent('first_play',actorIdx,true);
-    if(!matchThemeTalkShown&&before&&before.actions>=2&&aiWorldDailyStock()>0){
-      matchThemeTalkShown=matchTalkEvent('chatter',actorIdx,true);
-      if(matchThemeTalkShown)return true;
+    if(matchThemeTalkCount<2&&before&&before.actions>=2){
+      if(emitMatchThemeTalk(actorIdx))return true;
     }
     return matchTalkEvent(action==='pass'?'pass':(Math.random()<.24?'chatter':'play'),actorIdx,false);
   }
@@ -8164,7 +8164,7 @@ const AUDIO = (function(){
   function onNetState(state){
     const prev=G, entering=currentScreen!=='s-match';
     G = state;
-    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkShown=false; }
+    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; scheduleMatchThemeTalk(1800); scheduleMatchStoryTalk(4300); }
     renderMatch();
     matchTalkNetDiff(entering?null:prev,state);
     clientAfter();
@@ -8177,6 +8177,12 @@ const AUDIO = (function(){
     if(endedShown) return; endedShown=true;
     const me=G.players[meIdx()];
     const myPlace=me.place || 4;
+    const storyUsed=(MODE.matchStats&&MODE.matchStats.usedEmblems)||[];
+    if(storyUsed.length){
+      const names=[...new Set(storyUsed)].slice(0,3).map(id=>{ const e=RL.emblem(id); return e?embName(e):id; });
+      AIStory.recordAction('build',{special:names.join('・')+'を使った'});
+    }
+    AIStory.recordResult(myPlace,MODE.kind==='run'&&MODE.run?MODE.run.depth:1,resultTagKeys(me));
     if(NET.active){ showResult(); return; }            // オンラインは結果のみ(宿敵なし)
     // 宿敵モデル更新: 参戦した各宿敵の因縁の戦績を記録＋(誰か居れば)あなたのビルド傾向を観測(学習型/ban が使う)。
     const seats = MODE.rivalSeats || [];
@@ -8200,8 +8206,7 @@ const AUDIO = (function(){
       else { rew.innerHTML=''; rew.classList.remove('show'); }
     }
     renderResultTags(me);
-    renderWorldLine('result-worldline', ['news','event','rumor','conversation'], store.lang==='vi'?'Báo Kinh thành':'王都新聞', 'result', ['巡業','結果','噂']);
-    renderMatchResultTalk(me);
+    renderStoryLine('result-worldline','result',store.lang==='vi'?'Diễn biến tiếp theo':'物語のつづき');
     // 宿敵レポート(種明かし): オフライン時のみ、宿敵が何を学習し今戦どう対策したか＋因縁の戦績を開示。
     //   公開情報(過去ビルド傾向)だけで対策した、と明示してチート感を消す。
     const riv=$('#result-rival');
@@ -8659,7 +8664,7 @@ const AUDIO = (function(){
     const KEY='rule_aiworld_db_v1';
     const TYPES=['conversation','news','diary','event','rumor'];
     const defaultRelations=()=>({'騎士-商人':'不信','騎士-魔女':'警戒と敬意','商人-盗賊':'利害一致','魔女-盗賊':'皮肉混じりの好奇心'});
-    const defaultMeta=()=>({day:0,packs:0,summary:'',summaryByLang:{},lastTheme:'',relations:defaultRelations(),relationsByLang:{},lastModel:'',lastGeneratedAt:'',lastError:'',useLog:{},useCycles:{},ctxMigrated:0});
+    const defaultMeta=()=>({day:0,packs:0,summary:'',summaryByLang:{},lastTheme:'',relations:defaultRelations(),relationsByLang:{},lastModel:'',lastGeneratedAt:'',lastError:'',useLog:{},useCycles:{},ctxMigrated:0,contentVersion:0});
     const load=()=>{ try{ const d=JSON.parse(localStorage.getItem(KEY)||'{}'); TYPES.forEach(t=>{ if(!Array.isArray(d[t])) d[t]=[]; }); d._meta=(d._meta&&typeof d._meta==='object')?Object.assign(defaultMeta(),d._meta):defaultMeta(); return d; }catch(e){ const d={_meta:defaultMeta()}; TYPES.forEach(t=>d[t]=[]); return d; } };
     const save=d=>{ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} };
     const normalizeItem=(x, task)=>{
@@ -8685,15 +8690,16 @@ const AUDIO = (function(){
       add(items, task, memorySummary, relations, model){ const db=load(), seen=new Set(); TYPES.forEach(t=>db[t].forEach(x=>seen.add((x.text||'').trim()))); let added=0,lastDay=0; (Array.isArray(items)?items:[]).forEach(raw=>{ const it=normalizeItem(raw,task); if(!it||seen.has(it.text))return; seen.add(it.text); db[it.type].push(it); added++; lastDay=it.day||lastDay; }); if(added){ const lang=task.lang||aiWorldLang(); db._meta.day=lastDay||db._meta.day||1; db._meta.packs=(db._meta.packs||0)+1; db._meta.lastTheme=task.theme||db._meta.lastTheme||''; db._meta.lastModel=model||db._meta.lastModel||''; db._meta.lastGeneratedAt=new Date().toISOString(); db._meta.lastError=''; db._meta.summaryByLang=db._meta.summaryByLang||{}; db._meta.relationsByLang=db._meta.relationsByLang||{}; if(memorySummary){ db._meta.summaryByLang[lang]=String(memorySummary).slice(0,900); if(lang==='ja')db._meta.summary=db._meta.summaryByLang[lang]; } if(relations&&typeof relations==='object'){ db._meta.relationsByLang[lang]=Object.assign({},db._meta.relationsByLang[lang]||{},relations); if(lang==='ja')db._meta.relations=Object.assign(defaultRelations(),db._meta.relations||{},relations); } } TYPES.forEach(t=>{ db[t]=db[t].slice(-500); }); save(db); return added; },
       markError(err){ const db=load(); db._meta.lastError=String(err||'unknown').slice(0,220); save(db); },
       migrateContexts(){ const db=load(); if((db._meta.ctxMigrated||0)>=1) return 0; let n=0; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x.context || !Array.isArray(x.tags) || !x.tags.length){ const inf=inferUse(x); if(!x.context) x.context=inf.context; x.tags=[...new Set([...(x.tags||[]),...inf.tags])].slice(0,8); n++; } })); db._meta.ctxMigrated=1; save(db); return n; },
+      migrateContent(){ const db=load(); if((db._meta.contentVersion||0)>=2)return 0; let removed=0; TYPES.forEach(t=>{ db[t]=(db[t]||[]).filter(x=>{ const tags=new Set((x.tags||[]).map(String)), story=tags.has('story'), dated=[...tags].some(v=>v.startsWith('date:')), timeless=tags.has('timeless'), scene=[...tags].find(v=>v.startsWith('scene:')); const obsoleteResult=tags.has('scene:win')||tags.has('scene:lose'); const obsoleteAmbient=(x.context==='title'||x.context==='map')&&!story&&!dated; const obsoleteBattle=x.context==='battle'&&scene&&!story&&!dated&&!timeless; const drop=obsoleteResult||obsoleteAmbient||obsoleteBattle; if(drop)removed++; return !drop; }); }); db._meta.contentVersion=2; db._meta.useLog={}; db._meta.useCycles={}; save(db); return removed; },
       prune(maxPerType){ const db=load(), max=Math.max(80, maxPerType||360); TYPES.forEach(t=>{ const sorted=(db[t]||[]).slice().sort((a,b)=>(a.day-b.day)||String(a.createdAt).localeCompare(String(b.createdAt))), ja=sorted.filter(x=>(x.lang||'ja')==='ja').slice(-max), vi=sorted.filter(x=>x.lang==='vi').slice(-max); db[t]=ja.concat(vi).sort((a,b)=>(a.day-b.day)||String(a.createdAt).localeCompare(String(b.createdAt))); }); save(db); },
       counts(){ const db=load(), out={}; TYPES.forEach(t=>out[t]=(db[t]||[]).filter(x=>(x.lang||'ja')===aiWorldLang()).length); return out; },
       meta(){ const m=load()._meta||defaultMeta(), lang=aiWorldLang(); return Object.assign({},m,{summary:(m.summaryByLang&&m.summaryByLang[lang])||(lang==='ja'?m.summary:''),relations:(m.relationsByLang&&m.relationsByLang[lang])||(lang==='ja'?m.relations:{})}); },
       list(type,n){ const db=load(), arr=TYPES.includes(type)?(db[type]||[]):[]; return arr.slice().sort((a,b)=>(b.day-a.day)||String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||80); },
       dayItems(day,n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if((x.day||0)===day) all.push(x); })); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
-      pick(types, context, tags, n, strictTags){
+      pick(types, context, tags, n, strictTags, strictContext){
         const db=load(), want=Array.isArray(types)?types:TYPES, ctx=context||'general', tagSet=new Set((tags||[]).map(String)), used=(db._meta.useLog&&db._meta.useLog[ctx])||[], all=[];
         const strictSet=new Set((strictTags||[]).map(String));
-        want.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!x.text||(x.lang||'ja')!==aiWorldLang())return; const xt=new Set((x.tags||[]).map(String)); if(strictSet.size&&![...strictSet].every(tag=>xt.has(tag)))return; all.push(x); }));
+        want.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!x.text||(x.lang||'ja')!==aiWorldLang())return; if(strictContext&&x.context!==ctx)return; const xt=new Set((x.tags||[]).map(String)); if(strictSet.size&&![...strictSet].every(tag=>xt.has(tag)))return; all.push(x); }));
         if(!all.length) return null;
         db._meta.useCycles=db._meta.useCycles||{};
         const cycleKey=ctx+'|'+(strictSet.size?[...strictSet].sort().join(','):'all');
@@ -8724,6 +8730,144 @@ const AUDIO = (function(){
     };
   })();
 
+  /* ============================================================
+     連載物語
+     - 真相と現在章はローカル保存。AI停止中も進行できる。
+     - AIは次章の短い断片をまとめて生成し、既存の世界DBへ在庫として入れる。
+     - 読み物画面ではなく、タイトル/対戦/マップ/結果へ1件ずつ差し込む。
+     ============================================================ */
+  const AIStory = (function(){
+    const KEY='rule_ai_story_v1', MAX_CHAPTER=6;
+    const ARCS=[
+      {
+        id:'missing_winner', title:'名前のない優勝者',
+        premise:'王都の大会記録から、優勝者の名前だけが消えた。',
+        truth:'記録官は敗者の後悔を札へ移し、歴史を書き直している。明日の日付が入った主人公の札は、次に消される者を示す。',
+        chapters:[
+          {hook:'王都の優勝記録に、名前だけ空白の年が見つかる。', clue:'空白の横には、まだ乾いていない黒い印がある。'},
+          {hook:'宿敵が、明日の日付と主人公の名前が書かれた札を拾う。', clue:'札の裏には「次の勝者」とだけ書かれている。'},
+          {hook:'対戦結果に合わせて、古い記録の順位が少しずつ変わり始める。', clue:'変わるのは主人公と戦った者の記録だけだ。'},
+          {hook:'宿敵の一人が札を隠していたと認めるが、理由を話さない。', clue:'宿敵は「勝つほど近づく」と警告する。'},
+          {hook:'記録庫の地下で、消えた選手たちの名前が刻まれた札束が見つかる。', clue:'一番上だけ空白で、主人公の戦績に反応している。'},
+          {hook:'記録官が次の大会で歴史を書き換えると宣言する。', clue:'止めるには勝敗ではなく、消された名前を場へ戻す必要がある。'},
+          {hook:'消された名前が記録へ戻り、空白の優勝者が姿を現す。', clue:'その人物は、記録官の背後に別の依頼人がいたと告げる。'}
+        ]
+      },
+      {
+        id:'sealed_table', title:'夜に増える対戦台',
+        premise:'閉店後の酒場に、朝には無い対戦台が一つ増える。',
+        truth:'その台は未来の敗戦を先に映す試作品で、商人は失踪した職人を探すため秘密にしている。',
+        chapters:[
+          {hook:'酒場の隅に、誰も運んでいない対戦台が増える。',clue:'台には今夜の対戦順が先に刻まれている。'},
+          {hook:'刻まれた順番の一部が、主人公の行動どおりに変わる。',clue:'勝敗だけは黒く塗られて読めない。'},
+          {hook:'商人が台を壊そうとするが、魔女が止める。',clue:'台の木材はまだ作られていない工房の印を持つ。'},
+          {hook:'宿敵の名前が台から消え、その本人も記憶を失い始める。',clue:'主人公が戦うと名前が一時的に戻る。'},
+          {hook:'台の中から、失踪した職人の日記が見つかる。',clue:'未来を変えるたび、誰かの過去が代わりに消える。'},
+          {hook:'商人が台を使った本当の理由を話す。',clue:'職人を救える未来は一つだけ残っている。'},
+          {hook:'最後の対戦で台の予告が外れ、職人への道が開く。',clue:'壊れた台には別の町の名が浮かんでいる。'}
+        ]
+      }
+    ];
+    const fresh=(season)=>{
+      const arc=ARCS[Math.abs(season||0)%ARCS.length];
+      return {version:1,season:season||0,arcId:arc.id,title:arc.title,chapter:0,progress:0,matches:0,wins:0,losses:0,
+        actions:{play:0,pass:0,react:0,activate:0},facts:[],canon:'',lastResult:null,localCursor:{}};
+    };
+    const load=()=>{ try{ const x=JSON.parse(localStorage.getItem(KEY)||'null'); return x&&x.version===1?Object.assign(fresh(x.season||0),x):fresh(0); }catch(e){ return fresh(0); } };
+    const save=s=>{ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} return s; };
+    const arcFor=s=>ARCS.find(a=>a.id===s.arcId)||ARCS[0];
+    const tagsFor=s=>['story','arc:'+s.arcId,'season:'+s.season,'chapter:'+s.chapter];
+    const stock=s=>{
+      const req=tagsFor(s);
+      return ['conversation','event','news','rumor','diary'].reduce((n,t)=>n+AIWorldDB.list(t,500).filter(x=>(x.lang||'ja')===aiWorldLang()&&req.every(tag=>(x.tags||[]).includes(tag))).length,0);
+    };
+    const playerName=()=>String(store.playerProfile?.name||T('you')).slice(0,12);
+    const rivalName=()=>{ try{ RIVAL.ensure(); return RIVAL.get(0)?.name||T('rival_word'); }catch(e){ return T('rival_word'); } };
+    const factText=s=>s.facts.slice(-8).join(' / ')||'まだ目立った戦績はない';
+    function task(){
+      const s=load(), arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)], n=stock(s);
+      return {id:'story_arc',lang:aiWorldLang(),type:'conversation',types:['conversation','event','news','rumor','diary'],
+        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:18,label:'物語 第'+(s.chapter+1)+'章',context:'battle',stockTarget:14,stockNow:n,
+        tags:tagsFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
+    }
+    function prompt(task){
+      const q=task.storyState, vi=aiWorldLang()==='vi';
+      if(vi) return [
+        'Viết một gói mẩu truyện nối tiếp xuất hiện trong lúc chơi game bài Ru-Le.',
+        'Không viết bài dài. Mỗi item chỉ 12-55 ký tự, là một câu thoại, tin đồn hoặc phát hiện ngắn.',
+        'Tên truyện: '+q.title,'Tiền đề: '+q.premise,'Sự thật bí mật, tuyệt đối chưa nói hết: '+q.truth,
+        'Chương hiện tại '+(q.chapter+1)+': '+q.hook,'Manh mối được phép lộ: '+q.clue,
+        'Người chơi: '+q.playerName,'Đối thủ: '+q.rivalName,'Sự kiện chơi gần đây: '+q.facts,
+        q.canon?'Nội dung đã công khai: '+q.canon:'',
+        'Tạo 18 items. Chia context: title 2, battle 8, map 4, result 4.',
+        'battle phải là câu có thể bật lên giữa lượt chơi. result phản ứng theo thành tích gần đây. map là phát hiện trên đường.',
+        'Mỗi item.tags phải có story, arc:'+q.arcId+', chapter:'+q.chapter+'. Không tiết lộ sự thật cuối cùng trước chương cuối.',
+        'Kết thúc gói bằng 2-3 câu khiến người chơi tò mò về bước tiếp theo. Dùng từ đơn giản cho trẻ 12 tuổi.',
+        'memorySummary ghi lại sự thật, manh mối đã lộ và việc còn dang dở trong tối đa 300 ký tự.'
+      ].join('\n');
+      return [
+        'カードゲームRu-Leのプレイ中に少しずつ進む連載物語パックを作る。',
+        '長文記事は禁止。各itemは12〜55文字の、会話・噂・発見・短い新聞文のどれか。',
+        '物語名: '+q.title,'発端: '+q.premise,'秘密の真相（最終章まで全部は明かさない）: '+q.truth,
+        '現在の第'+(q.chapter+1)+'章: '+q.hook,'今回明かしてよい手がかり: '+q.clue,
+        '主人公: '+q.playerName,'宿敵: '+q.rivalName,'直近のプレイ事実: '+q.facts,
+        q.canon?'公開済みの物語記憶: '+q.canon:'',
+        'itemsを18件作る。contextの内訳は title 2件、battle 8件、map 4件、result 4件。',
+        'battleは対戦中に突然出ても自然な短いセリフ。resultは直近の成績や戦い方を物語へ結びつける。mapは道中で見つける手がかり。',
+        '全itemのtagsに story、arc:'+q.arcId+'、chapter:'+q.chapter+' を必ず入れる。',
+        'プレイヤーがまだしていない行動を事実にしない。真相を早く説明し切らない。最後の2〜3件は次が気になる引きにする。',
+        '現代の12歳がすぐ分かる普通の言葉を使う。格好つけた言い回しや難しい単語は禁止。',
+        'memorySummaryには真相、公開済みの手がかり、未解決の点を300文字以内で残す。'
+      ].join('\n');
+    }
+    function localItem(context){
+      const s=load(), arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)];
+      const name=playerName(), rival=rivalName(), won=s.lastResult&&s.lastResult.place===1;
+      const lines=aiWorldLang()==='vi'?{
+        title:['Một manh mối mới vừa xuất hiện.','Vụ việc hôm qua lại có chuyển biến.'],
+        battle:[rival+'「Lá bài đó... tôi đã thấy rồi.」','Một dấu lạ thoáng hiện trên lá bài của '+name+'.'],
+        map:['Dấu lạ ấy lại xuất hiện bên đường.','Có người đã đi qua đây trước đoàn tuần hành.'],
+        result:[won?'Tên của '+name+' vừa hiện lên trong hồ sơ.':'Có người đã viết trước kết quả trận này.','Manh mối mới lại dẫn tới đối thủ.']
+      }:{
+        title:[ch.hook,'昨日の続きが、王都で動き始めた。'],
+        battle:[rival+'「その札、前にも見た気がする」',ch.clue,name+'の出した札に、黒い印が一瞬浮かんだ。'],
+        map:['道ばたに同じ黒い印が残っている。',ch.clue],
+        result:[won?'勝利の記録に、新しい文字が浮かんだ。':'敗戦の記録だけ、誰かが先に書いていた。',ch.hook]
+      };
+      const arr=lines[context]||lines.battle, key=s.chapter+'|'+context, i=(s.localCursor[key]||0)%arr.length;
+      s.localCursor[key]=i+1; save(s);
+      return {id:'local-story-'+key+'-'+i,type:'event',context,speaker:context==='battle'?rival:(aiWorldLang()==='vi'?'Câu chuyện':'物語'),text:arr[i],tags:tagsFor(s)};
+    }
+    function pick(context){
+      const s=load(), strict=tagsFor(s), types=context==='battle'?['conversation','rumor']:['event','news','rumor','diary','conversation'];
+      return AIWorldDB.pick(types,context,['story'],8,strict,true)||localItem(context);
+    }
+    function recordAction(action, detail){
+      const s=load(); s.actions=s.actions||{}; s.actions[action]=(s.actions[action]||0)+1;
+      if(detail&&detail.special){
+        s.facts.push(detail.special); s.facts=s.facts.slice(-12);
+      }
+      save(s);
+    }
+    function recordResult(place, depth, tags){
+      const s=load(); s.matches++; if(place===1)s.wins++; else if(place>=3)s.losses++;
+      s.lastResult={place,depth:depth||1,tags:tags||[],at:new Date().toISOString()};
+      const label=(place===1?'1位':place+'位')+(depth?'・深度'+depth:'');
+      s.facts.push(label+(tags&&tags.length?'・'+tags.join('、'):''));
+      s.facts=s.facts.slice(-12); s.progress++;
+      if(s.progress>=2){
+        if(s.chapter<MAX_CHAPTER){ s.chapter++; s.progress=0; }
+        else { const next=fresh((s.season||0)+1); next.facts=['前の事件を解決した']; return save(next); }
+      }
+      return save(s);
+    }
+    function afterGenerated(task, summary){
+      if(!task||!task.story)return;
+      const s=load(); if(summary)s.canon=String(summary).slice(0,600); save(s);
+    }
+    return {task,prompt,pick,recordAction,recordResult,afterGenerated};
+  })();
+
   const GeminiWorldAdapter = (function(){
     const LIST_MODELS_ENDPOINT='https://generativelanguage.googleapis.com/v1beta/models';
     const GENERATE_ENDPOINT=m=>'https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent';
@@ -8752,12 +8896,7 @@ const AUDIO = (function(){
     {id:'battle_pressure',type:'conversation',types:['conversation'],theme:'残り札が少ない時・強い札を出した時・縛りが付いた時の反応',count:24,label:'追込み会話',context:'battle',stockTarget:72,tags:['battle','対戦','timeless'],sceneTags:['scene:low_hand','scene:strong_play','scene:suit_lock']},
     {id:'battle_disrupt',type:'conversation',types:['conversation'],theme:'加速で飛ばされた・指名された・場を流した・革命が起きた時の反応',count:28,label:'妨害会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:skipped','scene:chosen','scene:clear','scene:revolution']},
     {id:'battle_counter',type:'conversation',types:['conversation'],theme:'最強札を返された・後出しされた・ボムを重ねられた・エンブレムを発動した時の反応',count:28,label:'逆転会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:top_beaten','scene:react','scene:bomb','scene:activate']},
-    {id:'battle_finish',type:'conversation',types:['conversation'],theme:'自分が上がった・相手に上がられた・勝った・負けた時の自然な一言',count:28,label:'決着会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:finish_self','scene:finish_other','scene:win','scene:lose']},
-    {id:'title_world',type:'rumor',types:['news','rumor','event'],theme:'タイトルに流れる世界の噂',count:22,label:'タイトル噂',context:'title',stockTarget:55,tags:['title','王都','噂']},
-    {id:'map_journey',type:'event',types:['event','diary','rumor'],theme:'巡業マップで聞こえる旅の話',count:22,label:'旅の話',context:'map',stockTarget:60,tags:['map','旅','巡業']},
-    {id:'result_news',type:'news',types:['news','event'],theme:'対戦結果後の新聞と評判',count:20,label:'結果新聞',context:'result',stockTarget:60,tags:['result','巡業','新聞']},
-    {id:'rival',type:'rumor',types:['rumor','conversation'],theme:'宿敵に関する噂',count:20,label:'宿敵の噂',context:'battle',stockTarget:45,tags:['battle','宿敵','噂']},
-    {id:'merchant',type:'diary',types:['diary','event'],theme:'商人の日記',count:18,label:'商人日記',context:'map',stockTarget:40,tags:['map','商人','旅']}
+    {id:'battle_finish',type:'conversation',types:['conversation'],theme:'自分が上がった・相手に上がられた時の自然な一言',count:24,label:'決着会話',context:'battle',stockTarget:72,tags:['battle','対戦','timeless'],sceneTags:['scene:finish_self','scene:finish_other']}
   ];
   const AI_WORLD_VI={
     battle_open:['Hội thoại mở đầu','Lời chào và câu nói tự nhiên khi đánh lá đầu tiên'],
@@ -8765,12 +8904,7 @@ const AUDIO = (function(){
     battle_pressure:['Hội thoại gay cấn','Phản ứng khi gần hết bài, đánh lá mạnh hoặc bị khóa chất'],
     battle_disrupt:['Hội thoại cản trở','Phản ứng khi bị bỏ lượt, bị chỉ định, dọn bàn hoặc có cách mạng'],
     battle_counter:['Hội thoại lật kèo','Phản ứng khi lá mạnh nhất bị chặn, đánh chen, bom hoặc kích hoạt biểu tượng'],
-    battle_finish:['Hội thoại kết thúc','Câu tự nhiên khi về bài, bị đối thủ về trước, thắng hoặc thua'],
-    title_world:['Tin đồn đầu trang','Tin đồn thế giới xuất hiện ở màn hình chính'],
-    map_journey:['Chuyện hành trình','Câu chuyện nghe được trên bản đồ hành trình'],
-    result_news:['Tin sau trận','Tin tức và lời bàn sau kết quả trận đấu'],
-    rival:['Tin về đối thủ','Tin đồn về các đối thủ'],
-    merchant:['Nhật ký thương nhân','Nhật ký của thương nhân']
+    battle_finish:['Hội thoại kết thúc','Câu tự nhiên khi mình hoặc đối thủ về hết bài']
   };
   function aiWorldLang(){ return store.lang==='vi'?'vi':'ja'; }
   function aiWorldTaskLabel(task){ return aiWorldLang()==='vi'?(AI_WORLD_VI[task.id]?.[0]||task.label):task.label; }
@@ -8810,13 +8944,13 @@ const AUDIO = (function(){
     types.forEach(t=>AIWorldDB.list(t,360).forEach(x=>{ if((x.lang||'ja')!==aiWorldLang())return; const xt=new Set((x.tags||[]).map(String)); if(required.some(tag=>!xt.has(tag)))return; if(scenes.size?[...scenes].some(tag=>xt.has(tag)):((x.context&&x.context===task.context)||[...tags].some(tag=>xt.has(tag)))) n++; }));
     return n;
   }
-  function aiWorldStockSummary(){
-    return (aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話')+': '+aiWorldDailyStock()+'/18 / '+AI_WORLD_TASKS.map(t=>aiWorldTaskLabel(t)+': '+aiWorldTaskStock(t)+'/'+(t.stockTarget||0)).join(' / ');
-  }
   function aiWorldStockRows(){
-    return [[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',aiWorldDailyStock(),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),aiWorldTaskStock(t),t.stockTarget||0]));
+    const st=AIStory.task();
+    return [[(aiWorldLang()==='vi'?'Truyện ':'物語 ')+st.label,st.stockNow,st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',aiWorldDailyStock(),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),aiWorldTaskStock(t),t.stockTarget||0]));
   }
   function aiWorldNextTask(){
+    const story=AIStory.task();
+    if(story.stockNow<story.stockTarget) return story;
     const daily=aiWorldDailyTask();
     if(daily.stockNow<daily.stockTarget) return daily;
     const tomorrow=aiWorldDailyTask(1);
@@ -8895,7 +9029,34 @@ const AUDIO = (function(){
     if(aiWorldBusy)return;
     const keys=aiWorldKeys(); if(!keys.length){ aiWorldStatus(T('aiworld_no_key'), 'bad'); return; }
     aiWorldBusy=true; const task=aiWorldNextTask(); aiWorldStatus(T('aiworld_generating',task.label), 'wait');
-    try{ let last=null; for(const key of keys){ const res=await GeminiWorldAdapter.generateJSON({apiKey:key,systemInstruction:aiWorldSystemPrompt(),userText:aiWorldUserPrompt(task),schema:AI_WORLD_SCHEMA}); last=res; if(res.ok){ aiWorldLastModel=res.model||'—'; const pack=aiWorldParsePack(res.text), future=task.day>aiWorldCalendarDay(); const added=AIWorldDB.add(pack.items,task,future?'':pack.memorySummary,future?null:pack.relations,res.model||''); if(!added){ const msg=T('aiworld_err_empty'); AIWorldDB.markError(msg); aiWorldStatus(msg,'bad'); renderAIWorld(); return; } AIWorldDB.prune(360); aiWorldStatus(T('aiworld_generated',added,res.model||'—'), 'ok'); renderAIWorld(); if(currentScreen==='s-world') renderWorld(); return; } } const msg=aiWorldErrorText(last); AIWorldDB.markError(msg); aiWorldStatus(msg, 'bad'); }catch(e){ const msg=aiWorldErrorText(e); AIWorldDB.markError(msg); aiWorldStatus(msg, 'bad'); }finally{ aiWorldBusy=false; renderAIWorld(); }
+    try{
+      let last=null;
+      for(const key of keys){
+        const userText=task.story?AIStory.prompt(task):aiWorldUserPrompt(task);
+        const res=await GeminiWorldAdapter.generateJSON({apiKey:key,systemInstruction:aiWorldSystemPrompt(),userText,schema:AI_WORLD_SCHEMA});
+        last=res;
+        if(!res.ok)continue;
+        aiWorldLastModel=res.model||'—';
+        const pack=aiWorldParsePack(res.text), future=task.day>aiWorldCalendarDay();
+        const sharedMemory=(future||task.story)?'':pack.memorySummary;
+        const sharedRelations=(future||task.story)?null:pack.relations;
+        const added=AIWorldDB.add(pack.items,task,sharedMemory,sharedRelations,res.model||'');
+        if(!added){
+          const msg=T('aiworld_err_empty'); AIWorldDB.markError(msg); aiWorldStatus(msg,'bad'); renderAIWorld(); return;
+        }
+        AIStory.afterGenerated(task,pack.memorySummary);
+        AIWorldDB.prune(360);
+        aiWorldStatus(T('aiworld_generated',added,res.model||'—'),'ok');
+        renderAIWorld();
+        if(currentScreen==='s-world')renderWorld();
+        return;
+      }
+      const msg=aiWorldErrorText(last); AIWorldDB.markError(msg); aiWorldStatus(msg,'bad');
+    }catch(e){
+      const msg=aiWorldErrorText(e); AIWorldDB.markError(msg); aiWorldStatus(msg,'bad');
+    }finally{
+      aiWorldBusy=false; renderAIWorld();
+    }
   }
   function aiWorldStartFixedTimer(){
     if(aiWorldTimerStarted) return;
@@ -8905,24 +9066,18 @@ const AUDIO = (function(){
   async function aiWorldRefreshModels(){ const keys=aiWorldKeys(); if(!keys.length){ aiWorldStatus(T('aiworld_no_key'), 'bad'); return; } aiWorldStatus(T('aiworld_generating','ListModels'), 'wait'); try{ GeminiWorldAdapter.invalidateModels(); const models=await GeminiWorldAdapter.peekModels(keys[0]); aiWorldLastModel=models[0]?.name||'—'; aiWorldStatus(T('aiworld_model_ok',models.slice(0,5).map(m=>m.name).join(' / ')||'—'), 'ok'); }catch(e){ aiWorldStatus(aiWorldErrorText(e), 'bad'); } }
   function renderAIWorld(){
     AIWorldDB.migrateContexts();
+    AIWorldDB.migrateContent();
     const keyWrap=$('#aiworld-key-rows');
     if(keyWrap){ keyWrap.innerHTML=''; const keys=(store.aiKeys&&store.aiKeys.length?store.aiKeys:['']).slice(0,4); keys.forEach((k,i)=>{ const row=el('div','ai-key-row'); row.innerHTML='<input type="password" value="" placeholder="'+T('aiworld_key_ph',i+1)+'" autocomplete="off"><div class="btn small ghost foc">×</div>'; const inp=row.querySelector('input'); inp.value=k||''; inp.oninput=()=>{ keys[i]=inp.value; store.aiKeys=keys; }; row.querySelector('.btn').onclick=()=>{ store.aiKeys=keys.filter((_,j)=>j!==i); if(!store.aiKeys.length)store.aiKeys=['']; store.save(); renderAIWorld(); }; keyWrap.appendChild(row); }); }
     const counts=AIWorldDB.counts(), cwrap=$('#aiworld-counts');
     if(cwrap){ cwrap.innerHTML=''; AIWorldDB.types.forEach(t=>{ cwrap.appendChild(el('div','aiworld-count','<span class="nm">'+worldEsc(worldLabel(t))+'</span><span class="val">'+(counts[t]||0)+'</span>')); }); }
     const prev=$('#aiworld-preview');
     if(prev){ const meta=AIWorldDB.meta(), wait=Math.max(0,Math.ceil((aiWorldNextAllowedAt-Date.now())/1000)), generated=meta.lastGeneratedAt?new Date(meta.lastGeneratedAt).toLocaleString():'—', rows=aiWorldStockRows(), vi=aiWorldLang()==='vi'; prev.innerHTML='<div class="aiworld-item"><div class="meta">'+(vi?'Thông tin tạo':'生成情報')+'</div><div class="txt">Day '+aiWorldCalendarDay()+'　'+(vi?'Gói ':'パック ')+(meta.packs||0)+'　'+(vi?'Lần sau ':'次回 ')+wait+(vi?' giây':'秒')+'<br>'+(vi?'Model ':'モデル ')+worldEsc(meta.lastModel||aiWorldLastModel||'—')+'　'+(vi?'Lần cuối ':'最終 ')+worldEsc(generated)+(meta.lastError?'<br>'+(vi?'Lỗi ':'エラー ')+worldEsc(meta.lastError):'')+'</div></div><div class="ai-stock-grid">'+rows.map(r=>'<div class="ai-stock-row"><span class="nm">'+worldEsc(r[0])+'</span><span class="val">'+r[1]+'/'+r[2]+'</span></div>').join('')+'</div>'; }
-    const auto=$('#aiworld-auto'); if(auto)auto.textContent=T('aiworld_auto','2分固定');
     const st=$('#aiworld-status'); if(st&&st.textContent==='—')aiWorldStatus(T('aiworld_idle')+'\n'+(aiWorldLang()==='vi'?'model: ':'モデル: ')+aiWorldLastModel);
   }
 
   function worldEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function worldLabel(type){ return T('world_'+type); }
-  function worldCardHTML(x, cls){
-    const who=x.speaker ? worldEsc(x.speaker)+'「' : '';
-    const close=x.speaker ? '」' : '';
-    const sub=[x.continuity, (x.tags||[]).join(' / ')].filter(Boolean).map(worldEsc).join(' ・ ');
-    return '<div class="world-card'+(cls?' '+cls:'')+'"><div class="meta">Day '+worldEsc(x.day)+' / '+worldEsc(x.theme)+'</div><div class="txt">'+who+worldEsc(x.text)+close+'</div>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>';
-  }
   function renderWorld(){
     const list=$('#world-list'); if(!list)return;
     const day=aiWorldCalendarDay(), theme=aiWorldThemeForDate();
@@ -9003,7 +9158,6 @@ const AUDIO = (function(){
   $('#aiworld-save-keys').onclick=()=>{ store.aiKeys=(store.aiKeys||['']).map(k=>String(k||'').trim()).filter(Boolean); if(!store.aiKeys.length) store.aiKeys=['']; store.save(); AUDIO.confirm(); aiWorldStatus(T('aiworld_saved')); renderAIWorld(); };
   $('#aiworld-refresh-models').onclick=()=>{ AUDIO.confirm(); aiWorldRefreshModels(); };
   $('#aiworld-generate').onclick=()=>{ AUDIO.confirm(); aiWorldGenerateOnce(); };
-  $('#aiworld-auto').onclick=()=>{ AUDIO.confirm(); aiWorldStatus(aiWorldLang()==='vi'?'Bổ sung lần đầu sau 30 giây, sau đó mỗi 2 phút.':'起動30秒後、その後2分ごとに補充します'); };
   $('#world-close').onclick=()=>{ AUDIO.back(); buildTitle(); show('s-title'); };
 
   /* ============================================================
@@ -9164,9 +9318,6 @@ const AUDIO = (function(){
     _wired:false, _workerURL:null, _cancel:null, _engineLabel:'—'
   };
   function bsimClone(o){ return JSON.parse(JSON.stringify(o)); }
-  function bsimBaseSuitCost(e){
-    return e.place === 'card' ? ((e.suitCost != null) ? e.suitCost : (e.cost + RL.SUIT_SURCHARGE)) : null;
-  }
   function bsimCost(id){
     return (BAL.costs && BAL.costs[id] != null) ? BAL.costs[id] : BSIM_DEFAULT_COST[id];
   }
@@ -9647,6 +9798,7 @@ const AUDIO = (function(){
     applyGfx();   // 保存された画質設定を反映(高品質ならステージに gfx-hi を付与)
     applyStaticLang();
     AIWorldDB.migrateContexts();
+    AIWorldDB.migrateContent();
     buildTitle();
     show('s-title');
     aiWorldStartFixedTimer();
