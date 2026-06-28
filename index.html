@@ -212,7 +212,7 @@
   .worldline.show{ display:block; }
   .worldline .who{ font-size:24px; font-weight:900; color:#8a681e; margin-bottom:3px; }
   .worldline .txt{ font-size:31px; font-weight:900; line-height:1.28; }
-  #title-worldline{ position:absolute; top:324px; left:50%; transform:translateX(-50%); width:980px; text-align:center; z-index:2; }
+  #title-worldline{ position:absolute; top:306px; left:50%; transform:translateX(-50%); width:1052px; min-height:112px; max-height:138px; overflow:hidden; text-align:center; z-index:2; }
   #map-worldline{ max-width:1120px; margin:0 auto 14px; text-align:center; }
   #result-worldline{ width:100%; }
   .cardfan{ position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; pointer-events:none; }
@@ -1115,25 +1115,28 @@
   .run-digest .dg-title .tx{ font-size:32px; font-weight:900; color:#fff4bd; }
   .run-digest .dg-title .ds{ font-size:23px; font-weight:800; color:#cdd6ff; margin-top:2px; }
   .run-digest .dg-stats{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:center; margin-top:16px; font-size:27px; font-weight:800; color:#e7ecff; }
-  #s-runover .ovl-page{ align-items:flex-start; padding:116px 44px 30px; overflow-y:auto; }
+  #s-runover .ovl-page{ align-items:flex-start; padding:116px 44px 30px; overflow:hidden; }
   #s-runover .card-modal{
-    width:100%; max-width:1680px !important; max-height:calc(100vh - 150px); overflow-y:auto;
-    padding:28px 38px 30px !important; display:flex; flex-direction:column;
+    width:100%; max-width:1820px !important; height:930px; overflow:hidden;
+    padding:28px 38px 30px !important; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:18px;
     background:linear-gradient(180deg,#fffdf4 0%,#f3e5bf 100%); color:#1f2440; border-color:#8d6b2e;
   }
+  #s-runover .runover-layout{ min-height:0; display:grid; grid-template-columns:minmax(410px,.62fr) minmax(0,1.38fr); gap:30px; align-items:stretch; }
+  #s-runover .runover-summary{ min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; border-right:4px solid rgba(86,63,25,.22); }
+  #s-runover .runover-detail{ min-width:0; min-height:0; display:flex; align-items:center; }
   #s-runover .card-modal h2{ font-size:54px; line-height:1.05; margin-bottom:10px; color:#4b2f00; }
   #runover-body{ font-size:48px !important; line-height:1.2; margin:10px 0 14px !important; color:#1f2440; }
   #runover-body span{ color:#6e3d00 !important; }
   #runover-body .subrec{ font-size:36px; color:#3d4567; }
   #s-runover .runover-heat{ font-size:34px; color:#7a2d00; margin-top:8px; }
-  #s-runover .run-digest{ width:100%; max-width:1540px; margin:4px auto 20px; }
+  #s-runover .run-digest{ width:100%; max-width:none; margin:0; }
   #s-runover .run-digest .dg-title{ margin-bottom:16px; }
   #s-runover .run-digest .dg-title .ic{ font-size:52px; }
   #s-runover .run-digest .dg-title .tx{ font-size:40px; line-height:1.08; color:#5a3400; }
   #s-runover .run-digest .dg-title .ds{ font-size:28px; line-height:1.18; color:#3d4567; }
   #s-runover .run-digest .dg-h{ font-size:38px; color:#1f2440; margin-bottom:12px; }
   #s-runover .run-digest .dg-path{
-    max-height:330px; gap:12px; padding:8px; border:3px solid rgba(86,63,25,.28);
+    max-height:none; overflow:visible; gap:10px; padding:10px; border:3px solid rgba(86,63,25,.28);
     border-radius:16px; background:rgba(255,255,255,.62);
   }
   #s-runover .run-digest .dg-act{ font-size:30px; color:#4a5480; margin:10px 0 0; }
@@ -1145,6 +1148,15 @@
   #s-runover .run-digest .dg-node.elite{ background:#ffe8e5; color:#53201c; }
   #s-runover .run-digest .dg-tag{ font-size:22px; padding:2px 7px; }
   #s-runover .run-digest .dg-stats{ font-size:32px; line-height:1.2; color:#1f2440; gap:14px 32px; }
+  #s-runover .run-digest .dg-path.dense{ gap:7px; }
+  #s-runover .run-digest .dg-path.dense .dg-node{ font-size:24px; padding:6px 10px; }
+  #s-runover .run-digest .dg-path.dense .dg-tag{ font-size:18px; padding:1px 5px; }
+  #s-runover .run-digest .dg-path.dense .dg-act{ font-size:25px; margin-top:5px; }
+  #s-runover .run-digest .dg-path.x-dense{ gap:5px; }
+  #s-runover .run-digest .dg-path.x-dense .dg-node{ font-size:20px; padding:4px 7px; border-width:2px; }
+  #s-runover .run-digest .dg-path.x-dense .dg-tag{ font-size:16px; padding:0 4px; border-width:1px; }
+  #s-runover .run-digest .dg-path.x-dense .dg-act{ font-size:21px; margin-top:3px; }
+  #s-runover .rowbtns{ margin:0; justify-content:center; }
 
   /* ヘルプ/設定ページ */
   .page{ min-width:1200px; min-height:520px; }
@@ -1384,7 +1396,7 @@
   }
   #stage #s-title .logo .sub::before,
   #stage #s-title .logo .sub::after{ display:none; }
-  #stage #s-title .menu{ top:426px; }
+  #stage #s-title .menu{ top:470px; }
   #stage #title-lang{
     background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.12) 48%), linear-gradient(180deg,#ffffff,#e7ecff);
     color:#1f2440; border-color:#394161;
@@ -1648,9 +1660,15 @@
     <div class="topbar"><div class="title" data-i18n="runover_head">巡業しゅうりょう</div></div>
     <div class="ovl ovl-page active" style="background:transparent;">
       <div class="card-modal" style="text-align:center; max-width:1560px;">
-        <h2 id="runover-head">到達深度</h2>
-        <div id="runover-body" style="font-size:40px; font-weight:900; margin:16px 0;"></div>
-        <div id="runover-digest" class="run-digest"></div>
+        <div class="runover-layout">
+          <div class="runover-summary">
+            <h2 id="runover-head">到達深度</h2>
+            <div id="runover-body" style="font-size:40px; font-weight:900; margin:16px 0;"></div>
+          </div>
+          <div class="runover-detail">
+            <div id="runover-digest" class="run-digest"></div>
+          </div>
+        </div>
         <div class="rowbtns"><div class="btn primary foc" id="runover-ok" data-i18n="runover_ok">タイトルへ</div></div>
       </div>
     </div>
@@ -2340,13 +2358,15 @@ const RL = (function(){
     return !!(build && combo && combo.type==='single' && hasEffect(build, combo.cards[0], 'SPLIT'));
   }
   // 分裂より単騎専用効果を優先する場面か。ctx={state, handLen}(state が無い旧呼び出しでも越境は判定する)。
-  //   ★分裂は最低優先: 越境が同じ札に乗っていたら場の有無に関わらず分裂しない(数字無視で出す方を優先)。
+  //   ★分裂は最低優先: 越境、発動中の逆襲が同じ札に乗っていたら分裂しない。
   //     3返し/一撃は「場の単騎」に対してのみ意味があるので、その場面でだけ分裂を抑制する。
   function splitSuppressed(build, combo, ctx){
     const c=combo.cards[0];
     if(hasEffect(build,c,'WILD')) return true;             // 越境: 分裂より優先＝分裂処理なし(場の有無を問わない)
     if(!ctx || !ctx.state) return false;
     const state=ctx.state, f=fieldCombo(state);
+    if(ctx.handLen!=null && hasEffect(build,c,'WILD_IF_MOST')
+       && !state.players.some(pl=> !pl.finished && pl.hand.length > ctx.handLen)) return true; // 逆襲: 劣勢時だけ分裂より優先
     if(!f || f.type!=='single') return false;
     if(hasEffect(build,c,'CUT_TOP') && isTopSingle(state,f.key) && !isTopSingle(state,c)) return true; // 3返し
     if(hasEffect(build,c,'LAST_SUIT') && ctx.handLen===1) return true;          // 一撃
@@ -4085,6 +4105,20 @@ const RL = (function(){
         ok('逆襲: 劣勢なら単騎で階段場にも出せる', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
         g.field.suitLock=['S'];
         ok('逆襲: 劣勢ならスート縛りも無視する', comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
+      })();
+      // 分裂×逆襲: 逆襲が有効な劣勢時だけ「何でも出せる」を優先する。
+      (function(){
+        const g=newGame(defs.map(x=>({...x})),219);
+        const b=emptyBuild(); b.rankSlots['5']=['mi08','aka13'];
+        g.field.combo={type:'run',len:3,key:{rank:'9',suit:'S'},cards:[{rank:'7',suit:'S'},{rank:'8',suit:'S'},{rank:'9',suit:'S'}]};
+        g.field.card=g.field.combo.key; g.field.ownerIndex=1;
+        const setLens=(a,c,d,e)=>{ const ns=[a,c,d,e]; g.players.forEach((pl,k)=>{ pl.finished=false; pl.hand=[]; for(let i=0;i<ns[k];i++) pl.hand.push({rank:i===0?'5':'6',suit:'D'}); }); };
+        setLens(8,3,3,3);
+        const active=effectiveCombo(b,singleCombo({rank:'5',suit:'D'}),{state:g,handLen:8});
+        ok('分裂×逆襲: 劣勢時は逆襲優先で単騎のまま', active.type==='single' && comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
+        setLens(8,9,3,3);
+        const inactive=effectiveCombo(b,singleCombo({rank:'5',suit:'D'}),{state:g,handLen:8});
+        ok('分裂×逆襲: 逆襲が無効なら分裂して疑似ペア', inactive.type==='set' && inactive.split===true);
       })();
       // ボム押し付け: 単騎2をボムで切る → 直前owner に罰カード1枚。
       (function(){
@@ -8381,7 +8415,8 @@ const AUDIO = (function(){
       +'<span>'+T('digest_emblems', ownedGain, rndN)+'</span>'
       +rivalStats
       +'</div>';
-    return runTitleHTML(log)+'<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path">'+path+'</div>'+stats;
+    const pathDensity=log.length>28?' x-dense':(log.length>14?' dense':'');
+    return runTitleHTML(log)+'<div class="dg-h">'+T('digest_head')+'</div><div class="dg-path'+pathDensity+'">'+path+'</div>'+stats;
   }
   $('#runover-ok').onclick=()=>{ AUDIO.confirm(); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
   $('#rest-ok').onclick=()=> restContinue();   // ★v0.25 休憩→マップへ進む
