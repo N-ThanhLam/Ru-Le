@@ -1772,6 +1772,7 @@
             <div class="aiworld-status" id="aiworld-status">—</div>
             <div class="aiworld-actions">
               <div class="btn small primary foc" id="aiworld-generate" data-i18n="aiworld_generate">在庫を補充</div>
+              <div class="btn small react foc" id="aiworld-reset-story" data-i18n="aiworld_reset_story">物語を最初から</div>
             </div>
           </div>
           <div class="aiworld-panel">
@@ -4623,6 +4624,7 @@ const AUDIO = (function(){
       aiworld_close:'◀ もどる', aiworld_topbar:'AI世界', aiworld_api_h:'Gemini API', aiworld_api_note:'APIキーは端末内だけに保存。ゲーム本体はAIなしで動作します。',
       aiworld_add_key:'＋ キー追加', aiworld_save_keys:'保存', aiworld_refresh_models:'モデル確認', aiworld_stock_h:'コンテンツ在庫', aiworld_generate:'在庫を補充', aiworld_counts_h:'DB件数', aiworld_preview_h:'生成状況',
       aiworld_key_ph:'APIキー {0}', aiworld_no_key:'APIキー未入力', aiworld_saved:'APIキーを保存しました', aiworld_model_ok:'使用候補: {0}', aiworld_generating:'生成中… {0}', aiworld_generated:'{0}件追加しました（{1}）', aiworld_failed:'生成できませんでした: {0}', aiworld_idle:'待機中', aiworld_empty:'まだありません',
+      aiworld_reset_story:'物語を最初から', aiworld_reset_title:'物語をリセット', aiworld_reset_body:'生成済みの物語在庫、既読履歴、章の進行、物語の要約をすべて消して、第1章から始め直します。通常会話などは残ります。', aiworld_reset_ok:'リセットする', aiworld_reset_done:'物語を第1章・在庫0に戻しました（{0}件削除）',
       aiworld_wait:'次の補充まで {0}秒', aiworld_err_auth:'APIキーが通りません。キーを確認してください。', aiworld_err_rate:'制限または混雑中です。2分間隔のまま次回に回します。', aiworld_err_net:'通信できません。オフラインでもゲーム本体は遊べます。', aiworld_err_model:'使用できるGeminiモデルが見つかりません。モデル確認を試してください。', aiworld_err_empty:'生成内容が0件でした。メモリーは更新せず、次回に再試行します。', aiworld_err_other:'補充に失敗しました。次回の自動補充で再試行します。',
       world_close:'◀ もどる', world_topbar:'Ru-Leの世界', world_empty:'今日はまだ新しい話が届いていません。', world_today_title:'今日のRu-Le', world_theme:'今日のテーマ：{0}',
       world_tab_story:'連載物語を読む', world_tab_today:'今日の世界', world_story_empty:'ゲーム内で表示された物語はまだありません。', world_story_count:'既読{0}件・現在 第{1}章', world_chapter:'第{0}章',
@@ -4871,6 +4873,7 @@ const AUDIO = (function(){
       aiworld_close:'◀ Quay lại', aiworld_topbar:'Thế giới AI', aiworld_api_h:'Gemini API', aiworld_api_note:'API key chỉ lưu trên máy này. Game vẫn chạy khi không có AI.',
       aiworld_add_key:'＋ Thêm key', aiworld_save_keys:'Lưu', aiworld_refresh_models:'Kiểm tra model', aiworld_stock_h:'Kho nội dung', aiworld_generate:'Bổ sung kho', aiworld_counts_h:'Số lượng DB', aiworld_preview_h:'Trạng thái tạo',
       aiworld_key_ph:'API key {0}', aiworld_no_key:'Chưa nhập API key', aiworld_saved:'Đã lưu API key', aiworld_model_ok:'Ứng viên: {0}', aiworld_generating:'Đang tạo… {0}', aiworld_generated:'Đã thêm {0} mục ({1})', aiworld_failed:'Không tạo được: {0}', aiworld_idle:'Đang chờ', aiworld_empty:'Chưa có',
+      aiworld_reset_story:'Bắt đầu lại truyện', aiworld_reset_title:'Đặt lại truyện', aiworld_reset_body:'Xóa toàn bộ kho truyện, lịch sử đã đọc, tiến độ chương và bản tóm tắt rồi bắt đầu lại từ Chương 1. Hội thoại thường vẫn được giữ lại.', aiworld_reset_ok:'Đặt lại', aiworld_reset_done:'Đã đưa truyện về Chương 1, kho 0 (xóa {0} mục)',
       aiworld_wait:'Lần bổ sung tiếp theo sau {0} giây', aiworld_err_auth:'API key không hợp lệ. Hãy kiểm tra lại key.', aiworld_err_rate:'Đang bị giới hạn hoặc máy chủ bận. Sẽ thử lại theo nhịp 2 phút.', aiworld_err_net:'Không kết nối được. Game vẫn chơi được khi offline.', aiworld_err_model:'Không tìm thấy model Gemini dùng được. Hãy thử kiểm tra model.', aiworld_err_empty:'Không có nội dung nào được tạo. Bộ nhớ không được cập nhật và sẽ thử lại lần sau.', aiworld_err_other:'Bổ sung thất bại. Sẽ thử lại ở lần tự động tiếp theo.',
       world_close:'◀ Quay lại', world_topbar:'Thế giới Ru-Le', world_empty:'Hôm nay chưa có tin mới.', world_today_title:'Ru-Le hôm nay', world_theme:'Chủ đề hôm nay: {0}',
       world_tab_story:'Đọc truyện dài kỳ', world_tab_today:'Thế giới hôm nay', world_story_empty:'Chưa có đoạn truyện nào xuất hiện trong game.', world_story_count:'Đã đọc {0} mục・Hiện tại Chương {1}', world_chapter:'Chương {0}',
@@ -7815,7 +7818,7 @@ const AUDIO = (function(){
     let item=null; try{ item=AIStory.pick(context); }catch(e){}
     if(!item||!item.text)return false;
     const who=worldLineEsc(item.speaker||fallbackSpeaker||'物語');
-    const maxLen=context==='title'?58:(context==='map'?70:76);
+    const maxLen=76;
     box.innerHTML='<div class="who">'+who+'</div><div class="txt">'+worldLineEsc(String(item.text).slice(0,maxLen))+'</div>';
     box.classList.add('show','storyline');
     AIStory.markShown(item,context);
@@ -8783,7 +8786,8 @@ const AUDIO = (function(){
         return pick;
       },
       recent(n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>all.push(x))); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
-      usedStory(){ const db=load(), atById=new Map(); Object.values(db._meta.useLog||{}).forEach(log=>(Array.isArray(log)?log:[]).forEach(u=>{ const id=String(u&&u.id||u||''); if(id)atById.set(id,Math.max(atById.get(id)||0,Number(u&&u.at)||0)); })); const out=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!atById.has(x.id)||!(x.tags||[]).map(String).includes('story'))return; out.push({...x,shownAt:new Date(atById.get(x.id)||Date.parse(x.createdAt)||Date.now()).toISOString()}); })); return out; }
+      usedStory(){ const db=load(), atById=new Map(); Object.values(db._meta.useLog||{}).forEach(log=>(Array.isArray(log)?log:[]).forEach(u=>{ const id=String(u&&u.id||u||''); if(id)atById.set(id,Math.max(atById.get(id)||0,Number(u&&u.at)||0)); })); const out=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!atById.has(x.id)||!(x.tags||[]).map(String).includes('story'))return; out.push({...x,shownAt:new Date(atById.get(x.id)||Date.parse(x.createdAt)||Date.now()).toISOString()}); })); return out; },
+      resetStory(){ const db=load(), removedIds=new Set(); let removed=0; TYPES.forEach(t=>{ db[t]=(db[t]||[]).filter(x=>{ const story=(x.tags||[]).map(String).includes('story')||!!x.storyKey; if(story){ removed++; if(x.id)removedIds.add(String(x.id)); } return !story; }); }); Object.keys(db._meta.useLog||{}).forEach(k=>{ db._meta.useLog[k]=(db._meta.useLog[k]||[]).filter(u=>!removedIds.has(String(u&&u.id||u||''))); }); db._meta.useCycles={}; save(db); return removed; }
     };
   })();
 
@@ -8794,7 +8798,7 @@ const AUDIO = (function(){
      - 読み物画面ではなく、タイトル/対戦/マップ/結果へ1件ずつ差し込む。
      ============================================================ */
   const AIStory = (function(){
-    const KEY='rule_ai_story_v1', MAX_CHAPTER=6;
+    const KEY='rule_ai_story_v1', MAX_CHAPTER=6, STORY_CHAPTER_SIZE=12, STORY_FORMAT_TAG='story-format:3';
     const ARCS=[
       {
         id:'missing_winner', title:'名前のない優勝者',
@@ -8833,7 +8837,7 @@ const AUDIO = (function(){
     const load=()=>{ try{ const x=JSON.parse(localStorage.getItem(KEY)||'null'); return x&&x.version===1?Object.assign(fresh(x.season||0),x):fresh(0); }catch(e){ return fresh(0); } };
     const save=s=>{ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} return s; };
     const arcFor=s=>ARCS.find(a=>a.id===s.arcId)||ARCS[0];
-    const tagsFor=s=>['story','arc:'+s.arcId,'season:'+s.season,'chapter:'+s.chapter];
+    const tagsFor=s=>['story',STORY_FORMAT_TAG,'arc:'+s.arcId,'season:'+s.season,'chapter:'+s.chapter];
     const keyFor=s=>[s.arcId,s.season,s.chapter].join('|');
     const storyItems=s=>{
       const key=keyFor(s), required=tagsFor(s);
@@ -8841,14 +8845,16 @@ const AUDIO = (function(){
       ['conversation','event','news','rumor','diary'].forEach(t=>AIWorldDB.list(t,500).forEach(x=>{
         if((x.lang||'ja')!==aiWorldLang())return false;
         const tags=new Set((x.tags||[]).map(String));
+        if(!tags.has(STORY_FORMAT_TAG))return;
         if(x.storyKey!==key&&!required.every(tag=>tags.has(tag)))return;
         out.push(x);
       }));
       return out.sort((a,b)=>(Number(a.storyOrder)||9999)-(Number(b.storyOrder)||9999)||String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.id||'').localeCompare(String(b.id||'')));
     };
     const shownIds=s=>new Set((Array.isArray(s.revealed)?s.revealed:[]).map(x=>String(x.id||'')).concat(AIWorldDB.usedStory().map(x=>String(x.id||''))));
-    const stock=s=>storyItems(s).length;
-    const readStock=s=>{ const shown=shownIds(s); return storyItems(s).filter(x=>shown.has(String(x.id||''))).length; };
+    const chapterItems=s=>storyItems(s).slice(0,STORY_CHAPTER_SIZE);
+    const stock=s=>Math.min(storyItems(s).length,STORY_CHAPTER_SIZE);
+    const readStock=s=>{ const shown=shownIds(s); return chapterItems(s).filter(x=>shown.has(String(x.id||''))).length; };
     const recentStoryText=s=>{
       const seen=new Set(), rows=(Array.isArray(s.revealed)?s.revealed:[]).concat(AIWorldDB.usedStory()).filter(x=>(x.lang||'ja')===aiWorldLang()&&Number(x.season||0)===Number(s.season||0));
       return rows.sort((a,b)=>String(a.shownAt||'').localeCompare(String(b.shownAt||''))).filter(x=>{ const id=String(x.id||''); if(id&&seen.has(id))return false; if(id)seen.add(id); return true; }).slice(-60).map(x=>{
@@ -8857,8 +8863,8 @@ const AUDIO = (function(){
       }).join('\n');
     };
     function advanceIfComplete(s){
-      const items=storyItems(s), shown=shownIds(s);
-      if(items.length<18||items.some(x=>!shown.has(String(x.id||''))))return s;
+      const items=chapterItems(s), shown=shownIds(s);
+      if(items.length<STORY_CHAPTER_SIZE||items.some(x=>!shown.has(String(x.id||''))))return s;
       if(s.chapter<MAX_CHAPTER){ s.chapter++; s.progress=0; return s; }
       const next=fresh((s.season||0)+1);
       next.facts=['前の事件を解決した']; next.revealed=(s.revealed||[]).slice(-600);
@@ -8866,49 +8872,74 @@ const AUDIO = (function(){
     }
     const playerName=()=>String(store.playerProfile?.name||T('you')).slice(0,12);
     const rivalName=()=>{ try{ RIVAL.ensure(); return RIVAL.get(0)?.name||T('rival_word'); }catch(e){ return T('rival_word'); } };
+    const storyCastPrompt=s=>{
+      RIVAL.ensure();
+      const p=store.playerProfile||{name:playerName(),gender:'未設定',job:'旅札師'}, vi=aiWorldLang()==='vi';
+      const rows=[vi
+        ? `Nhân vật chính ${p.name}: ${aiWorldProfileWord(p.gender)}, ${aiWorldProfileWord(p.job)}. Đây là người chơi; không tự đặt lời nói, suy nghĩ hay hành động.`
+        : `主人公 ${p.name}: ${p.gender}、${p.job}。プレイヤー本人。未確認の発言・考え・行動を勝手に作らない。`];
+      store.rivals.forEach((r,i)=>rows.push(vi
+        ? `Đối thủ ${i+1} ${r.name}: ${aiWorldProfileWord(r.gender)}, ${aiWorldProfileWord(r.job)}.`
+        : `宿敵${i+1} ${r.name}: ${r.gender}、${r.job}。${rivalStyleLine(i,null)}`));
+      if(store.rivals.length){
+        const a=store.rivals[(s.chapter||0)%store.rivals.length], b=store.rivals[((s.chapter||0)+1)%store.rivals.length];
+        rows.push(vi?`Nhân vật trung tâm ưu tiên của chương này: ${a.name} và ${b.name}.`:`この章の優先中心人物: ${a.name} と ${b.name}。`);
+      }
+      return rows.join('\n');
+    };
     const factText=s=>s.facts.slice(-8).join(' / ')||'まだ目立った戦績はない';
     function task(){
       let s=load(); const beforeKey=keyFor(s); s=advanceIfComplete(s); if(keyFor(s)!==beforeKey)save(s);
-      const arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)], n=stock(s), read=readStock(s), recentStory=recentStoryText(s);
+      const arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)], n=stock(s), read=readStock(s), recentStory=recentStoryText(s), cast=storyCastPrompt(s);
       const label=aiWorldLang()==='vi'?('Truyện Chương '+(s.chapter+1)):('物語 第'+(s.chapter+1)+'章');
       const canon=(s.canonByLang&&s.canonByLang[aiWorldLang()])||(aiWorldLang()==='ja'?s.canon:'');
       return {id:'story_arc',lang:aiWorldLang(),type:'conversation',types:['conversation','event','news','rumor','diary'],
-        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:Math.max(1,18-n),label,context:'battle',stockTarget:18,stockNow:n,readNow:read,
-        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,canon,recentStory,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
+        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:Math.max(1,STORY_CHAPTER_SIZE-n),label,context:'battle',stockTarget:STORY_CHAPTER_SIZE,stockNow:n,readNow:read,
+        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,canon,recentStory,cast,stockNow:n,chapterSize:STORY_CHAPTER_SIZE,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
     }
     function prompt(task){
       const q=task.storyState, vi=aiWorldLang()==='vi';
       if(vi) return [
-        'Viết một gói mẩu truyện nối tiếp xuất hiện trong lúc chơi game bài Ru-Le.',
-        'Không viết bài dài. Mỗi item chỉ 12-55 ký tự, là một câu thoại, tin đồn hoặc phát hiện ngắn.',
+        'Viết một chương truyện bí ẩn nối tiếp cho game bài Ru-Le, dễ hiểu và thật cuốn hút với trẻ 12 tuổi.',
+        'Đây không phải các câu ngẫu nhiên. Đây là một chuỗi '+q.chapterSize+' bước, người chơi sẽ đọc đúng theo order.',
         'Tên truyện: '+q.title,'Tiền đề: '+q.premise,'Sự thật bí mật, tuyệt đối chưa nói hết: '+q.truth,
         'Chương hiện tại '+(q.chapter+1)+': '+q.hook,'Manh mối được phép lộ: '+q.clue,
-        'Người chơi: '+q.playerName,'Đối thủ: '+q.rivalName,'Sự kiện chơi gần đây: '+q.facts,
+        'Người chơi: '+q.playerName,'Đối thủ chính lúc đầu: '+q.rivalName,'Sự kiện chơi gần đây: '+q.facts,
+        'Dàn nhân vật người chơi đã thiết lập. Phải giữ đúng tên, giới tính, nghề và tính cách:\n'+q.cast,
         q.canon?'Nội dung đã công khai: '+q.canon:'',
         q.recentStory?'Các đoạn truyện người chơi đã thực sự thấy, theo thứ tự:\n'+q.recentStory:'',
-        'Tạo đúng '+task.count+' items. Chia context theo tỷ lệ title 2, battle 8, map 4, result 4.',
-        'Gán order từ 1 đến 18. Trong từng context, đọc theo order phải thành một chuỗi diễn biến tự nhiên và không được lặp lại cùng một thông tin.',
-        'Mỗi context phải tự hiểu được ngay cả khi người chơi chưa thấy item của context khác. Các item cuối của mỗi context phải dẫn tự nhiên sang chương sau.',
-        'battle phải là câu có thể bật lên giữa lượt chơi. result phản ứng theo thành tích gần đây. map là phát hiện trên đường.',
+        'Tạo đúng '+task.count+' items còn thiếu. Gán order liên tiếp từ '+(q.stockNow+1)+' đến '+q.chapterSize+'. context luôn là battle.',
+        'Mỗi item dài 18-65 ký tự, chỉ chứa một hành động, lời nói hoặc phát hiện cụ thể. Không viết câu giới thiệu mơ hồ.',
+        'Nhịp đủ '+q.chapterSize+' bước: 1 mở bằng sự việc cụ thể; 2-3 nhân vật phản ứng; 4 xuất hiện nghi ngờ; 5-6 có trở ngại và mâu thuẫn; 7 có manh mối bất ngờ; 8-9 manh mối làm thay đổi cách hiểu; 10 nhân vật phải quyết định; 11 hé lộ một câu trả lời nhỏ; 12 kết bằng câu hỏi hoặc nguy cơ cụ thể cho chương sau.',
+        'Mỗi bước phải do bước trước gây ra. Không lặp lại cùng một manh mối bằng cách đổi từ. Cho nhân vật hành động và bất đồng, không để họ chỉ giải thích cốt truyện.',
+        'Chọn 2-3 nhân vật đã thiết lập làm trung tâm chương này và dùng đúng tên của họ. Luân phiên vai chính giữa các chương để cả bốn đối thủ đều có việc quan trọng.',
+        'Không tạo nhân vật thay thế nếu nhân vật đã thiết lập có thể làm việc đó. Không bắt nhân vật chính nói, nghĩ hoặc làm điều người chơi chưa thực hiện.',
+        'Câu thoại phải ghi speaker là đúng tên người nói. Chỉ lời kể mới dùng speaker “Câu chuyện”.',
         'Mỗi item.tags phải có story, arc:'+q.arcId+', chapter:'+q.chapter+'. Không tiết lộ sự thật cuối cùng trước chương cuối.',
-        'Kết thúc gói bằng 2-3 câu khiến người chơi tò mò về bước tiếp theo. Dùng từ đơn giản cho trẻ 12 tuổi.',
+        'Dùng câu ngắn, từ quen thuộc, hội thoại tự nhiên. Không thơ, không từ cổ, không triết lý, không diễn văn, không cố tỏ ra ngầu.',
+        'Chương phải có một thay đổi thật sự: sau câu cuối, người chơi phải biết hoặc lo một điều mà đầu chương chưa có.',
         'memorySummary ghi lại sự thật, manh mối đã lộ và việc còn dang dở trong tối đa 300 ký tự.'
       ].join('\n');
       return [
-        'カードゲームRu-Leのプレイ中に少しずつ進む連載物語パックを作る。',
-        '長文記事は禁止。各itemは12〜55文字の、会話・噂・発見・短い新聞文のどれか。',
+        'カードゲームRu-Leで少しずつ読む、12歳が夢中になれる連続ミステリーの1章を作る。',
+        '無関係な一言集ではない。全'+q.chapterSize+'段階をorder順に読むと、一つの事件が因果関係で進む構成にする。',
         '物語名: '+q.title,'発端: '+q.premise,'秘密の真相（最終章まで全部は明かさない）: '+q.truth,
         '現在の第'+(q.chapter+1)+'章: '+q.hook,'今回明かしてよい手がかり: '+q.clue,
-        '主人公: '+q.playerName,'宿敵: '+q.rivalName,'直近のプレイ事実: '+q.facts,
+        '主人公: '+q.playerName,'最初の中心宿敵: '+q.rivalName,'直近のプレイ事実: '+q.facts,
+        'プレイヤーが設定した登場人物。名前・性別・職業・話し方を必ず守る:\n'+q.cast,
         q.canon?'公開済みの物語記憶: '+q.canon:'',
         q.recentStory?'プレイヤーが実際に見た物語（表示順）:\n'+q.recentStory:'',
-        'itemsを必ず'+task.count+'件作る。contextは title 2、battle 8、map 4、result 4 の比率で分ける。',
-        '全itemにorderを1〜18で付ける。同じcontextの文だけをorder順に読んでも、情報の重複がなく自然に事件が進む連続文にする。',
-        '別contextの文を未読でも意味が通じるようにする。各contextの最後は次章へ自然につながる引きにする。',
-        'battleは対戦中に突然出ても自然な短いセリフ。resultは直近の成績や戦い方を物語へ結びつける。mapは道中で見つける手がかり。',
+        '不足分のitemsを必ず'+task.count+'件作る。orderは'+(q.stockNow+1)+'から'+q.chapterSize+'まで連番。contextはすべてbattle。',
+        '各itemは18〜65文字。一つの具体的な行動・会話・発見だけを書く。何かが起きそう、空気が変わった、など中身のない予告は禁止。',
+        '全'+q.chapterSize+'段階の役割: 1具体的な事件、2-3人物の反応、4疑い、5-6邪魔や対立、7予想外の手がかり、8-9手がかりで見方が変わる、10人物が決断、11小さな答えを一つ明かす、12次章へ続く具体的な疑問か危険。',
+        '必ず前の段階が次の原因になるようにつなぐ。同じ手がかりの言い換えで水増ししない。人物は行動し、意見がぶつかる。説明役として並べない。',
+        'この章の中心人物として設定人物から2〜3人を選び、必ず設定名で登場させる。章ごとに中心人物を交代し、4人の宿敵全員へ重要な役割を回す。',
+        '設定人物で足りる役に代役の新人物を作らない。主人公には、プレイヤーがまだしていない発言・考え・行動を勝手に与えない。',
+        '会話文のspeakerは実際に話す設定人物の名前にする。地の文だけspeakerを「物語」にする。',
         '全itemのtagsに story、arc:'+q.arcId+'、chapter:'+q.chapter+' を必ず入れる。',
-        'プレイヤーがまだしていない行動を事実にしない。真相を早く説明し切らない。最後の2〜3件は次が気になる引きにする。',
-        '現代の12歳がすぐ分かる普通の言葉を使う。格好つけた言い回しや難しい単語は禁止。',
+        'プレイヤーがまだしていない行動を事実にしない。最終章までは秘密の真相を説明し切らない。',
+        '現代の12歳が一読で分かる短い普通の言葉だけを使う。詩、古語、哲学、演説、格好つけた言い回し、難しい漢語は禁止。',
+        '章の最初と最後で状況を必ず変える。最後には、最初には無かった新しい知識か具体的な心配をプレイヤーへ残す。',
         'memorySummaryには真相、公開済みの手がかり、未解決の点を300文字以内で残す。'
       ].join('\n');
     }
@@ -8931,7 +8962,8 @@ const AUDIO = (function(){
       return {id:'local-story-'+key+'-'+i,type:'event',context,speaker:context==='battle'?rival:(aiWorldLang()==='vi'?'Câu chuyện':'物語'),text:arr[i],tags:tagsFor(s)};
     }
     function pick(context){
-      const s=load(), shown=shownIds(s), queue=storyItems(s).filter(x=>x.context===context);
+      // 物語は画面別に枝分かれさせず、どの画面でも章の次の1文だけを順番に出す。
+      const s=load(), shown=shownIds(s), queue=chapterItems(s);
       return queue.find(x=>!shown.has(String(x.id||'')))||localItem(context);
     }
     function recordAction(action, detail){
@@ -8993,7 +9025,8 @@ const AUDIO = (function(){
       items.sort((a,b)=>(a.season-b.season)||(a.chapter-b.chapter)||String(a.shownAt||'').localeCompare(String(b.shownAt||''))||String(a.id||'').localeCompare(String(b.id||'')));
       return {title:arc.title,chapter:s.chapter,season:s.season,items};
     }
-    return {task,prompt,pick,recordAction,recordResult,afterGenerated,markShown,reader};
+    function reset(){ try{ localStorage.removeItem(KEY); }catch(e){ save(fresh(0)); } }
+    return {task,prompt,pick,recordAction,recordResult,afterGenerated,markShown,reader,reset};
   })();
 
   const GeminiWorldAdapter = (function(){
@@ -9064,7 +9097,7 @@ const AUDIO = (function(){
     return AIWorldDB.list('conversation',360).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.day===day&&(x.tags||[]).includes(dateTag)&&(x.tags||[]).includes('scene:chatter')).length;
   }
   const AI_WORLD_SCHEMA={type:'OBJECT',properties:{items:{type:'ARRAY',items:{type:'OBJECT',properties:{type:{type:'STRING'},order:{type:'NUMBER'},day:{type:'NUMBER'},theme:{type:'STRING'},context:{type:'STRING'},speaker:{type:'STRING'},target:{type:'STRING'},text:{type:'STRING'},continuity:{type:'STRING'},tags:{type:'ARRAY',items:{type:'STRING'}}},required:['type','day','theme','context','text']}},memorySummary:{type:'STRING'},relations:{type:'ARRAY',items:{type:'OBJECT',properties:{pair:{type:'STRING'},state:{type:'STRING'}},required:['pair','state']}}},required:['items','memorySummary']};
-  let aiWorldBusy=false, aiWorldTaskIndex=0, aiWorldLastModel='—';
+  let aiWorldBusy=false, aiWorldTaskIndex=0, aiWorldLastModel='—', aiWorldResetEpoch=0;
   function aiWorldTaskStock(task){
     const tags=new Set((task.tags||[]).map(String)), types=task.types||[task.type]; let n=0;
     const scenes=new Set((task.sceneTags||[]).map(String));
@@ -9159,7 +9192,7 @@ const AUDIO = (function(){
     const keys=aiWorldKeys(); if(!keys.length){ aiWorldStatus(T('aiworld_no_key'), 'bad'); return; }
     const task=aiWorldNextTask();
     if(!task){ aiWorldStatus(aiWorldLang()==='vi'?'Kho đã đủ.':'在庫はすべて補充済みです。','ok'); return; }
-    aiWorldBusy=true; aiWorldStatus(T('aiworld_generating',task.label), 'wait');
+    aiWorldBusy=true; const generationEpoch=aiWorldResetEpoch; aiWorldStatus(T('aiworld_generating',task.label), 'wait');
     try{
       let last=null;
       for(const key of keys){
@@ -9167,6 +9200,7 @@ const AUDIO = (function(){
         const res=await GeminiWorldAdapter.generateJSON({apiKey:key,systemInstruction:aiWorldSystemPrompt(),userText,schema:AI_WORLD_SCHEMA});
         last=res;
         if(!res.ok)continue;
+        if(generationEpoch!==aiWorldResetEpoch)return;
         aiWorldLastModel=res.model||'—';
         const pack=aiWorldParsePack(res.text), future=task.day>aiWorldCalendarDay();
         const sharedMemory=(future||task.story)?'':pack.memorySummary;
@@ -9347,6 +9381,17 @@ const AUDIO = (function(){
   $('#aiworld-save-keys').onclick=()=>{ store.aiKeys=(store.aiKeys||['']).map(k=>String(k||'').trim()).filter(Boolean); if(!store.aiKeys.length) store.aiKeys=['']; store.save(); AUDIO.confirm(); aiWorldStatus(T('aiworld_saved')); renderAIWorld(); };
   $('#aiworld-refresh-models').onclick=()=>{ AUDIO.confirm(); aiWorldRefreshModels(); };
   $('#aiworld-generate').onclick=()=>{ AUDIO.confirm(); aiWorldGenerateOnce(); };
+  $('#aiworld-reset-story').onclick=()=>{
+    showConfirm(T('aiworld_reset_title'),T('aiworld_reset_body'),T('aiworld_reset_ok'),T('confirm_cancel'),()=>{
+      aiWorldResetEpoch++;
+      const removed=AIWorldDB.resetStory();
+      AIStory.reset();
+      aiWorldNextAllowedAt=Date.now()+AI_WORLD_FIRST_DELAY_MS;
+      renderAIWorld();
+      aiWorldStatus(T('aiworld_reset_done',removed),'ok');
+      AUDIO.confirm();
+    });
+  };
   $('#world-tab-story').onclick=()=>{ AUDIO.confirm(); worldViewMode='story'; renderWorld(); };
   $('#world-tab-today').onclick=()=>{ AUDIO.confirm(); worldViewMode='today'; renderWorld(); };
   $('#world-story-prev').onclick=()=>worldStoryScroll(-1);
