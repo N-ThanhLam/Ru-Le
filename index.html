@@ -965,7 +965,7 @@
   /* ページ型オーバーレイ(専用画面の中身を中央寄せするだけの透明レイヤ)は
      背面のトップバー(とじる等)へクリックを通すため pointer-events を無効化する。
      実モーダル(指名/ポーズ)は背景クリックを遮断したいので対象外。 */
-  .ovl-page{ pointer-events:none; }
+  .ovl-page{ top:96px; bottom:0; pointer-events:none; overflow:hidden; }
   .ovl-page .card-modal{ pointer-events:auto; }
   .card-modal{ background:var(--paper); border:6px solid var(--line); border-radius:26px; padding:34px 40px; box-shadow:0 24px 60px rgba(0,0,0,.6); max-width:1500px; }
   .card-modal h2{ font-size:46px; font-weight:900; text-align:center; margin-bottom:22px; color:var(--ink); }
@@ -978,7 +978,7 @@
   .rankrow .pl{ font-size:54px; font-weight:900; width:120px; }
   .rankrow .nm{ font-size:38px; font-weight:900; flex:1; }
   .rankrow .ti{ font-size:30px; font-weight:800; color:#444; }
-  #s-result .ovl-page{ align-items:flex-start; padding:116px 48px 34px; }
+  #s-result .ovl-page{ align-items:flex-start; padding:20px 48px 34px; }
   #s-result .card-modal{
     width:100%; max-width:1824px; min-height:0; height:930px;
     display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:18px;
@@ -1117,7 +1117,7 @@
   .run-digest .dg-title .tx{ font-size:32px; font-weight:900; color:#fff4bd; }
   .run-digest .dg-title .ds{ font-size:23px; font-weight:800; color:#cdd6ff; margin-top:2px; }
   .run-digest .dg-stats{ display:flex; flex-wrap:wrap; gap:14px 28px; justify-content:center; margin-top:16px; font-size:27px; font-weight:800; color:#e7ecff; }
-  #s-runover .ovl-page{ align-items:flex-start; padding:116px 44px 30px; overflow:hidden; }
+  #s-runover .ovl-page{ align-items:flex-start; padding:20px 44px 30px; overflow:hidden; }
   #s-runover .card-modal{
     width:100%; max-width:1820px !important; height:930px; overflow:hidden;
     padding:28px 38px 30px !important; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:18px;
@@ -1172,7 +1172,6 @@
   .setrow .nm{ font-size:34px; font-weight:900; flex:1; }
   .setrow .val{ font-size:32px; font-weight:900; color:#b25a00; min-width:220px; text-align:center; }
   #s-aiworld>.topbar{ z-index:60; }
-  #s-aiworld>.ovl-page{ top:96px; }
   .aiworld-page{ width:min(1500px, calc(100% - 120px)); max-height:calc(100% - 54px); overflow-y:auto; }
   .aiworld-grid{ display:grid; grid-template-columns:1.08fr .92fr; gap:22px; align-items:start; }
   .aiworld-panel{ background:#fff; border:5px solid var(--line); border-radius:16px; padding:18px; }
@@ -1188,6 +1187,7 @@
   .aiworld-status.wait{ color:#7a5d1b; }
   .aiworld-counts{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
   .aiworld-count{ background:#f2f5ff; border:3px solid #b8c1dd; border-radius:12px; padding:12px; display:flex; justify-content:space-between; gap:12px; align-items:center; }
+  .aiworld-count.story{ grid-column:1/-1; background:#fff4d6; border-color:#d18b2f; }
   .aiworld-count .nm{ font-size:23px; font-weight:900; color:#394260; }
   .aiworld-count .val{ font-size:30px; font-weight:900; color:#2e7d55; }
   .aiworld-preview{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
@@ -1214,7 +1214,7 @@
   .world-digest .theme{ color:#ffdf7a; font-size:25px; font-weight:900; text-align:center; margin-bottom:16px; }
   .world-digest .world-card{ padding:30px 34px; }
   .world-digest .world-card .txt{ font-size:34px; line-height:1.5; }
-  #s-set>.ovl-page{ align-items:flex-start; padding:116px 48px 34px; overflow-y:auto; }
+  #s-set>.ovl-page{ align-items:flex-start; padding:20px 48px 34px; overflow-y:auto; }
   #s-set>.ovl-page .card-modal.page{ width:min(1200px,calc(100% - 96px)); max-height:none; }
   /* ---- キーコンフィグ（1画面完結・スクロール無し） ---- */
   .keyswrap{ position:absolute; top:112px; left:80px; right:80px; bottom:36px; display:flex; flex-direction:column; gap:14px; }
@@ -5178,30 +5178,12 @@ const AUDIO = (function(){
 
   // クリックでもフォーカス追従
   document.addEventListener('click', e=>{
-    if(Date.now()-topBackPointerAt<700 && topBackPointerEl && (e.target===topBackPointerEl || topBackPointerEl.contains(e.target))){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      return;
-    }
     const f=e.target.closest('.foc');
     // エンブレム選択画面のカードは「1回目タップ=フォーカス移動／2回目タップ=セット」を
     // card.onclick 側で制御するため、ここでの自動フォーカスは行わない。
     if(f && f.classList.contains('emb') && f.closest('#s-emblem')){ AUDIO.ensure(); return; }
     if(f && focusables().includes(f)) setFocus(f);
     AUDIO.ensure();
-  }, true);
-
-  // 戻る系は画面の再描画と重なっても取りこぼさないよう、clickを待たず押下時点で処理する。
-  // clickは直後にもう一度発火するため、上の捕捉リスナーで短時間だけ抑止する。
-  let topBackPointerAt=0, topBackPointerEl=null;
-  document.addEventListener('pointerdown', e=>{
-    const btn=e.target.closest('.screen.active>.topbar .btn');
-    if(!btn || !/(?:back|close|leave)$/.test(btn.id||'')) return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    topBackPointerAt=Date.now();
-    topBackPointerEl=btn;
-    onBack();
   }, true);
 
   function closeAllOvl(){ /* ページ型以外の一時モーダルは画面をまたいで残さない */
@@ -9021,7 +9003,7 @@ const AUDIO = (function(){
     }catch(e){}
   }
   const AI_WORLD_FIRST_DELAY_MS=30*1000, AI_WORLD_INTERVAL_MS=120*1000;
-  let aiWorldNextAllowedAt=Date.now()+AI_WORLD_FIRST_DELAY_MS, aiWorldTimerStarted=false;
+  let aiWorldNextAllowedAt=Date.now()+AI_WORLD_FIRST_DELAY_MS, aiWorldTimerStarted=false, aiWorldTimerHandle=null;
   async function aiWorldGenerateOnce(){
     const now=Date.now();
     if(now<aiWorldNextAllowedAt){ aiWorldStatus(T('aiworld_wait', Math.ceil((aiWorldNextAllowedAt-now)/1000)), 'wait'); return; }
@@ -9046,7 +9028,9 @@ const AUDIO = (function(){
         }
         AIStory.afterGenerated(task,pack.memorySummary);
         AIWorldDB.prune(360);
-        aiWorldStatus(T('aiworld_generated',added,res.model||'—'),'ok');
+        const storyNow=task.story?AIStory.task():null;
+        const stockLine=storyNow?'\n'+(aiWorldLang()==='vi'?'Kho truyện ':'物語在庫 ')+storyNow.stockNow+'/'+storyNow.stockTarget:'';
+        aiWorldStatus(T('aiworld_generated',added,res.model||'—')+stockLine,'ok');
         renderAIWorld();
         if(currentScreen==='s-world')renderWorld();
         return;
@@ -9061,7 +9045,14 @@ const AUDIO = (function(){
   function aiWorldStartFixedTimer(){
     if(aiWorldTimerStarted) return;
     aiWorldTimerStarted=true;
-    setTimeout(function tick(){ aiWorldGenerateOnce(); setInterval(aiWorldGenerateOnce, AI_WORLD_INTERVAL_MS); }, AI_WORLD_FIRST_DELAY_MS);
+    const schedule=delay=>{
+      if(aiWorldTimerHandle)clearTimeout(aiWorldTimerHandle);
+      aiWorldTimerHandle=setTimeout(async function tick(){
+        await aiWorldGenerateOnce();
+        schedule(Math.max(250,aiWorldNextAllowedAt-Date.now()+100));
+      },Math.max(0,delay));
+    };
+    schedule(Math.max(0,aiWorldNextAllowedAt-Date.now()+100));
   }
   async function aiWorldRefreshModels(){ const keys=aiWorldKeys(); if(!keys.length){ aiWorldStatus(T('aiworld_no_key'), 'bad'); return; } aiWorldStatus(T('aiworld_generating','ListModels'), 'wait'); try{ GeminiWorldAdapter.invalidateModels(); const models=await GeminiWorldAdapter.peekModels(keys[0]); aiWorldLastModel=models[0]?.name||'—'; aiWorldStatus(T('aiworld_model_ok',models.slice(0,5).map(m=>m.name).join(' / ')||'—'), 'ok'); }catch(e){ aiWorldStatus(aiWorldErrorText(e), 'bad'); } }
   function renderAIWorld(){
@@ -9070,7 +9061,12 @@ const AUDIO = (function(){
     const keyWrap=$('#aiworld-key-rows');
     if(keyWrap){ keyWrap.innerHTML=''; const keys=(store.aiKeys&&store.aiKeys.length?store.aiKeys:['']).slice(0,4); keys.forEach((k,i)=>{ const row=el('div','ai-key-row'); row.innerHTML='<input type="password" value="" placeholder="'+T('aiworld_key_ph',i+1)+'" autocomplete="off"><div class="btn small ghost foc">×</div>'; const inp=row.querySelector('input'); inp.value=k||''; inp.oninput=()=>{ keys[i]=inp.value; store.aiKeys=keys; }; row.querySelector('.btn').onclick=()=>{ store.aiKeys=keys.filter((_,j)=>j!==i); if(!store.aiKeys.length)store.aiKeys=['']; store.save(); renderAIWorld(); }; keyWrap.appendChild(row); }); }
     const counts=AIWorldDB.counts(), cwrap=$('#aiworld-counts');
-    if(cwrap){ cwrap.innerHTML=''; AIWorldDB.types.forEach(t=>{ cwrap.appendChild(el('div','aiworld-count','<span class="nm">'+worldEsc(worldLabel(t))+'</span><span class="val">'+(counts[t]||0)+'</span>')); }); }
+    if(cwrap){
+      cwrap.innerHTML='';
+      const story=AIStory.task();
+      cwrap.appendChild(el('div','aiworld-count story','<span class="nm">'+worldEsc(story.label)+'</span><span class="val">'+story.stockNow+'/'+story.stockTarget+'</span>'));
+      AIWorldDB.types.forEach(t=>{ cwrap.appendChild(el('div','aiworld-count','<span class="nm">'+worldEsc(worldLabel(t))+'</span><span class="val">'+(counts[t]||0)+'</span>')); });
+    }
     const prev=$('#aiworld-preview');
     if(prev){ const meta=AIWorldDB.meta(), wait=Math.max(0,Math.ceil((aiWorldNextAllowedAt-Date.now())/1000)), generated=meta.lastGeneratedAt?new Date(meta.lastGeneratedAt).toLocaleString():'—', rows=aiWorldStockRows(), vi=aiWorldLang()==='vi'; prev.innerHTML='<div class="aiworld-item"><div class="meta">'+(vi?'Thông tin tạo':'生成情報')+'</div><div class="txt">Day '+aiWorldCalendarDay()+'　'+(vi?'Gói ':'パック ')+(meta.packs||0)+'　'+(vi?'Lần sau ':'次回 ')+wait+(vi?' giây':'秒')+'<br>'+(vi?'Model ':'モデル ')+worldEsc(meta.lastModel||aiWorldLastModel||'—')+'　'+(vi?'Lần cuối ':'最終 ')+worldEsc(generated)+(meta.lastError?'<br>'+(vi?'Lỗi ':'エラー ')+worldEsc(meta.lastError):'')+'</div></div><div class="ai-stock-grid">'+rows.map(r=>'<div class="ai-stock-row"><span class="nm">'+worldEsc(r[0])+'</span><span class="val">'+r[1]+'/'+r[2]+'</span></div>').join('')+'</div>'; }
     const st=$('#aiworld-status'); if(st&&st.textContent==='—')aiWorldStatus(T('aiworld_idle')+'\n'+(aiWorldLang()==='vi'?'model: ':'モデル: ')+aiWorldLastModel);
