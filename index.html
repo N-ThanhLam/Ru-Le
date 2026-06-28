@@ -1205,7 +1205,16 @@
   .world-head{ display:flex; align-items:center; justify-content:space-between; gap:18px; color:#fff; font-weight:900; }
   .world-head .h{ font-size:38px; }
   .world-head .c{ font-size:26px; color:#ffdf7a; }
+  .world-tabs{ display:flex; justify-content:center; gap:14px; }
+  .world-tab{ min-width:250px; font-size:25px; font-weight:900; padding:9px 20px; border:3px solid rgba(255,255,255,.4); border-radius:12px; color:#dce5ff; background:rgba(8,12,32,.6); cursor:pointer; text-align:center; }
+  .world-tab.on{ color:#2a2100; background:#ffcf4d; border-color:#fff1a6; box-shadow:0 4px 0 #a87900; }
   .world-list{ flex:1; min-height:0; overflow-y:auto; padding-right:8px; display:flex; flex-direction:column; gap:12px; }
+  .world-list.story-reader{ padding:4px 12px 24px 4px; }
+  .story-series{ padding:11px 18px; border-radius:12px; background:#6b4813; color:#fff0b5; border:3px solid #d6a63e; font-size:29px; font-weight:900; }
+  .story-chapter{ position:sticky; top:0; z-index:2; padding:8px 15px; border-radius:10px; background:#29335d; color:#ffe27a; border:2px solid #7c88b8; font-size:25px; font-weight:900; }
+  .story-card{ border-left:8px solid #d18b2f; }
+  .story-card .story-no{ color:#9b6a1d; font-weight:900; margin-right:10px; }
+  .story-card .story-ctx{ display:inline-block; color:#fff; background:#59617f; border-radius:7px; padding:1px 9px; margin-right:9px; }
   .world-card{ background:#fff; border:4px solid var(--line); border-radius:14px; padding:15px 18px; }
   .world-card .meta{ font-size:20px; font-weight:900; color:#8a681e; margin-bottom:6px; }
   .world-card .txt{ font-size:28px; font-weight:900; line-height:1.35; color:#26304a; }
@@ -1784,6 +1793,10 @@
         <div class="world-head">
           <div class="h" id="world-head">今日のRu-Le</div>
           <div class="c" id="world-count"></div>
+        </div>
+        <div class="world-tabs">
+          <div class="world-tab foc" id="world-tab-story">連載物語を読む</div>
+          <div class="world-tab foc" id="world-tab-today">今日の世界</div>
         </div>
         <div class="world-list" id="world-list"></div>
       </div>
@@ -4606,6 +4619,9 @@ const AUDIO = (function(){
       aiworld_key_ph:'APIキー {0}', aiworld_no_key:'APIキー未入力', aiworld_saved:'APIキーを保存しました', aiworld_model_ok:'使用候補: {0}', aiworld_generating:'生成中… {0}', aiworld_generated:'{0}件追加しました（{1}）', aiworld_failed:'生成できませんでした: {0}', aiworld_idle:'待機中', aiworld_empty:'まだありません',
       aiworld_wait:'次の補充まで {0}秒', aiworld_err_auth:'APIキーが通りません。キーを確認してください。', aiworld_err_rate:'制限または混雑中です。2分間隔のまま次回に回します。', aiworld_err_net:'通信できません。オフラインでもゲーム本体は遊べます。', aiworld_err_model:'使用できるGeminiモデルが見つかりません。モデル確認を試してください。', aiworld_err_empty:'生成内容が0件でした。メモリーは更新せず、次回に再試行します。', aiworld_err_other:'補充に失敗しました。次回の自動補充で再試行します。',
       world_close:'◀ もどる', world_topbar:'Ru-Leの世界', world_empty:'今日はまだ新しい話が届いていません。', world_today_title:'今日のRu-Le', world_theme:'今日のテーマ：{0}',
+      world_tab_story:'連載物語を読む', world_tab_today:'今日の世界', world_story_empty:'ゲーム内で表示された物語はまだありません。', world_story_count:'既読{0}件・現在 第{1}章', world_chapter:'第{0}章',
+      world_series:'連載{0}「{1}」',
+      world_ctx_title:'タイトル', world_ctx_battle:'対戦', world_ctx_map:'道中', world_ctx_result:'結果',
       world_today:'今日', world_conversation:'酒場', world_news:'新聞', world_diary:'日記', world_event:'出来事', world_rumor:'噂',
       /* キーコンフィグ */
       keys_topbar:'キーコンフィグ', keys_close:'◀ もどる',
@@ -4850,6 +4866,9 @@ const AUDIO = (function(){
       aiworld_key_ph:'API key {0}', aiworld_no_key:'Chưa nhập API key', aiworld_saved:'Đã lưu API key', aiworld_model_ok:'Ứng viên: {0}', aiworld_generating:'Đang tạo… {0}', aiworld_generated:'Đã thêm {0} mục ({1})', aiworld_failed:'Không tạo được: {0}', aiworld_idle:'Đang chờ', aiworld_empty:'Chưa có',
       aiworld_wait:'Lần bổ sung tiếp theo sau {0} giây', aiworld_err_auth:'API key không hợp lệ. Hãy kiểm tra lại key.', aiworld_err_rate:'Đang bị giới hạn hoặc máy chủ bận. Sẽ thử lại theo nhịp 2 phút.', aiworld_err_net:'Không kết nối được. Game vẫn chơi được khi offline.', aiworld_err_model:'Không tìm thấy model Gemini dùng được. Hãy thử kiểm tra model.', aiworld_err_empty:'Không có nội dung nào được tạo. Bộ nhớ không được cập nhật và sẽ thử lại lần sau.', aiworld_err_other:'Bổ sung thất bại. Sẽ thử lại ở lần tự động tiếp theo.',
       world_close:'◀ Quay lại', world_topbar:'Thế giới Ru-Le', world_empty:'Hôm nay chưa có tin mới.', world_today_title:'Ru-Le hôm nay', world_theme:'Chủ đề hôm nay: {0}',
+      world_tab_story:'Đọc truyện dài kỳ', world_tab_today:'Thế giới hôm nay', world_story_empty:'Chưa có đoạn truyện nào xuất hiện trong game.', world_story_count:'Đã đọc {0} mục・Hiện tại Chương {1}', world_chapter:'Chương {0}',
+      world_series:'Phần {0} “{1}”',
+      world_ctx_title:'Tiêu đề', world_ctx_battle:'Trận đấu', world_ctx_map:'Trên đường', world_ctx_result:'Kết quả',
       world_today:'Hôm nay', world_conversation:'Quán rượu', world_news:'Báo', world_diary:'Nhật ký', world_event:'Sự kiện', world_rumor:'Tin đồn',
       /* Gán phím */
       keys_topbar:'Gán Phím', keys_close:'◀ Quay lại',
@@ -6203,8 +6222,8 @@ const AUDIO = (function(){
       show('s-match'); $('#match-title').textContent=T('mt_online'); renderMatch();
       matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false;
       setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
-      scheduleMatchThemeTalk(1800);
-      scheduleMatchStoryTalk(4300);
+      scheduleMatchThemeTalk(6000);
+      scheduleMatchStoryTalk(15000);
       this.broadcast();
       afterStep();
     },
@@ -7533,8 +7552,8 @@ const AUDIO = (function(){
     show('s-match');
     renderMatch();
     setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
-    scheduleMatchThemeTalk(1800);
-    scheduleMatchStoryTalk(4300);
+    scheduleMatchThemeTalk(6000);
+    scheduleMatchStoryTalk(15000);
     afterStep();
   }
   function cpuBuildQuick(i){
@@ -7738,6 +7757,7 @@ const AUDIO = (function(){
     t.appendChild(it);
     setTimeout(()=>{ it.style.transition='opacity .4s'; it.style.opacity='0'; setTimeout(()=>it.remove(),420); }, 900);
   }
+  const MATCH_TALK_NORMAL_GAP_MS=10000, MATCH_TALK_SPECIAL_GAP_MS=8000, MATCH_TALK_SPECIAL_CHANCE=1/3;
   let matchTalkLastAt=0, matchTalkSeen=[], matchThemeTalkCount=0, matchStoryTalkShown=false;
   const MATCH_TALK_FALLBACK={
     greeting:['よろしく。','じゃあ、始めよう。','今日は負けないよ。'],
@@ -7786,6 +7806,7 @@ const AUDIO = (function(){
     const maxLen=context==='title'?58:(context==='map'?70:76);
     box.innerHTML='<div class="who">'+who+'</div><div class="txt">'+worldLineEsc(String(item.text).slice(0,maxLen))+'</div>';
     box.classList.add('show','storyline');
+    AIStory.markShown(item,context);
     return true;
   }
   function matchTalkPick(scene){
@@ -7801,8 +7822,8 @@ const AUDIO = (function(){
   function matchTalkEvent(scene, speakerIdx, force){
     if(!G || currentScreen!=='s-match') return false;
     const now=Date.now(), important=force!==false;
-    if(!important && now-matchTalkLastAt<7200) return false;
-    if(!important && Math.random()>.28) return false;
+    if(!important && now-matchTalkLastAt<MATCH_TALK_NORMAL_GAP_MS) return false;
+    if(!important && Math.random()>.22) return false;
     const item=matchTalkPick(scene);
     const fall=matchTalkFallback(scene);
     const text=item&&item.text ? item.text : fall[Math.floor(Math.random()*fall.length)];
@@ -7814,8 +7835,15 @@ const AUDIO = (function(){
     box.classList.add('show'); matchTalkLastAt=now;
     return true;
   }
+  function matchTalkSpecial(scene, speakerIdx){
+    if(!G||currentScreen!=='s-match')return false;
+    if(Date.now()-matchTalkLastAt<MATCH_TALK_SPECIAL_GAP_MS)return false;
+    if(Math.random()>=MATCH_TALK_SPECIAL_CHANCE)return false;
+    return matchTalkEvent(scene,speakerIdx,true);
+  }
   function emitMatchThemeTalk(speakerIdx){
-    if(!G || currentScreen!=='s-match' || matchThemeTalkCount>=2) return false;
+    if(!G || currentScreen!=='s-match' || matchThemeTalkCount>=1) return false;
+    if(Date.now()-matchTalkLastAt<5500)return false;
     if(matchTalkEvent('chatter',speakerIdx==null?G.turn:speakerIdx,true)){ matchThemeTalkCount++; return true; }
     return false;
   }
@@ -7824,20 +7852,29 @@ const AUDIO = (function(){
       if(!G || currentScreen!=='s-match' || matchThemeTalkCount>0) return;
       const speakers=G.players.map((p,i)=>({p,i})).filter(x=>!x.p.finished && !x.p.isHuman);
       emitMatchThemeTalk(speakers.length?speakers[Math.floor(Math.random()*speakers.length)].i:G.turn);
-    }, delay||1800);
+    }, delay||6000);
   }
   function emitMatchStoryTalk(){
     if(!G||currentScreen!=='s-match'||matchStoryTalkShown)return false;
+    if(Date.now()-matchTalkLastAt<8500)return false;
     let item=null; try{ item=AIStory.pick('battle'); }catch(e){}
     if(!item||!item.text)return false;
     const box=$('#match-talk'); if(!box)return false;
     box.insertAdjacentHTML('beforeend','<div class="talkbubble story"><div class="who">'+worldEsc(item.speaker||'物語')+'</div><div class="txt">'+worldEsc(String(item.text).slice(0,76))+'</div></div>');
     while(box.children.length>3)box.firstElementChild.remove();
     box.classList.add('show'); matchTalkLastAt=Date.now(); matchStoryTalkShown=true;
+    AIStory.markShown(item,'battle');
     return true;
   }
   function scheduleMatchStoryTalk(delay){
-    setTimeout(()=>{ if(G&&currentScreen==='s-match')emitMatchStoryTalk(); },delay||4300);
+    const attempt=()=>{
+      if(!G||currentScreen!=='s-match'||matchStoryTalkShown)return;
+      if(!emitMatchStoryTalk()){
+        const wait=Math.max(1200,8500-(Date.now()-matchTalkLastAt)+100);
+        setTimeout(attempt,wait);
+      }
+    };
+    setTimeout(attempt,delay||15000);
   }
   function matchTalkSnapshot(){
     const c=G&&G.field&&G.field.combo, owner=G&&G.field?G.field.ownerIndex:null;
@@ -7855,31 +7892,30 @@ const AUDIO = (function(){
       else if(hasEff('CHOOSE_NEXT'))special='指名で次の相手を選んだ';
       else if(action==='react')special='反撃で場を奪った';
       AIStory.recordAction(action,{special});
-      if(special&&!matchStoryTalkShown)setTimeout(()=>{ if(G&&currentScreen==='s-match')emitMatchStoryTalk(); },500);
     }
     const finish=ev.find(x=>x.kind==='finish');
     if(finish){
-      if(actorIdx===meIdx()) return matchTalkEvent('finish_self',actorIdx,true);
+      if(actorIdx===meIdx()) return matchTalkSpecial('finish_self',actorIdx);
       const reactor=G.players[meIdx()]&&!G.players[meIdx()].finished?meIdx():G.players.findIndex((p,i)=>i!==actorIdx&&!p.finished);
-      return matchTalkEvent('finish_other',reactor>=0?reactor:actorIdx,true);
+      return matchTalkSpecial('finish_other',reactor>=0?reactor:actorIdx);
     }
-    if(before&&before.top&&before.owner!=null&&before.owner!==actorIdx&&(hasEff('CUT_TOP')||playedBomb||ev.some(x=>x.kind==='clear'))) return matchTalkEvent('top_beaten',before.owner,true);
-    if(hasEff('SKIP')&&G.skipped&&G.skipped.length) return matchTalkEvent('skipped',G.skipped[0],true);
+    if(before&&before.top&&before.owner!=null&&before.owner!==actorIdx&&(hasEff('CUT_TOP')||playedBomb||ev.some(x=>x.kind==='clear'))) return matchTalkSpecial('top_beaten',before.owner);
+    if(hasEff('SKIP')&&G.skipped&&G.skipped.length) return matchTalkSpecial('skipped',G.skipped[0]);
     if(hasEff('CHOOSE_NEXT')){
-      if(G.skipped&&G.skipped.length&&Math.random()<.65) return matchTalkEvent('skipped',G.skipped[0],true);
-      return matchTalkEvent('chosen',G.turn,true);
+      if(G.skipped&&G.skipped.length&&Math.random()<.65) return matchTalkSpecial('skipped',G.skipped[0]);
+      return matchTalkSpecial('chosen',G.turn);
     }
-    if(ev.some(x=>x.kind==='revolution')) return matchTalkEvent('revolution',actorIdx,true);
-    if(action==='react') return matchTalkEvent('react',actorIdx,true);
-    if(action==='activate') return matchTalkEvent('activate',actorIdx,true);
-    if(hasEff('LOCK_SUIT')||hasEff('LOCK_SUIT_PLAYED')) return matchTalkEvent('suit_lock',actorIdx,true);
-    if(playedBomb||ev.some(x=>x.kind==='transfer')) return matchTalkEvent('bomb',before&&before.owner!=null?before.owner:actorIdx,true);
-    if(ev.some(x=>x.kind==='clear')) return matchTalkEvent('clear',actorIdx,true);
+    if(ev.some(x=>x.kind==='revolution')) return matchTalkSpecial('revolution',actorIdx);
+    if(action==='react') return matchTalkSpecial('react',actorIdx);
+    if(action==='activate') return matchTalkSpecial('activate',actorIdx);
+    if(hasEff('LOCK_SUIT')||hasEff('LOCK_SUIT_PLAYED')) return matchTalkSpecial('suit_lock',actorIdx);
+    if(playedBomb||ev.some(x=>x.kind==='transfer')) return matchTalkSpecial('bomb',before&&before.owner!=null?before.owner:actorIdx);
+    if(ev.some(x=>x.kind==='clear')) return matchTalkSpecial('clear',actorIdx);
     const p=G.players[actorIdx];
-    if(action==='play'&&p&&!p.finished&&p.hand.length<=2) return matchTalkEvent('low_hand',actorIdx,true);
-    if(action==='play'&&cards&&cards.some(c=>RL.effStrength(G,c.rank)===RL.RANKS.length-1)) return matchTalkEvent('strong_play',actorIdx,true);
-    if(action==='play'&&before&&before.actions===0) return matchTalkEvent('first_play',actorIdx,true);
-    if(matchThemeTalkCount<2&&before&&before.actions>=2){
+    if(action==='play'&&p&&!p.finished&&p.hand.length<=2) return matchTalkSpecial('low_hand',actorIdx);
+    if(action==='play'&&cards&&cards.some(c=>RL.effStrength(G,c.rank)===RL.RANKS.length-1)) return matchTalkSpecial('strong_play',actorIdx);
+    if(action==='play'&&before&&before.actions===0) return matchTalkSpecial('first_play',actorIdx);
+    if(matchThemeTalkCount<1&&before&&before.actions>=2){
       if(emitMatchThemeTalk(actorIdx))return true;
     }
     return matchTalkEvent(action==='pass'?'pass':(Math.random()<.24?'chatter':'play'),actorIdx,false);
@@ -8134,9 +8170,9 @@ const AUDIO = (function(){
     if(!next||!next.players)return;
     if(!prev||!prev.players){ setTimeout(()=>matchTalkEvent('greeting',next.turn,true),350); return; }
     const fin=next.players.findIndex((p,i)=>p.finished&&!prev.players[i]?.finished);
-    if(fin>=0){ matchTalkEvent(fin===meIdx()?'finish_self':'finish_other',fin===meIdx()?fin:meIdx(),true); return; }
+    if(fin>=0){ matchTalkSpecial(fin===meIdx()?'finish_self':'finish_other',fin===meIdx()?fin:meIdx()); return; }
     const oldSkip=new Set(prev.skipped||[]), addedSkip=(next.skipped||[]).find(i=>!oldSkip.has(i));
-    if(addedSkip!=null){ matchTalkEvent(next.skipMode==='choose'?'chosen':'skipped',addedSkip,true); return; }
+    if(addedSkip!=null){ matchTalkSpecial(next.skipMode==='choose'?'chosen':'skipped',addedSkip); return; }
     const oldPassed=new Set(prev.passed||[]), newPass=(next.passed||[]).find(i=>!oldPassed.has(i));
     if(newPass!=null){ matchTalkEvent('pass',newPass,false); return; }
     const po=prev.field&&prev.field.ownerIndex, no=next.field&&next.field.ownerIndex;
@@ -8146,7 +8182,7 @@ const AUDIO = (function(){
   function onNetState(state){
     const prev=G, entering=currentScreen!=='s-match';
     G = state;
-    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; scheduleMatchThemeTalk(1800); scheduleMatchStoryTalk(4300); }
+    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; scheduleMatchThemeTalk(6000); scheduleMatchStoryTalk(15000); }
     renderMatch();
     matchTalkNetDiff(entering?null:prev,state);
     clientAfter();
@@ -8671,12 +8707,18 @@ const AUDIO = (function(){
     };
     const normalizeItem=(x, task)=>{
       if(!x || typeof x!=='object') return null;
-      const type = TYPES.includes(x.type) ? x.type : task.type;
+      const storyContexts=['title','battle','map','result'];
+      const context=task.story
+        ? (storyContexts.includes(x.context)?x.context:(storyContexts.includes(task.context)?task.context:'battle'))
+        : String(x.context||task.context||'').slice(0,20);
+      let type = TYPES.includes(x.type) ? x.type : task.type;
+      // 物語の対戦文は会話抽出から漏れない型へ揃える。
+      if(task.story&&context==='battle'&&type!=='conversation'&&type!=='rumor')type='conversation';
       const text = String(x.text||'').trim();
       if(!text) return null;
       const fixedScene=(task.sceneTags&&task.sceneTags.length===1)?task.sceneTags:[];
       const tags=(task.tags||[]).concat(fixedScene,Array.isArray(x.tags)?x.tags:[]).map(v=>String(v).slice(0,20)).filter(Boolean);
-      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,task.daily?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context:String(x.context||task.context||'').slice(0,20), speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), storyKey:task.story?String(task.storyKey||'').slice(0,80):String(x.storyKey||'').slice(0,80), tags:[...new Set(tags)].slice(0,8) };
+      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,task.daily?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context, speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), storyKey:String(task.storyKey||x.storyKey||'').slice(0,80), tags:[...new Set(tags)].slice(0,8) };
     };
     const inferUse=(x)=>{
       const s=[x.type,x.theme,x.speaker,x.text].join(' ');
@@ -8701,7 +8743,7 @@ const AUDIO = (function(){
       pick(types, context, tags, n, strictTags, strictContext, requiredStoryKey){
         const db=load(), want=Array.isArray(types)?types:TYPES, ctx=context||'general', tagSet=new Set((tags||[]).map(String)), used=(db._meta.useLog&&db._meta.useLog[ctx])||[], all=[];
         const strictSet=new Set((strictTags||[]).map(String));
-        want.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!x.text||(x.lang||'ja')!==aiWorldLang())return; if(strictContext&&x.context!==ctx)return; if(requiredStoryKey&&x.storyKey!==requiredStoryKey)return; const xt=new Set((x.tags||[]).map(String)); if(strictSet.size&&![...strictSet].every(tag=>xt.has(tag)))return; all.push(x); }));
+        want.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!x.text||(x.lang||'ja')!==aiWorldLang())return; const xt=new Set((x.tags||[]).map(String)); const invalidStoryContext=requiredStoryKey&&xt.has('story')&&!['title','battle','map','result'].includes(x.context); if(strictContext&&x.context!==ctx&&!invalidStoryContext)return; if(requiredStoryKey&&x.storyKey!==requiredStoryKey){ const parts=String(requiredStoryKey).split('|'), tagMatch=parts.length===3&&xt.has('story')&&xt.has('arc:'+parts[0])&&xt.has('season:'+parts[1])&&xt.has('chapter:'+parts[2]); if(!tagMatch)return; } if(strictSet.size&&![...strictSet].every(tag=>xt.has(tag)))return; all.push(x); }));
         if(!all.length) return null;
         db._meta.useCycles=db._meta.useCycles||{};
         const cycleKey=ctx+'|'+(strictSet.size?[...strictSet].sort().join(','):'all');
@@ -8728,7 +8770,8 @@ const AUDIO = (function(){
         db._meta.useLog=db._meta.useLog||{}; db._meta.useLog[ctx]=(used.concat([{id:pick.id,at:Date.now()}])).slice(-80); save(db);
         return pick;
       },
-      recent(n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>all.push(x))); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); }
+      recent(n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>all.push(x))); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
+      usedStory(){ const db=load(), atById=new Map(); Object.values(db._meta.useLog||{}).forEach(log=>(Array.isArray(log)?log:[]).forEach(u=>{ const id=String(u&&u.id||u||''); if(id)atById.set(id,Math.max(atById.get(id)||0,Number(u&&u.at)||0)); })); const out=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!atById.has(x.id)||!(x.tags||[]).map(String).includes('story'))return; out.push({...x,shownAt:new Date(atById.get(x.id)||Date.parse(x.createdAt)||Date.now()).toISOString()}); })); return out; }
     };
   })();
 
@@ -8773,7 +8816,7 @@ const AUDIO = (function(){
     const fresh=(season)=>{
       const arc=ARCS[Math.abs(season||0)%ARCS.length];
       return {version:1,season:season||0,arcId:arc.id,title:arc.title,chapter:0,progress:0,matches:0,wins:0,losses:0,
-        actions:{play:0,pass:0,react:0,activate:0},facts:[],canon:'',lastResult:null,localCursor:{}};
+        actions:{play:0,pass:0,react:0,activate:0},facts:[],canon:'',canonByLang:{},revealed:[],lastResult:null,localCursor:{}};
     };
     const load=()=>{ try{ const x=JSON.parse(localStorage.getItem(KEY)||'null'); return x&&x.version===1?Object.assign(fresh(x.season||0),x):fresh(0); }catch(e){ return fresh(0); } };
     const save=s=>{ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} return s; };
@@ -8781,17 +8824,24 @@ const AUDIO = (function(){
     const tagsFor=s=>['story','arc:'+s.arcId,'season:'+s.season,'chapter:'+s.chapter];
     const keyFor=s=>[s.arcId,s.season,s.chapter].join('|');
     const stock=s=>{
-      const key=keyFor(s);
-      return ['conversation','event','news','rumor','diary'].reduce((n,t)=>n+AIWorldDB.list(t,500).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.storyKey===key).length,0);
+      const key=keyFor(s), required=tagsFor(s);
+      return ['conversation','event','news','rumor','diary'].reduce((n,t)=>n+AIWorldDB.list(t,500).filter(x=>{
+        if((x.lang||'ja')!==aiWorldLang())return false;
+        if(x.storyKey===key)return true;
+        const tags=new Set((x.tags||[]).map(String));
+        return required.every(tag=>tags.has(tag));
+      }).length,0);
     };
     const playerName=()=>String(store.playerProfile?.name||T('you')).slice(0,12);
     const rivalName=()=>{ try{ RIVAL.ensure(); return RIVAL.get(0)?.name||T('rival_word'); }catch(e){ return T('rival_word'); } };
     const factText=s=>s.facts.slice(-8).join(' / ')||'まだ目立った戦績はない';
     function task(){
       const s=load(), arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)], n=stock(s);
+      const label=aiWorldLang()==='vi'?('Truyện Chương '+(s.chapter+1)):('物語 第'+(s.chapter+1)+'章');
+      const canon=(s.canonByLang&&s.canonByLang[aiWorldLang()])||(aiWorldLang()==='ja'?s.canon:'');
       return {id:'story_arc',lang:aiWorldLang(),type:'conversation',types:['conversation','event','news','rumor','diary'],
-        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:18,label:'物語 第'+(s.chapter+1)+'章',context:'battle',stockTarget:14,stockNow:n,
-        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
+        theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:18,label,context:'battle',stockTarget:14,stockNow:n,
+        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,canon,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
     }
     function prompt(task){
       const q=task.storyState, vi=aiWorldLang()==='vi';
@@ -8837,12 +8887,13 @@ const AUDIO = (function(){
         map:['道ばたに同じ黒い印が残っている。',ch.clue],
         result:[won?'勝利の記録に、新しい文字が浮かんだ。':'敗戦の記録だけ、誰かが先に書いていた。',ch.hook]
       };
-      const arr=lines[context]||lines.battle, key=s.chapter+'|'+context, i=(s.localCursor[key]||0)%arr.length;
+      const arr=lines[context]||lines.battle, key=keyFor(s)+'|'+context, i=(s.localCursor[key]||0)%arr.length;
       s.localCursor[key]=i+1; save(s);
       return {id:'local-story-'+key+'-'+i,type:'event',context,speaker:context==='battle'?rival:(aiWorldLang()==='vi'?'Câu chuyện':'物語'),text:arr[i],tags:tagsFor(s)};
     }
     function pick(context){
-      const s=load(), strict=tagsFor(s), types=context==='battle'?['conversation','rumor']:['event','news','rumor','diary','conversation'];
+      // 旧版で battle 文が event/news 型のまま保存された在庫も回収する。
+      const s=load(), strict=tagsFor(s), types=['conversation','event','news','rumor','diary'];
       return AIWorldDB.pick(types,context,['story'],8,strict,true,keyFor(s))||localItem(context);
     }
     function recordAction(action, detail){
@@ -8860,15 +8911,55 @@ const AUDIO = (function(){
       s.facts=s.facts.slice(-12); s.progress++;
       if(s.progress>=2){
         if(s.chapter<MAX_CHAPTER){ s.chapter++; s.progress=0; }
-        else { const next=fresh((s.season||0)+1); next.facts=['前の事件を解決した']; return save(next); }
+        else { const next=fresh((s.season||0)+1); next.facts=['前の事件を解決した']; next.revealed=(s.revealed||[]).slice(-600); return save(next); }
       }
       return save(s);
     }
     function afterGenerated(task, summary){
       if(!task||!task.story)return;
-      const s=load(); if(summary)s.canon=String(summary).slice(0,600); save(s);
+      const s=load();
+      // 応答待ちの間に章が進んだ場合、前章の要約を現在章へ混ぜない。
+      if(keyFor(s)!==task.storyKey)return;
+      if(summary){
+        const lang=task.lang||aiWorldLang(), text=String(summary).slice(0,600);
+        s.canonByLang=s.canonByLang||{}; s.canonByLang[lang]=text;
+        if(lang==='ja')s.canon=text;
+      }
+      save(s);
     }
-    return {task,prompt,pick,recordAction,recordResult,afterGenerated};
+    function markShown(item, context){
+      if(!item||!item.text)return;
+      const s=load(), tags=new Set((item.tags||[]).map(String)), keyParts=String(item.storyKey||'').split('|');
+      const arcTag=[...tags].find(v=>v.startsWith('arc:')), seasonTag=[...tags].find(v=>v.startsWith('season:')), chapterTag=[...tags].find(v=>v.startsWith('chapter:'));
+      const arcId=arcTag?arcTag.slice(4):(keyParts[0]||s.arcId);
+      const season=Math.max(0,Number(seasonTag?seasonTag.slice(7):keyParts[1])||s.season||0);
+      const chapter=Math.max(0,Number(chapterTag?chapterTag.slice(8):keyParts[2])||s.chapter||0);
+      const id=String(item.id||[arcId,season,chapter,item.text].join('|'));
+      s.revealed=Array.isArray(s.revealed)?s.revealed:[];
+      if(s.revealed.some(x=>x.id===id))return;
+      s.revealed.push({id,shownAt:new Date().toISOString(),lang:aiWorldLang(),arcId,season,chapter,
+        context:['title','battle','map','result'].includes(context)?context:(item.context||'battle'),
+        speaker:String(item.speaker||'').slice(0,30),text:String(item.text).slice(0,220)});
+      s.revealed=s.revealed.slice(-600);
+      save(s);
+    }
+    function reader(){
+      const s=load(), arc=arcFor(s), seen=new Set(), revealed=(Array.isArray(s.revealed)?s.revealed:[]).concat(AIWorldDB.usedStory()), items=[];
+      revealed.filter(x=>(x.lang||'ja')===aiWorldLang()).forEach(x=>{
+        const id=String(x.id||''); if(id&&seen.has(id))return; if(id)seen.add(id);
+        const arcId=x.arcId||s.arcId, season=Math.max(0,Number(x.season)||0), chapter=Math.max(0,Number(x.chapter)||0);
+        const tags=new Set((x.tags||[]).map(String)), keyParts=String(x.storyKey||'').split('|');
+        const arcTag=[...tags].find(v=>v.startsWith('arc:')), seasonTag=[...tags].find(v=>v.startsWith('season:')), chapterTag=[...tags].find(v=>v.startsWith('chapter:'));
+        const fixedArc=arcTag?arcTag.slice(4):(keyParts[0]||arcId);
+        const fixedSeason=Math.max(0,Number(seasonTag?seasonTag.slice(7):keyParts[1])||season);
+        const fixedChapter=Math.max(0,Number(chapterTag?chapterTag.slice(8):keyParts[2])||chapter);
+        const storyArc=ARCS.find(a=>a.id===fixedArc);
+        items.push({...x,arcId:fixedArc,season:fixedSeason,chapter:fixedChapter,storyTitle:storyArc?storyArc.title:fixedArc});
+      });
+      items.sort((a,b)=>(a.season-b.season)||(a.chapter-b.chapter)||String(a.shownAt||'').localeCompare(String(b.shownAt||''))||String(a.id||'').localeCompare(String(b.id||'')));
+      return {title:arc.title,chapter:s.chapter,season:s.season,items};
+    }
+    return {task,prompt,pick,recordAction,recordResult,afterGenerated,markShown,reader};
   })();
 
   const GeminiWorldAdapter = (function(){
@@ -8949,7 +9040,7 @@ const AUDIO = (function(){
   }
   function aiWorldStockRows(){
     const st=AIStory.task();
-    return [[(aiWorldLang()==='vi'?'Truyện ':'物語 ')+st.label,st.stockNow,st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',aiWorldDailyStock(),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),aiWorldTaskStock(t),t.stockTarget||0]));
+    return [[st.label,st.stockNow,st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',aiWorldDailyStock(),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),aiWorldTaskStock(t),t.stockTarget||0]));
   }
   function aiWorldNextTask(){
     const story=AIStory.task();
@@ -9095,8 +9186,31 @@ const AUDIO = (function(){
 
   function worldEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function worldLabel(type){ return T('world_'+type); }
+  let worldViewMode='story';
   function renderWorld(){
     const list=$('#world-list'); if(!list)return;
+    const storyBtn=$('#world-tab-story'), todayBtn=$('#world-tab-today');
+    if(storyBtn){ storyBtn.textContent=T('world_tab_story'); storyBtn.classList.toggle('on',worldViewMode==='story'); }
+    if(todayBtn){ todayBtn.textContent=T('world_tab_today'); todayBtn.classList.toggle('on',worldViewMode==='today'); }
+    list.classList.toggle('story-reader',worldViewMode==='story');
+    if(worldViewMode==='story'){
+      const story=AIStory.reader(), items=story.items;
+      $('#world-head').textContent=story.title;
+      $('#world-count').textContent=T('world_story_count',items.length,story.chapter+1);
+      if(!items.length){ list.innerHTML='<div class="world-digest"><div class="world-card"><div class="txt">'+worldEsc(T('world_story_empty'))+'</div></div></div>'; return; }
+      let season=-1, chapter=-1, no=0, html='';
+      items.forEach(item=>{
+        if(item.season!==season){ season=item.season; chapter=-1; html+='<div class="story-series">'+worldEsc(T('world_series',season+1,item.storyTitle))+'</div>'; }
+        if(item.chapter!==chapter){ chapter=item.chapter; no=0; html+='<div class="story-chapter">'+worldEsc(T('world_chapter',chapter+1))+'</div>'; }
+        no++;
+        const ctx=T('world_ctx_'+(['title','battle','map','result'].includes(item.context)?item.context:'battle'));
+        const who=item.speaker?worldEsc(item.speaker):worldEsc(aiWorldLang()==='vi'?'Truyện':'物語');
+        html+='<div class="world-card story-card"><div class="meta"><span class="story-no">'+no+'</span><span class="story-ctx">'+worldEsc(ctx)+'</span>'+who+'</div><div class="txt">'+worldEsc(item.text)+'</div></div>';
+      });
+      list.innerHTML=html;
+      list.scrollTop=0;
+      return;
+    }
     const day=aiWorldCalendarDay(), theme=aiWorldThemeForDate();
     const suitable=x=>x&&x.text&&(x.lang||'ja')===aiWorldLang()&&x.context!=='battle'&&!(x.tags||[]).some(t=>String(t).startsWith('scene:'));
     let items=AIWorldDB.dayItems(day,200).filter(suitable);
@@ -9178,6 +9292,8 @@ const AUDIO = (function(){
   $('#aiworld-save-keys').onclick=()=>{ store.aiKeys=(store.aiKeys||['']).map(k=>String(k||'').trim()).filter(Boolean); if(!store.aiKeys.length) store.aiKeys=['']; store.save(); AUDIO.confirm(); aiWorldStatus(T('aiworld_saved')); renderAIWorld(); };
   $('#aiworld-refresh-models').onclick=()=>{ AUDIO.confirm(); aiWorldRefreshModels(); };
   $('#aiworld-generate').onclick=()=>{ AUDIO.confirm(); aiWorldGenerateOnce(); };
+  $('#world-tab-story').onclick=()=>{ AUDIO.confirm(); worldViewMode='story'; renderWorld(); };
+  $('#world-tab-today').onclick=()=>{ AUDIO.confirm(); worldViewMode='today'; renderWorld(); };
   $('#world-close').onclick=()=>{ AUDIO.back(); buildTitle(); show('s-title'); };
 
   /* ============================================================
