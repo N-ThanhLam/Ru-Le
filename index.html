@@ -223,7 +223,7 @@
   .topbar{ position:absolute; top:0; left:0; right:0; height:96px; display:flex; align-items:center; padding:0 36px;
     background:linear-gradient(180deg, rgba(14,20,46,.78), rgba(10,14,34,.5));
     border-bottom:4px solid rgba(255,207,77,.32); box-shadow:0 6px 18px rgba(0,0,0,.3); }
-  .screen>.topbar{ z-index:60; pointer-events:auto; }
+  .screen>.topbar{ z-index:100; pointer-events:auto; isolation:isolate; }
   .screen>.topbar .btn{ position:relative; z-index:1; pointer-events:auto; touch-action:manipulation; }
   .topbar .title{ font-size:44px; font-weight:900; color:#fff; }
   .topbar .spacer{ flex:1; }
@@ -5186,12 +5186,30 @@ const AUDIO = (function(){
 
   // クリックでもフォーカス追従
   document.addEventListener('click', e=>{
+    if(Date.now()-topBackPointerAt<700 && topBackPointerEl && (e.target===topBackPointerEl || topBackPointerEl.contains(e.target))){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
     const f=e.target.closest('.foc');
     // エンブレム選択画面のカードは「1回目タップ=フォーカス移動／2回目タップ=セット」を
     // card.onclick 側で制御するため、ここでの自動フォーカスは行わない。
     if(f && f.classList.contains('emb') && f.closest('#s-emblem')){ AUDIO.ensure(); return; }
     if(f && focusables().includes(f)) setFocus(f);
     AUDIO.ensure();
+  }, true);
+
+  // 戻る系は画面の再描画と重なっても取りこぼさないよう、clickを待たず押下時点で処理する。
+  // clickは直後にもう一度発火するため、上の捕捉リスナーで短時間だけ抑止する。
+  let topBackPointerAt=0, topBackPointerEl=null;
+  document.addEventListener('pointerdown', e=>{
+    const btn=e.target.closest('.screen.active>.topbar .btn');
+    if(!btn || !/(?:back|close|leave)$/.test(btn.id||'')) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    topBackPointerAt=Date.now();
+    topBackPointerEl=btn;
+    onBack();
   }, true);
 
   function closeAllOvl(){ /* ページ型以外の一時モーダルは画面をまたいで残さない */
@@ -7818,7 +7836,7 @@ const AUDIO = (function(){
   function matchTalkPick(scene){
     try{
       const tag=scene?'scene:'+scene:'scene:chatter';
-      const strict=scene==='chatter'?[tag,aiWorldDailyTag()]:[tag];
+      const strict=scene==='chatter'?[tag,aiWorldDailyTag()]:[tag,'timeless'];
       const item=AIWorldDB.pick(['conversation'], 'battle', ['対戦',tag,aiWorldDailyTag()], 8, strict);
       if(!item) return null;
       matchTalkSeen.push(item.id); if(matchTalkSeen.length>80) matchTalkSeen=matchTalkSeen.slice(-40);
@@ -8729,12 +8747,12 @@ const AUDIO = (function(){
   })();
 
   const AI_WORLD_TASKS=[
-    {id:'battle_open',type:'conversation',types:['conversation'],theme:'対戦開始と初手の自然な一言',count:24,label:'開始会話',context:'battle',stockTarget:60,tags:['battle','対戦'],sceneTags:['scene:greeting','scene:first_play']},
-    {id:'battle_regular',type:'conversation',types:['conversation'],theme:'札を出す・パスする時の短い一言と、その日のテーマに沿った軽い雑談',count:28,label:'通常会話',context:'battle',stockTarget:100,tags:['battle','対戦'],sceneTags:['scene:play','scene:pass','scene:chatter']},
-    {id:'battle_pressure',type:'conversation',types:['conversation'],theme:'残り札が少ない時・強い札を出した時・縛りが付いた時の反応',count:24,label:'追込み会話',context:'battle',stockTarget:72,tags:['battle','対戦'],sceneTags:['scene:low_hand','scene:strong_play','scene:suit_lock']},
-    {id:'battle_disrupt',type:'conversation',types:['conversation'],theme:'加速で飛ばされた・指名された・場を流した・革命が起きた時の反応',count:28,label:'妨害会話',context:'battle',stockTarget:84,tags:['battle','対戦'],sceneTags:['scene:skipped','scene:chosen','scene:clear','scene:revolution']},
-    {id:'battle_counter',type:'conversation',types:['conversation'],theme:'最強札を返された・後出しされた・ボムを重ねられた・エンブレムを発動した時の反応',count:28,label:'逆転会話',context:'battle',stockTarget:84,tags:['battle','対戦'],sceneTags:['scene:top_beaten','scene:react','scene:bomb','scene:activate']},
-    {id:'battle_finish',type:'conversation',types:['conversation'],theme:'自分が上がった・相手に上がられた・勝った・負けた時の自然な一言',count:28,label:'決着会話',context:'battle',stockTarget:84,tags:['battle','対戦'],sceneTags:['scene:finish_self','scene:finish_other','scene:win','scene:lose']},
+    {id:'battle_open',type:'conversation',types:['conversation'],theme:'対戦開始と初手の自然な一言',count:24,label:'開始会話',context:'battle',stockTarget:60,tags:['battle','対戦','timeless'],sceneTags:['scene:greeting','scene:first_play']},
+    {id:'battle_regular',type:'conversation',types:['conversation'],theme:'札を出す・パスする時の短い一言',count:24,label:'通常会話',context:'battle',stockTarget:80,tags:['battle','対戦','timeless'],sceneTags:['scene:play','scene:pass']},
+    {id:'battle_pressure',type:'conversation',types:['conversation'],theme:'残り札が少ない時・強い札を出した時・縛りが付いた時の反応',count:24,label:'追込み会話',context:'battle',stockTarget:72,tags:['battle','対戦','timeless'],sceneTags:['scene:low_hand','scene:strong_play','scene:suit_lock']},
+    {id:'battle_disrupt',type:'conversation',types:['conversation'],theme:'加速で飛ばされた・指名された・場を流した・革命が起きた時の反応',count:28,label:'妨害会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:skipped','scene:chosen','scene:clear','scene:revolution']},
+    {id:'battle_counter',type:'conversation',types:['conversation'],theme:'最強札を返された・後出しされた・ボムを重ねられた・エンブレムを発動した時の反応',count:28,label:'逆転会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:top_beaten','scene:react','scene:bomb','scene:activate']},
+    {id:'battle_finish',type:'conversation',types:['conversation'],theme:'自分が上がった・相手に上がられた・勝った・負けた時の自然な一言',count:28,label:'決着会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:finish_self','scene:finish_other','scene:win','scene:lose']},
     {id:'title_world',type:'rumor',types:['news','rumor','event'],theme:'タイトルに流れる世界の噂',count:22,label:'タイトル噂',context:'title',stockTarget:55,tags:['title','王都','噂']},
     {id:'map_journey',type:'event',types:['event','diary','rumor'],theme:'巡業マップで聞こえる旅の話',count:22,label:'旅の話',context:'map',stockTarget:60,tags:['map','旅','巡業']},
     {id:'result_news',type:'news',types:['news','event'],theme:'対戦結果後の新聞と評判',count:20,label:'結果新聞',context:'result',stockTarget:60,tags:['result','巡業','新聞']},
@@ -8743,7 +8761,7 @@ const AUDIO = (function(){
   ];
   const AI_WORLD_VI={
     battle_open:['Hội thoại mở đầu','Lời chào và câu nói tự nhiên khi đánh lá đầu tiên'],
-    battle_regular:['Hội thoại thường','Câu ngắn khi đánh, bỏ lượt và trò chuyện nhẹ theo chủ đề trong ngày'],
+    battle_regular:['Hội thoại thường','Câu ngắn dùng được mọi ngày khi đánh hoặc bỏ lượt'],
     battle_pressure:['Hội thoại gay cấn','Phản ứng khi gần hết bài, đánh lá mạnh hoặc bị khóa chất'],
     battle_disrupt:['Hội thoại cản trở','Phản ứng khi bị bỏ lượt, bị chỉ định, dọn bàn hoặc có cách mạng'],
     battle_counter:['Hội thoại lật kèo','Phản ứng khi lá mạnh nhất bị chặn, đánh chen, bom hoặc kích hoạt biểu tượng'],
@@ -8788,7 +8806,8 @@ const AUDIO = (function(){
   function aiWorldTaskStock(task){
     const tags=new Set((task.tags||[]).map(String)), types=task.types||[task.type]; let n=0;
     const scenes=new Set((task.sceneTags||[]).map(String));
-    types.forEach(t=>AIWorldDB.list(t,360).forEach(x=>{ if((x.lang||'ja')!==aiWorldLang())return; const xt=new Set((x.tags||[]).map(String)); if(scenes.size?[...scenes].some(tag=>xt.has(tag)):((x.context&&x.context===task.context)||[...tags].some(tag=>xt.has(tag)))) n++; }));
+    const required=[...tags].filter(tag=>tag==='timeless'||tag.startsWith('date:'));
+    types.forEach(t=>AIWorldDB.list(t,360).forEach(x=>{ if((x.lang||'ja')!==aiWorldLang())return; const xt=new Set((x.tags||[]).map(String)); if(required.some(tag=>!xt.has(tag)))return; if(scenes.size?[...scenes].some(tag=>xt.has(tag)):((x.context&&x.context===task.context)||[...tags].some(tag=>xt.has(tag)))) n++; }));
     return n;
   }
   function aiWorldStockSummary(){
@@ -8806,8 +8825,9 @@ const AUDIO = (function(){
     const pick=ranked[0]||{t:AI_WORLD_TASKS[aiWorldTaskIndex%AI_WORLD_TASKS.length],i:aiWorldTaskIndex};
     aiWorldTaskIndex=(pick.i+1)%AI_WORLD_TASKS.length;
     const base=pick.t, day=aiWorldCalendarDay();
-    const dayTheme=aiWorldThemeForDate();
-    return Object.assign({},base,{lang:aiWorldLang(),day,theme:dayTheme+' / '+aiWorldTaskTheme(base),label:'Day '+day+' '+aiWorldTaskLabel(base),stockNow:pick.n||0});
+    const timeless=(base.tags||[]).includes('timeless');
+    const theme=timeless?aiWorldTaskTheme(base):(aiWorldThemeForDate()+' / '+aiWorldTaskTheme(base));
+    return Object.assign({},base,{lang:aiWorldLang(),day,theme,label:'Day '+day+' '+aiWorldTaskLabel(base),stockNow:pick.n||0,timeless});
   }
   function aiWorldKeys(){ return (store.aiKeys||[]).map(k=>String(k||'').trim()).filter(Boolean); }
   function aiWorldStatus(msg, kind){ const e=$('#aiworld-status'); if(e){ e.textContent=msg||T('aiworld_idle'); e.classList.remove('ok','bad','wait'); if(kind)e.classList.add(kind); } }
