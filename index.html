@@ -1171,7 +1171,7 @@
   .setrow{ display:flex; align-items:center; gap:24px; background:#fff; border:5px solid var(--line); border-radius:16px; padding:16px 26px; margin:12px 0; }
   .setrow .nm{ font-size:34px; font-weight:900; flex:1; }
   .setrow .val{ font-size:32px; font-weight:900; color:#b25a00; min-width:220px; text-align:center; }
-  #s-aiworld>.topbar{ z-index:60; }
+  #s-aiworld>.topbar{ z-index:100; }
   .aiworld-page{ width:min(1500px, calc(100% - 120px)); max-height:calc(100% - 54px); overflow-y:auto; }
   .aiworld-grid{ display:grid; grid-template-columns:1.08fr .92fr; gap:22px; align-items:start; }
   .aiworld-panel{ background:#fff; border:5px solid var(--line); border-radius:16px; padding:18px; }
@@ -8648,7 +8648,27 @@ const AUDIO = (function(){
     const defaultRelations=()=>({'騎士-商人':'不信','騎士-魔女':'警戒と敬意','商人-盗賊':'利害一致','魔女-盗賊':'皮肉混じりの好奇心'});
     const defaultMeta=()=>({day:0,packs:0,summary:'',summaryByLang:{},lastTheme:'',relations:defaultRelations(),relationsByLang:{},lastModel:'',lastGeneratedAt:'',lastError:'',useLog:{},useCycles:{},ctxMigrated:0,contentVersion:0});
     const load=()=>{ try{ const d=JSON.parse(localStorage.getItem(KEY)||'{}'); TYPES.forEach(t=>{ if(!Array.isArray(d[t])) d[t]=[]; }); d._meta=(d._meta&&typeof d._meta==='object')?Object.assign(defaultMeta(),d._meta):defaultMeta(); return d; }catch(e){ const d={_meta:defaultMeta()}; TYPES.forEach(t=>d[t]=[]); return d; } };
-    const save=d=>{ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} };
+    const save=d=>{
+      try{ localStorage.setItem(KEY, JSON.stringify(d)); return true; }
+      catch(e){
+        // 在庫が localStorage の上限へ達した時は、古い行から少しずつ整理して
+        // 今回生成した（末尾の）行を残したまま再保存する。
+        for(let retry=0;retry<8;retry++){
+          let trimmed=false;
+          TYPES.forEach(t=>{
+            const arr=Array.isArray(d[t])?d[t]:[];
+            if(arr.length>80){
+              const cut=Math.max(1,Math.ceil(arr.length*.16));
+              d[t]=arr.slice(cut);
+              trimmed=true;
+            }
+          });
+          if(!trimmed)break;
+          try{ localStorage.setItem(KEY, JSON.stringify(d)); return true; }catch(_){}
+        }
+        return false;
+      }
+    };
     const normalizeItem=(x, task)=>{
       if(!x || typeof x!=='object') return null;
       const type = TYPES.includes(x.type) ? x.type : task.type;
@@ -8669,7 +8689,7 @@ const AUDIO = (function(){
     };
     return {
       types:TYPES,
-      add(items, task, memorySummary, relations, model){ const db=load(), seen=new Set(); TYPES.forEach(t=>db[t].forEach(x=>seen.add((x.text||'').trim()))); let added=0,lastDay=0; (Array.isArray(items)?items:[]).forEach(raw=>{ const it=normalizeItem(raw,task); if(!it||seen.has(it.text))return; seen.add(it.text); db[it.type].push(it); added++; lastDay=it.day||lastDay; }); if(added){ const lang=task.lang||aiWorldLang(); db._meta.day=lastDay||db._meta.day||1; db._meta.packs=(db._meta.packs||0)+1; db._meta.lastTheme=task.theme||db._meta.lastTheme||''; db._meta.lastModel=model||db._meta.lastModel||''; db._meta.lastGeneratedAt=new Date().toISOString(); db._meta.lastError=''; db._meta.summaryByLang=db._meta.summaryByLang||{}; db._meta.relationsByLang=db._meta.relationsByLang||{}; if(memorySummary){ db._meta.summaryByLang[lang]=String(memorySummary).slice(0,900); if(lang==='ja')db._meta.summary=db._meta.summaryByLang[lang]; } if(relations&&typeof relations==='object'){ db._meta.relationsByLang[lang]=Object.assign({},db._meta.relationsByLang[lang]||{},relations); if(lang==='ja')db._meta.relations=Object.assign(defaultRelations(),db._meta.relations||{},relations); } } TYPES.forEach(t=>{ db[t]=db[t].slice(-500); }); save(db); return added; },
+      add(items, task, memorySummary, relations, model){ const db=load(), seen=new Set(); TYPES.forEach(t=>db[t].forEach(x=>seen.add((x.text||'').trim()))); let added=0,lastDay=0; (Array.isArray(items)?items:[]).forEach(raw=>{ const it=normalizeItem(raw,task); if(!it||seen.has(it.text))return; seen.add(it.text); db[it.type].push(it); added++; lastDay=it.day||lastDay; }); if(added){ const lang=task.lang||aiWorldLang(); db._meta.day=lastDay||db._meta.day||1; db._meta.packs=(db._meta.packs||0)+1; db._meta.lastTheme=task.theme||db._meta.lastTheme||''; db._meta.lastModel=model||db._meta.lastModel||''; db._meta.lastGeneratedAt=new Date().toISOString(); db._meta.lastError=''; db._meta.summaryByLang=db._meta.summaryByLang||{}; db._meta.relationsByLang=db._meta.relationsByLang||{}; if(memorySummary){ db._meta.summaryByLang[lang]=String(memorySummary).slice(0,900); if(lang==='ja')db._meta.summary=db._meta.summaryByLang[lang]; } if(relations&&typeof relations==='object'){ db._meta.relationsByLang[lang]=Object.assign({},db._meta.relationsByLang[lang]||{},relations); if(lang==='ja')db._meta.relations=Object.assign(defaultRelations(),db._meta.relations||{},relations); } } TYPES.forEach(t=>{ db[t]=db[t].slice(-500); }); return save(db)?added:0; },
       markError(err){ const db=load(); db._meta.lastError=String(err||'unknown').slice(0,220); save(db); },
       migrateContexts(){ const db=load(); if((db._meta.ctxMigrated||0)>=1) return 0; let n=0; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x.context || !Array.isArray(x.tags) || !x.tags.length){ const inf=inferUse(x); if(!x.context) x.context=inf.context; x.tags=[...new Set([...(x.tags||[]),...inf.tags])].slice(0,8); n++; } })); db._meta.ctxMigrated=1; save(db); return n; },
       migrateContent(){ const db=load(); if((db._meta.contentVersion||0)>=3)return 0; let changed=0; TYPES.forEach(t=>{ db[t]=(db[t]||[]).filter(x=>{ const tags=new Set((x.tags||[]).map(String)), story=tags.has('story'), dated=[...tags].some(v=>v.startsWith('date:')), timeless=tags.has('timeless'), scene=[...tags].find(v=>v.startsWith('scene:')); if(story&&!x.storyKey){ const arc=[...tags].find(v=>v.startsWith('arc:')), season=[...tags].find(v=>v.startsWith('season:')), chapter=[...tags].find(v=>v.startsWith('chapter:')); if(arc&&chapter){ x.storyKey=[arc.slice(4),season?season.slice(7):'0',chapter.slice(8)].join('|'); changed++; } } const obsoleteResult=tags.has('scene:win')||tags.has('scene:lose'); const obsoleteAmbient=(x.context==='title'||x.context==='map')&&!story&&!dated; const obsoleteBattle=x.context==='battle'&&scene&&!story&&!dated&&!timeless; const drop=obsoleteResult||obsoleteAmbient||obsoleteBattle; if(drop)changed++; return !drop; }); }); db._meta.contentVersion=3; db._meta.useLog={}; db._meta.useCycles={}; save(db); return changed; },
@@ -9150,7 +9170,10 @@ const AUDIO = (function(){
   $('#rival-ok').onclick=()=> commitRivalName();
   $('#rival-cancel').onclick=()=>{ AUDIO.back(); closeRivalEdit(); };
   $('#rivals-close').onclick=()=>{ AUDIO.back(); show('s-set'); };
-  $('#aiworld-close').onclick=()=>{ AUDIO.back(); store.save(); show('s-set'); };
+  const closeAIWorld=()=>{ AUDIO.back(); store.save(); show('s-set'); };
+  let aiWorldClosePointerAt=0;
+  $('#aiworld-close').onpointerup=e=>{ aiWorldClosePointerAt=Date.now(); e.preventDefault(); e.stopPropagation(); closeAIWorld(); };
+  $('#aiworld-close').onclick=()=>{ if(Date.now()-aiWorldClosePointerAt>600) closeAIWorld(); };
   $('#aiworld-add-key').onclick=()=>{ if((store.aiKeys||[]).length<4){ store.aiKeys=(store.aiKeys||['']).concat(['']).slice(0,4); AUDIO.confirm(); renderAIWorld(); } };
   $('#aiworld-save-keys').onclick=()=>{ store.aiKeys=(store.aiKeys||['']).map(k=>String(k||'').trim()).filter(Boolean); if(!store.aiKeys.length) store.aiKeys=['']; store.save(); AUDIO.confirm(); aiWorldStatus(T('aiworld_saved')); renderAIWorld(); };
   $('#aiworld-refresh-models').onclick=()=>{ AUDIO.confirm(); aiWorldRefreshModels(); };
