@@ -1414,7 +1414,7 @@
   }
   #stage #s-title .logo .sub::before,
   #stage #s-title .logo .sub::after{ display:none; }
-  #stage #s-title .menu{ top:470px; }
+  #stage #s-title .menu{ top:430px; }
   #stage #title-lang{
     background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.12) 48%), linear-gradient(180deg,#ffffff,#e7ecff);
     color:#1f2440; border-color:#394161;
@@ -6251,7 +6251,6 @@ const AUDIO = (function(){
       matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false;
       setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
       scheduleMatchThemeTalk(6000);
-      scheduleMatchStoryTalk(15000);
       this.broadcast();
       afterStep();
     },
@@ -7581,7 +7580,6 @@ const AUDIO = (function(){
     renderMatch();
     setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
     scheduleMatchThemeTalk(6000);
-    scheduleMatchStoryTalk(15000);
     afterStep();
   }
   function cpuBuildQuick(i){
@@ -7880,9 +7878,9 @@ const AUDIO = (function(){
     setTimeout(()=>tryTarget(1),first);
     setTimeout(()=>tryTarget(2),Math.max(28000,first+22000));
   }
-  function emitMatchStoryTalk(){
+  function emitMatchStoryTalk(force){
     if(!G||currentScreen!=='s-match'||matchStoryTalkShown)return false;
-    if(Date.now()-matchTalkLastAt<8500)return false;
+    if(!force&&Date.now()-matchTalkLastAt<8500)return false;
     let item=null; try{ item=AIStory.pick('battle'); }catch(e){}
     if(!item||!item.text)return false;
     const box=$('#match-talk'); if(!box)return false;
@@ -7891,16 +7889,6 @@ const AUDIO = (function(){
     box.classList.add('show'); matchTalkLastAt=Date.now(); matchStoryTalkShown=true;
     AIStory.markShown(item,'battle');
     return true;
-  }
-  function scheduleMatchStoryTalk(delay){
-    const attempt=()=>{
-      if(!G||currentScreen!=='s-match'||matchStoryTalkShown)return;
-      if(!emitMatchStoryTalk()){
-        const wait=Math.max(1200,8500-(Date.now()-matchTalkLastAt)+100);
-        setTimeout(attempt,wait);
-      }
-    };
-    setTimeout(attempt,delay||15000);
   }
   function matchTalkSnapshot(){
     const c=G&&G.field&&G.field.combo, owner=G&&G.field?G.field.ownerIndex:null;
@@ -7921,7 +7909,11 @@ const AUDIO = (function(){
     }
     const finish=ev.find(x=>x.kind==='finish');
     if(finish){
-      if(actorIdx===meIdx()) return matchTalkSpecial('finish_self',actorIdx);
+      if(actorIdx===meIdx()){
+        const place=Number(G.players[actorIdx]?.place)||4;
+        if(place<=2)return emitMatchStoryTalk(true);
+        return matchTalkSpecial('finish_self',actorIdx);
+      }
       const reactor=G.players[meIdx()]&&!G.players[meIdx()].finished?meIdx():G.players.findIndex((p,i)=>i!==actorIdx&&!p.finished);
       return matchTalkSpecial('finish_other',reactor>=0?reactor:actorIdx);
     }
@@ -8196,7 +8188,11 @@ const AUDIO = (function(){
     if(!next||!next.players)return;
     if(!prev||!prev.players){ setTimeout(()=>matchTalkEvent('greeting',next.turn,true),350); return; }
     const fin=next.players.findIndex((p,i)=>p.finished&&!prev.players[i]?.finished);
-    if(fin>=0){ matchTalkSpecial(fin===meIdx()?'finish_self':'finish_other',fin===meIdx()?fin:meIdx()); return; }
+    if(fin>=0){
+      if(fin===meIdx()&&(Number(next.players[fin]?.place)||4)<=2)emitMatchStoryTalk(true);
+      else matchTalkSpecial(fin===meIdx()?'finish_self':'finish_other',fin===meIdx()?fin:meIdx());
+      return;
+    }
     const oldSkip=new Set(prev.skipped||[]), addedSkip=(next.skipped||[]).find(i=>!oldSkip.has(i));
     if(addedSkip!=null){ matchTalkSpecial(next.skipMode==='choose'?'chosen':'skipped',addedSkip); return; }
     const oldPassed=new Set(prev.passed||[]), newPass=(next.passed||[]).find(i=>!oldPassed.has(i));
@@ -8208,7 +8204,7 @@ const AUDIO = (function(){
   function onNetState(state){
     const prev=G, entering=currentScreen!=='s-match';
     G = state;
-    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; scheduleMatchThemeTalk(6000); scheduleMatchStoryTalk(15000); }
+    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; scheduleMatchThemeTalk(6000); }
     renderMatch();
     matchTalkNetDiff(entering?null:prev,state);
     clientAfter();
@@ -8809,7 +8805,7 @@ const AUDIO = (function(){
      - 読み物画面ではなく、タイトル/対戦/マップ/結果へ1件ずつ差し込む。
      ============================================================ */
   const AIStory = (function(){
-    const KEY='rule_ai_story_v1', MAX_CHAPTER=6, STORY_CHAPTER_SIZE=12, STORY_FORMAT_TAG='story-format:3';
+    const KEY='rule_ai_story_v1', MAX_CHAPTER=6, STORY_CHAPTER_SIZE=12, STORY_FORMAT_TAG='story-format:4';
     const ARCS=[
       {
         id:'missing_winner', title:'名前のない優勝者',
@@ -8889,9 +8885,12 @@ const AUDIO = (function(){
       const rows=[vi
         ? `Nhân vật chính ${p.name}: ${aiWorldProfileWord(p.gender)}, ${aiWorldProfileWord(p.job)}. Đây là người chơi; không tự đặt lời nói, suy nghĩ hay hành động.`
         : `主人公 ${p.name}: ${p.gender}、${p.job}。プレイヤー本人。未確認の発言・考え・行動を勝手に作らない。`];
-      store.rivals.forEach((r,i)=>rows.push(vi
-        ? `Đối thủ ${i+1} ${r.name}: ${aiWorldProfileWord(r.gender)}, ${aiWorldProfileWord(r.job)}.`
-        : `宿敵${i+1} ${r.name}: ${r.gender}、${r.job}。${rivalStyleLine(i,null)}`));
+      store.rivals.forEach((r,i)=>{
+        const firstPerson=r.gender==='男'?'俺':'私';
+        rows.push(vi
+          ? `Đối thủ ${i+1} ${r.name}: ${aiWorldProfileWord(r.gender)}, ${aiWorldProfileWord(r.job)}.`
+          : `宿敵${i+1} ${r.name}: ${r.gender}、${r.job}。一人称は「${firstPerson}」で固定。${rivalStyleLine(i,null)}`);
+      });
       if(store.rivals.length){
         const a=store.rivals[(s.chapter||0)%store.rivals.length], b=store.rivals[((s.chapter||0)+1)%store.rivals.length];
         rows.push(vi?`Nhân vật trung tâm ưu tiên của chương này: ${a.name} và ${b.name}.`:`この章の優先中心人物: ${a.name} と ${b.name}。`);
@@ -8957,6 +8956,7 @@ const AUDIO = (function(){
         'この章の中心人物として設定人物から2〜3人を選び、必ず設定名で登場させる。章ごとに中心人物を交代し、4人の宿敵全員へ重要な役割を回す。',
         '設定人物で足りる役に代役の新人物を作らない。主人公には、プレイヤーがまだしていない発言・考え・行動を勝手に与えない。',
         '会話文のspeakerは実際に話す設定人物の名前にする。地の文だけspeakerを「物語」にする。',
+        '各人物の一人称は人物表どおりに固定し、途中で「俺・僕・私」を混ぜない。性別を誇張した語尾や古い男女口調は使わず、現代の自然な話し方にする。',
         '全itemのtagsに story、arc:'+q.arcId+'、chapter:'+q.chapter+' を必ず入れる。',
         'プレイヤーがまだしていない行動を事実にしない。最終章までは秘密の真相を説明し切らない。',
         '現代の12歳が一読で分かる短い普通の言葉だけを使う。詩、古語、哲学、演説、格好つけた言い回し、難しい漢語は禁止。',
