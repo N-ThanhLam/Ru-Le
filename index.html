@@ -2103,10 +2103,10 @@ const RL = (function(){
     //   8切り(aka15): place:'card' だが suitOnly=true でマークスロット専用。装備マークの「8」で場を流す。
     { id:'aka15', code:'赤15', color:'aka', name:'8切り', cost:5, suitCost:5, ico:'8️⃣', effect:'CUT_EIGHT', place:'card', suitOnly:true, condRank:'8', desc:'装備したマークの「8」を出すと場を流して、続けてもう一度出せる。', nameVi:'Chặt 8', abbrVi:'C.8', codeVi:'Đ15', descVi:'Đánh lá "8" thuộc chất đã gắn sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     // ───────── 青 (ao) — ターン操作 ─────────
-    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:9, suitCost:22, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーの手番を1回飛ばす（場が流れればまた出せる）。気を使える構成なら、出したときに気+1。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua 1 lượt của người kế tiếp (vòng sau vẫn đánh được). Nếu cấu hình dùng năng lượng, khi đánh sẽ +1 năng lượng.' },
+    { id:'ao01',  code:'青01', color:'ao',  name:'加速', cost:9, suitCost:22, ico:'⏩', effect:'SKIP', place:'card', desc:'次のプレイヤーをパス扱いにして飛ばす。気を使える構成なら、出したときに気が全チャージされる。', nameVi:'Tăng Tốc', abbrVi:'Tốc', codeVi:'X01', descVi:'Bỏ qua người kế tiếp và tính là đã bỏ lượt. Nếu cấu hình dùng năng lượng, khi đánh sẽ nạp đầy năng lượng.' },
     { id:'ao02',  code:'青02', color:'ao',  name:'連撃', cost:10, suitCost:28, ico:'➕', effect:'EXTRA_TURN', place:'card', desc:'場はそのままで、続けてもう一度出せる。', nameVi:'Liên Kích', abbrVi:'L.Kích', codeVi:'X02', descVi:'Giữ nguyên bãi, được đánh tiếp ngay.' },
     { id:'ao03',  code:'青03', color:'ao',  name:'逆流', cost:9, suitCost:26, ico:'🔄', effect:'REVERSE_DIR', place:'card', desc:'手番の向きを反転する。気を使える構成なら、出したときに気+2。', nameVi:'Đảo Dòng', abbrVi:'Dòng', codeVi:'X03', descVi:'Đảo chiều lượt đi. Nếu cấu hình dùng năng lượng, khi đánh sẽ +2 năng lượng.' },
-    { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:15, suitCost:34, ico:'🎯', effect:['CHOOSE_NEXT','LOCK_SUIT_PLAYED'], place:'card', desc:'次に出す人を自分で指名する（狙い撃ち）。さらに、出した札のマークで縛りが発生し、次はそのマークしか出せない（場が空でも、場と違うマークでも必ず発生する）。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp (nhắm thẳng). Ngoài ra, chất của lá vừa đánh sẽ tạo khóa chất, lượt sau chỉ được đánh đúng chất đó (luôn xảy ra, kể cả khi bãi trống hoặc khác chất với lá trên bãi).' },
+    { id:'ao04',  code:'青04', color:'ao',  name:'指名', cost:15, suitCost:34, ico:'🎯', effect:'CHOOSE_NEXT', place:'card', desc:'次に出す人を自分で指名し、途中で飛ばしたプレイヤーはパス扱いにする。気を使える構成なら、出したときに気を2つチャージする。', nameVi:'Chỉ Định', abbrVi:'Chỉ', codeVi:'X04', descVi:'Tự chọn người đánh kế tiếp; những người bị bỏ qua được tính là đã bỏ lượt. Nếu cấu hình dùng năng lượng, khi đánh sẽ nạp 2 năng lượng.' },
     { id:'ao05', code:'青05', color:'ao',     name:'スート順', cost:6, ico:'🏷️', effect:'SUIT_ORDER', place:'whole', desc:'同じ数字はマークの強さ（♠<♣<♦<♥）で優劣がつく。自分だけに適用。', nameVi:'Thứ Tự Chất', abbrVi:'T.Chất', codeVi:'X05', descVi:'Cùng số thì phân hơn kém theo chất (♠<♣<♦<♥). Chỉ áp dụng cho mình.' },
     { id:'ao06',  code:'青06', color:'ao',   name:'弱者', cost:8, ico:'🐢', effect:'WEAK_START', place:'whole', desc:'♠3を持っていたら、ランダムの順番を無視して先手。最初は必ず♠3を含めて出す（複数枚OK）。', nameVi:'Kẻ Yếu', abbrVi:'K.Yếu', codeVi:'X06', descVi:'Nếu có ♠3 thì đi trước bất kể thứ tự ngẫu nhiên. Nước đầu bắt buộc đánh kèm ♠3 (được nhiều lá).' },
     { id:'ao07',  code:'青07', color:'ao',   name:'再開', cost:17, ico:'🪃', effect:'RESUME', place:'whole', desc:'通常はパスするとそのトリック（場）に参加できなくなるが、これがあれば誰かが新しく札を出すたびに復帰でき、パスしても何度でも参加し直せる。', nameVi:'Tái Nhập', abbrVi:'T.Nhập', codeVi:'X07', descVi:'Bình thường khi bỏ lượt (pass) thì không được tham gia ván bài (bãi) đó nữa, nhưng có nó thì mỗi khi ai đó đánh lá mới bạn lại được quay lại — dù đã bỏ lượt vẫn tham gia lại bao nhiêu lần cũng được.' },
@@ -2953,7 +2953,10 @@ const RL = (function(){
     const fSilence = effs.includes('SILENCE_OTHERS');
     if(fSkip){
       const skipped = nextTurnFrom(state, playerIndex, 1);
-      if(skipped!==playerIndex && state.players[skipped] && !state.players[skipped].finished){ state.skipped = [skipped]; state.skipMode='skip'; }
+      if(skipped!==playerIndex && state.players[skipped] && !state.players[skipped].finished){
+        if(!passedSet(state).includes(skipped)) passedSet(state).push(skipped);
+        state.skipped = [skipped]; state.skipMode='skip';
+      }
     }
     if(fieldCombo2.split)                events.push({kind:'emb', emb:firstWith('SPLIT')});       // 分裂(疑似ペア)
     if(fieldCombo2.disguised)            events.push({kind:'emb', emb:firstWith('DISGUISE')});    // 偽装(1つ上に化ける)
@@ -2963,9 +2966,12 @@ const RL = (function(){
     if(effs.includes('EXTRA_TURN'))      events.push({kind:'emb', emb:firstWith('EXTRA_TURN')});
     if(fSkip) events.push({kind:'emb', emb:firstWith('SKIP')});
     if(fRev)  events.push({kind:'emb', emb:firstWith('REVERSE_DIR')});
-    if(rules.usesCharge && (fSkip || fRev)){
-      const gain = (fSkip ? 1 : 0) + (fRev ? 2 : 0);
-      p.charge = Math.min(rules.chargeCap||0, (p.charge||0) + gain);
+    if(rules.usesCharge && (fSkip || fRev || fChoose)){
+      if(fSkip) p.charge = rules.chargeCap||0;
+      else {
+        const gain = (fRev ? 2 : 0) + (fChoose ? 2 : 0);
+        p.charge = Math.min(rules.chargeCap||0, (p.charge||0) + gain);
+      }
     }
     if(fSilence){ state.emblemSilence = { owner:playerIndex, armed:false }; events.push({kind:'emb', emb:firstWith('SILENCE_OTHERS')}); }
 
@@ -2983,19 +2989,18 @@ const RL = (function(){
       return { events, finishedNow };
     }
 
-    // 7) 次手番(自発パスで降りた席だけ飛ばす)。
-    //    ★v0.16: 「トリック再参加不可」は自分でパスした席のみ。加速(SKIP)で飛ばされた席・
-    //      指名(CHOOSE_NEXT)で素通りされた席は降りない＝場が回ってくればまた出せる。
+    // 7) 次手番。加速・指名で飛ばされた席も、自分でパスした席と同じくこの場から降りる。
     let next;
     if(fClear || fExtra){ next = playerIndex; }   // 流し(続行) or 連撃 → 同じ人が続行
     else {
       if(fChoose && opts.nextPlayer!=null && !state.players[opts.nextPlayer].finished && !passedSet(state).includes(opts.nextPlayer) && opts.nextPlayer!==playerIndex){
         state.skipped = skippedTurnsBetween(state, playerIndex, opts.nextPlayer);
         state.skipMode = 'choose';
+        state.skipped.forEach(i=>{ if(!passedSet(state).includes(i)) passedSet(state).push(i); });
         next = opts.nextPlayer; events.push({kind:'emb', emb:firstWith('CHOOSE_NEXT')});
       } else {
         // 加速(SKIP): 次の1席の手番を1回だけ飛ばす(指名があれば指名先を優先)。
-        next = nextTurnFrom(state, playerIndex, fSkip ? 2 : 1);
+        next = nextTurnFrom(state, playerIndex, 1);
       }
       if(fSkip && next===playerIndex && fieldCombo(state)){ clearField(state); state.passed=[]; events.push({kind:'clear'}); next = playerIndex; }
       // 自分以外に打てる席が居なくなった(全員パス/上がり/飛ばし)→ 場を流して自分がリードし直す。
@@ -3032,18 +3037,9 @@ const RL = (function(){
       events.push({kind:'flush', lead});
     } else {
       const next = nextTurnFrom(state, playerIndex, 1);
-      const skipped = Array.isArray(state.skipped) ? state.skipped : [];
-      const pending = trickAlive(state).filter(i=> i!==owner);
-      const skippedPending = pending.filter(i=> skipped.includes(i));
-      if(ownerActive && next===owner && skippedPending.length>0){
-        setTurn(state, skippedPending[0]);
-        if(state.players[state.turn]) state.players[state.turn].freeActed = false;
-        state.passCount = passedSet(state).length;
-      } else {
-        setTurn(state, next);
-        if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
-        state.passCount = passedSet(state).length;
-      }
+      setTurn(state, next);
+      if(state.players[state.turn]) state.players[state.turn].freeActed = false;   // ★次の手番の席=無料アクション枠リセット
+      state.passCount = passedSet(state).length;
     }
     // 気(チャージ): 反撃 or 溜め撃ち(activated)を持つ席が「場に返さずパスした」ら +CHARGE_PER_PASS 貯まる(上限=chargeCap)。
     //   ★主導権を譲った見返りに気が貯まる＝「出す/溜める」の択を生む。リード中(場が空)のパスは対象外＝何も譲っていないので貯めない(farm 防止)。
@@ -3334,33 +3330,33 @@ const RL = (function(){
       if(c5s3){ applyPlay(g3,0,c5s3,{}); ok('場が空への出し→縛り不発', g3.field.suitLock===null); }
       else ok('縛り不発テスト2(5なしスキップ)', true);
     })();
-    // 8d 指名(ao04 = LOCK_SUIT_PLAYED) — 出した札のマークで“無条件”に縛り発生(空の場でも・場と違うマークでも)
+    // 8d 指名(ao04) — スート縛りなし。飛ばした席はパス扱い。
     (()=>{
-      // 空の場に 5♥ を出す → ♥ 縛り発生
+      // 空の場に 5♥ を出しても縛らない
       const g=newGame(defs.map(x=>({...x})),5);
       g.players[0].build.rankSlots['5']=['ao04'];
       const c=g.players[0].hand.find(x=>x.rank==='5'&&x.suit==='H');
-      if(c){ applyPlay(g,0,c,{}); ok('指名: 空の場でも縛り発生', Array.isArray(g.field.suitLock)&&g.field.suitLock[0]==='H'); }
+      if(c){ applyPlay(g,0,c,{}); ok('指名: 空の場でスート縛りなし', g.field.suitLock===null); }
       else ok('指名: 空場テスト(5♥なしスキップ)', true);
-      // 場が♠の上に 5♥(異マーク)を出す → それでも♥縛り発生
+      // 場が♠の上に 5♥(異マーク)を出しても縛らない
       const g2=newGame(defs.map(x=>({...x})),5);
       g2.players[0].build.rankSlots['5']=['ao04'];
       g2.field.combo=singleCombo({rank:'3',suit:'S'}); g2.field.card={rank:'3',suit:'S'};
       const c2=g2.players[0].hand.find(x=>x.rank==='5'&&x.suit==='H');
-      if(c2){ applyPlay(g2,0,c2,{}); ok('指名: 異マークの場でも縛り発生', Array.isArray(g2.field.suitLock)&&g2.field.suitLock[0]==='H'); }
+      if(c2){ applyPlay(g2,0,c2,{}); ok('指名: 異マークの場でもスート縛りなし', g2.field.suitLock===null); }
       else ok('指名: 異マークテスト(5♥なしスキップ)', true);
       const g3=newGame(defs.map(x=>({...x})),82);
       g3.players[0].build.rankSlots['5']=['ao04'];
       g3.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       g3.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g3.turn=0; g3.passed=[];
-      applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPass(g3,2); applyPass(g3,3);
-      ok('指名: 指名で飛ばされた席は自分でパスするまで参加権を残す', g3.field.card!==null && g3.turn===1 && !(g3.passed||[]).includes(1));
+      applyPlay(g3,0,{rank:'5',suit:'S'},{nextPlayer:2});
+      ok('指名: A→Cなら飛ばされたBは即パス扱い', g3.turn===2 && (g3.passed||[]).includes(1));
       const g4=newGame(defs.map(x=>({...x})),83);
       g4.players[0].build.rankSlots['5']=['ao04'];
       g4.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       g4.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; g4.turn=0; g4.passed=[];
       applyPlay(g4,0,{rank:'5',suit:'S'},{nextPlayer:2}); applyPlay(g4,2,{rank:'7',suit:'D'},{});
-      ok('指名: 指名先が出したら新しい場で全員が通常参加に戻る', g4.field.card!==null && g4.field.ownerIndex===2 && g4.turn===3 && (g4.skipped||[]).length===0);
+      ok('指名: 指名先が出しても飛ばされたBはその場へ再参加しない', g4.field.card!==null && g4.field.ownerIndex===2 && g4.turn===3 && (g4.passed||[]).includes(1));
       const g5=newGame(defs.map(x=>({...x})),84);
       g5.players[0].build.rankSlots['5']=['ao04'];
       g5.players.forEach((p,i)=> p.hand=[{rank:['5','6','7','8'][i],suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
@@ -3368,8 +3364,9 @@ const RL = (function(){
       applyPlay(g5,0,{rank:'5',suit:'S'},{nextPlayer:1}); applyPlay(g5,1,{rank:'6',suit:'H'},{}); applyPass(g5,2); applyPlay(g5,3,{rank:'8',suit:'C'},{});
       ok('指名: 通常進行後にBだけパスしてCが出したら俺/A/Cだけ参加権あり', g5.field.ownerIndex===3 && g5.turn===0 && JSON.stringify((g5.passed||[]).slice().sort())==='[2]' && !(g5.skipped||[]).length);
     })();
-    // 8e 指名の効果構成: CHOOSE_NEXT を保持・SHED_WEAK_IF_MOST(手札最多時の弱札捨て)は持たない
+    // 8e 指名の効果構成: CHOOSE_NEXT のみ（スート縛り・弱札捨てなし）
     ok('指名: CHOOSE_NEXT を保持', effList(EMB_BY_ID['ao04']).includes('CHOOSE_NEXT'));
+    ok('指名: LOCK_SUIT_PLAYED を廃止', !effList(EMB_BY_ID['ao04']).includes('LOCK_SUIT_PLAYED'));
     ok('指名: 弱札捨て(SHED_WEAK_IF_MOST)を持たない', !effList(EMB_BY_ID['ao04']).includes('SHED_WEAK_IF_MOST'));
     // 8b 縛り(同値複数) — 3♠3♥縛りは6♠6♦を弾き6♠6♥を通す
     const t3b=newGame(defs.map(x=>({...x})),3);
@@ -3662,16 +3659,15 @@ const RL = (function(){
     lo.field.combo=singleCombo({rank:'7',suit:'S'}); lo.field.card=lo.field.combo.key; lo.field.ownerIndex=0; lo.turn=1; lo.passed=[];
     applyPass(lo,1);
     ok('パスした席は passed に登録', lo.passed.includes(1) && lo.turn===2);
-    // 42 加速(SKIP)=1回飛ばしのみ(v0.16): 飛ばされた席はトリックに残り、場が回ればまた出せる。
-    //    「トリック再参加不可」になるのは自分でパスを選んだ席だけ。
+    // 42 加速(SKIP): 飛ばされた席は通常パスと同じく、その場へ再参加できない。
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 55);                // P0=加速(SKIP)
       sb.players.forEach((p,i)=> p.hand=[{rank:'3',suit:['S','H','D','C'][i]},{rank:'K',suit:'S'}]);
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'3',suit:'S'},{});                                        // P0が3♠(加速)リード→P1を1回飛ばし
-      ok('加速: 飛ばされた席は降りない(手番が2へ)', !(sb.passed||[]).includes(1) && sb.turn===2);
-      applyPass(sb,2); applyPass(sb,3);                                               // P2,P3パス→飛ばされたP1へ参加権を戻す
-      ok('加速: 誰も新しく出さなくても飛ばされた席に参加権が戻る', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      ok('加速: 飛ばされた席は即パス扱い(手番は2へ)', (sb.passed||[]).includes(1) && sb.turn===2);
+      applyPass(sb,2); applyPass(sb,3);
+      ok('加速: 飛ばされた席を含む全員パスで場が流れる', sb.field.card===null && sb.turn===0 && !(sb.passed||[]).length);
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'5':['ao01']}})), 57);
@@ -3680,9 +3676,10 @@ const RL = (function(){
       sb.players[2].hand=[{rank:'7',suit:'D'},{rank:'K',suit:'D'}];
       sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
-      applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされるが、パス扱いではない
-      applyPass(sb,2); applyPass(sb,3);                                               // 飛ばされた席だけが残ったら、その席へ参加権を戻す
-      ok('加速: 飛ばされた席だけが残ったらその席へ戻す', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      applyPlay(sb,0,{rank:'5',suit:'S'},{});                                        // P1は飛ばされ、その場ではパス扱い
+      ok('加速: A→B(パス)→C', sb.turn===2 && (sb.passed||[]).includes(1));
+      applyPass(sb,2); applyPass(sb,3);
+      ok('加速: C/Dもパスなら場が流れてAへ戻る', sb.field.card===null && sb.turn===0);
     })();
     (function(){
       const b3=buildFrom({rank:{'5':['ao01']}});
@@ -3693,12 +3690,10 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'5',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=3; sb.passed=[];
       applyPlay(sb,3,{rank:'5',suit:'C'},{});                                          // Cが俺(P0)を1回飛ばす
-      ok('加速: Cに飛ばされても俺はpassedに入らない', sb.turn===1 && !(sb.passed||[]).includes(0) && (sb.skipped||[]).includes(0));
+      ok('加速: Cに飛ばされた俺は即パス扱い', sb.turn===1 && (sb.passed||[]).includes(0));
       applyPlay(sb,1,{rank:'6',suit:'H'},{});                                          // Aが新しく札を出す
-      applyPass(sb,2); applyPass(sb,3);                                                // B/Cが返せなければ、俺へ戻る
-      ok('加速: 誰かが新しく出した後は俺の参加権が戻る', sb.field.card!==null && sb.turn===0 && !(sb.passed||[]).includes(0));
-      applyPlay(sb,0,{rank:'7',suit:'S'},{});
-      ok('加速: 戻った俺はその場に出せる', sb.field.ownerIndex===0 && sb.field.card && sb.field.card.rank==='7');
+      applyPass(sb,2); applyPass(sb,3);
+      ok('加速: 新しい札が出ても飛ばされた俺は再参加せず、場はAへ流れる', sb.field.card===null && sb.turn===1 && !(sb.passed||[]).length);
     })();
     (function(){
       const b1=buildFrom({rank:{'5':['ao01']}});
@@ -3709,10 +3704,8 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'8',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'5',suit:'S'},{});   // P1が加速 → P2を飛ばしてP3へ
-      applyPass(sb,2); applyPass(sb,3);         // P3/P4がパス
-      ok('加速: P1がP2を飛ばしP3/P4がパスしたらP2へ戻す', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
-      applyPlay(sb,1,{rank:'6',suit:'H'},{});   // P2が出したら、P3/P4はパス済みなのでP1へ戻る
-      ok('加速: 戻ったP2が出したらパス済み席を飛ばしてP1へ戻る', sb.field.ownerIndex===1 && sb.turn===0 && (sb.passed||[]).includes(2) && (sb.passed||[]).includes(3));
+      applyPass(sb,2); applyPass(sb,3);
+      ok('加速: P2/P3/P4がパス扱いなら場が流れてP1へ戻る', sb.field.card===null && sb.turn===0 && !(sb.passed||[]).length);
     })();
     (function(){
       const b1=buildFrom({rank:{'5':['ao01']}});
@@ -3723,9 +3716,9 @@ const RL = (function(){
       sb.players[3].hand=[{rank:'7',suit:'C'},{rank:'K',suit:'C'}];
       sb.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sb.turn=0; sb.passed=[];
       applyPlay(sb,0,{rank:'5',suit:'S'},{});   // P1が加速 → P2を飛ばしてP3へ
-      applyPlay(sb,2,{rank:'6',suit:'D'},{});   // P3が新しく出す → 飛ばし状態は解除
+      applyPlay(sb,2,{rank:'6',suit:'D'},{});   // P3が新しく出してもP2のパス扱いは維持
       applyPass(sb,3); applyPass(sb,0);         // P4/P1がパス
-      ok('加速: P3が出した後ならP2に参加権が戻る', sb.field.card!==null && sb.turn===1 && !(sb.passed||[]).includes(1));
+      ok('加速: P3が出した後もP2は再参加せずP3へ場が流れる', sb.field.card===null && sb.turn===2 && !(sb.passed||[]).length);
     })();
     (function(){
       const sb=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 56);
@@ -3994,10 +3987,15 @@ const RL = (function(){
       const sy=newGame(seat0(syn), 350);
       sy.players[0].hand=[{rank:'3',suit:'S'},{rank:'4',suit:'S'},{rank:'K',suit:'S'}]; sy.players[0].charge=0;
       applyPlay(sy,0,{rank:'3',suit:'S'},{});
-      ok('加速: 気構成なら出した時に気+1', sy.players[0].charge===1);
+      ok('加速: 気構成なら出した時に全チャージ', sy.players[0].charge===sy.players[0].rules.chargeCap);
       sy.field={card:null,combo:null,ownerIndex:null,suitLock:null,reverseCompare:false}; sy.passed=[]; sy.players[0].charge=0;
       applyPlay(sy,0,{rank:'4',suit:'S'},{});
       ok('逆流: 気構成なら出した時に気+2', sy.players[0].charge===2);
+      const aim=buildFrom({rank:{'5':['ao04']}, rule:['aka12']});
+      const syAim=newGame(seat0(aim), 352);
+      syAim.players[0].hand=[{rank:'5',suit:'S'},{rank:'K',suit:'S'}]; syAim.players[0].charge=0;
+      applyPlay(syAim,0,{rank:'5',suit:'S'},{nextPlayer:2});
+      ok('指名: 気構成なら出した時に気+2', syAim.players[0].charge===2);
       const syNo=newGame(seat0(buildFrom({rank:{'3':['ao01']}})), 351);
       syNo.players[0].hand=[{rank:'3',suit:'S'},{rank:'K',suit:'S'}]; syNo.players[0].charge=0;
       applyPlay(syNo,0,{rank:'3',suit:'S'},{});
@@ -5540,9 +5538,17 @@ const AUDIO = (function(){
 
   // 巡業(ローグライク)
   // ★v0.16 予算ルール: 55スタート・深度+1ごとに+5(勝敗/順位は無関係)＝深度10でちょうど100。
-  //   プレイヤーは以降100で頭打ち、CPUは同じ式のまま100を超えて+5し続ける(深いほど不利になる仕様)。
+  //   プレイヤーは以降100で頭打ち。CPUの100超過分は「獲得したランダムエンブレム1個につき+5」まで。
+  //   例: 深度14の基礎120に対し、ランダム0個=100 / 2個=110 / 4個以上=120。
   function runBudget(depth){ return Math.min(100, 50 + 5*depth); }   // 深度1=55, 2=60, …, 10=100, 以降100固定
-  function runCpuBudget(depth){ return 50 + 5*depth; }               // CPUは上限なし(深度11=105, 12=110, …)
+  function runRandomEmblemCount(run){
+    return run && run.randomBuild ? collectBuildIds(run.randomBuild).length : 0;
+  }
+  function runCpuBudget(depth, run){
+    const depthBudget = 50 + 5*depth;
+    const growthCap = 100 + 5*runRandomEmblemCount(run);
+    return Math.min(depthBudget, growthCap);
+  }
   const RUN_WIN_BONUS = 25;   // ★v0.17: 1位通過 → 次の対戦だけコスト容量+25(100上限を超えてよい)
 
   /* ============================================================
@@ -5675,7 +5681,7 @@ const AUDIO = (function(){
   // 強敵/ボスは宿敵の予算を上振れ(歯ごたえ)。幕が進むほど僅かに上昇(無双の上限キャップではない)。
   function nodeRivalBudget(depth){
     // お題(大盤振舞/緊縮)の増減を宿敵にも反映(下限30。プレイヤーの currentBudget と同じ床)。
-    let b=Math.max(30, runCpuBudget(depth) + mutatorBudgetDelta());
+    let b=Math.max(30, runCpuBudget(depth, MODE.run) + mutatorBudgetDelta());
     const n=MODE.curNode, act=Math.max(0,(((MODE.run&&MODE.run.act)||1)-1));
     // ★v0.25 _sim 校正: 予算は「効きはじめる膝」が +60 付近(下では雑魚と差がつかず spike≈0)。
     //   そこで elite=+40+幕×6 / boss=+60+幕×8 に引き上げ＝幕1から本物のボス(勝率>0.25)・幕で歯ごたえ上昇。
@@ -7176,8 +7182,8 @@ const AUDIO = (function(){
     const keys=['speed','control','tempo','vietnam'];
     let pool=CPU_ARCHE[keys[idx%3]].slice();                    // 名前(速攻/支配/翻弄)と一致
     if(depth>=4) pool=pool.concat(CPU_ARCHE[keys[3]]);          // 深いほどベトナム式の役も混ぜる
-    // 巡業CPUの予算=プレイヤーと同式だが上限なし(深度10超は+5し続けプレイヤーより強くなる)。お題(大盤振舞/緊縮)の増減もCPUに反映(下限30)。
-    const budget=Math.max(30, runCpuBudget(depth) + mutatorBudgetDelta());
+    // 巡業CPUの100超過分は、プレイヤーのランダムエンブレム数×5まで。お題(大盤振舞/緊縮)の増減もCPUに反映(下限30)。
+    const budget=Math.max(30, runCpuBudget(depth, MODE.run) + mutatorBudgetDelta());
     return assembleCpuBuild(pool, budget);
   }
 
