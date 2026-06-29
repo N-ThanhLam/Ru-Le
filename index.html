@@ -8890,14 +8890,24 @@ const AUDIO = (function(){
       return rows.join('\n');
     };
     const factText=s=>s.facts.slice(-8).join(' / ')||'まだ目立った戦績はない';
-    function task(){
-      let s=load(); const beforeKey=keyFor(s); s=advanceIfComplete(s); if(keyFor(s)!==beforeKey)save(s);
+    function buildTask(s, prefetch){
       const arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)], n=stock(s), read=readStock(s), recentStory=recentStoryText(s), cast=storyCastPrompt(s);
       const label=aiWorldLang()==='vi'?('Truyện Chương '+(s.chapter+1)):('物語 第'+(s.chapter+1)+'章');
       const canon=(s.canonByLang&&s.canonByLang[aiWorldLang()])||(aiWorldLang()==='ja'?s.canon:'');
       return {id:'story_arc',lang:aiWorldLang(),type:'conversation',types:['conversation','event','news','rumor','diary'],
         theme:'連載「'+s.title+'」第'+(s.chapter+1)+'章',count:Math.max(1,STORY_CHAPTER_SIZE-n),label,context:'battle',stockTarget:STORY_CHAPTER_SIZE,stockNow:n,readNow:read,
-        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,storyState:{...s,canon,recentStory,cast,stockNow:n,chapterSize:STORY_CHAPTER_SIZE,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
+        tags:tagsFor(s),storyKey:keyFor(s),day:aiWorldCalendarDay(),story:true,prefetch:!!prefetch,storyState:{...s,canon,recentStory,cast,stockNow:n,chapterSize:STORY_CHAPTER_SIZE,premise:arc.premise,truth:arc.truth,hook:ch.hook,clue:ch.clue,playerName:playerName(),rivalName:rivalName(),facts:factText(s)}};
+    }
+    function task(){
+      let s=load(); const beforeKey=keyFor(s); s=advanceIfComplete(s); if(keyFor(s)!==beforeKey)save(s);
+      return buildTask(s,false);
+    }
+    function prefetchTask(){
+      const s=load();
+      if(readStock(s)<8||s.chapter>=MAX_CHAPTER)return null;
+      const next={...s,chapter:s.chapter+1,progress:0};
+      const out=buildTask(next,true);
+      return out.stockNow<out.stockTarget?out:null;
     }
     function prompt(task){
       const q=task.storyState, vi=aiWorldLang()==='vi';
@@ -9010,6 +9020,16 @@ const AUDIO = (function(){
         speaker:String(item.speaker||'').slice(0,30),text:String(item.text).slice(0,220)});
       s.revealed=s.revealed.slice(-600);
       save(advanceIfComplete(s));
+      // 8/12で次章を先行生成。最終文で章が進んだ場合も新章を即補充する。
+      setTimeout(()=>{
+        try{
+          const need=AIStory.prefetchTask()||AIStory.task();
+          if(need&&need.stockNow<need.stockTarget){
+            aiWorldNextAllowedAt=Date.now();
+            aiWorldGenerateOnce();
+          }
+        }catch(e){}
+      },0);
     }
     function reader(){
       const s=load(), arc=arcFor(s), seen=new Set(), revealed=(Array.isArray(s.revealed)?s.revealed:[]).concat(AIWorldDB.usedStory()), items=[];
@@ -9028,7 +9048,7 @@ const AUDIO = (function(){
       return {title:arc.title,chapter:s.chapter,season:s.season,items};
     }
     function reset(){ try{ localStorage.removeItem(KEY); }catch(e){ save(fresh(0)); } }
-    return {task,prompt,pick,recordAction,recordResult,afterGenerated,markShown,reader,reset};
+    return {task,prefetchTask,prompt,pick,recordAction,recordResult,afterGenerated,markShown,reader,reset};
   })();
 
   const GeminiWorldAdapter = (function(){
@@ -9114,6 +9134,8 @@ const AUDIO = (function(){
   function aiWorldNextTask(){
     const story=AIStory.task();
     if(story.stockNow<story.stockTarget) return story;
+    const prefetchedStory=AIStory.prefetchTask();
+    if(prefetchedStory) return prefetchedStory;
     const daily=aiWorldDailyTask();
     if(daily.stockNow<daily.stockTarget) return daily;
     const tomorrow=aiWorldDailyTask(1);
