@@ -5496,12 +5496,14 @@ const AUDIO = (function(){
   let _confirmCb=null;
   function showConfirm(title, body, okLabel, cancelLabel, onOk){
     AUDIO.confirm();
+    const confirm=$('#ovl-confirm'), screen=$('#'+currentScreen);
+    if(confirm&&screen&&confirm.parentElement!==screen)screen.appendChild(confirm);
     $('#confirm-title').textContent=title;
     $('#confirm-body').innerHTML=body;
     $('#confirm-ok').textContent=okLabel;
     $('#confirm-cancel').textContent=cancelLabel;
     _confirmCb=onOk||null;
-    $('#ovl-confirm').classList.add('active');
+    confirm.classList.add('active');
     setTimeout(()=>{ setFocus($('#confirm-cancel')); }, 0);   // 既定はキャンセル側に当てる＝Enter即決での誤承認を防ぐ
   }
   function closeConfirm(){ $('#ovl-confirm').classList.remove('active'); _confirmCb=null; }
