@@ -8887,7 +8887,21 @@ const AUDIO = (function(){
     const shownIds=s=>new Set((Array.isArray(s.revealed)?s.revealed:[]).map(x=>String(x.id||'')).concat(AIWorldDB.usedStory().map(x=>String(x.id||''))));
     const chapterItems=s=>storyItems(s).slice(0,STORY_CHAPTER_SIZE);
     const stock=s=>Math.min(storyItems(s).length,STORY_CHAPTER_SIZE);
-    const readStock=s=>{ const shown=shownIds(s); return chapterItems(s).filter(x=>shown.has(String(x.id||''))).length; };
+    // 章の進行は「AI在庫を何件読んだか」ではなく、実際に対戦で表示した場面数で数える。
+    // AIが12件未満しか返さなかった場合も、ローカル補完分を含めて12場面で次章へ進める。
+    const chapterReadCount=s=>{
+      const ids=new Set(), add=x=>{
+        if(!x||(x.lang||'ja')!==aiWorldLang())return;
+        const tags=new Set((x.tags||[]).map(String)), parts=String(x.storyKey||'').split('|');
+        const arcTag=[...tags].find(v=>v.startsWith('arc:')), seasonTag=[...tags].find(v=>v.startsWith('season:')), chapterTag=[...tags].find(v=>v.startsWith('chapter:'));
+        const arcId=x.arcId||(arcTag?arcTag.slice(4):parts[0]), season=Number(x.season!=null?x.season:(seasonTag?seasonTag.slice(7):parts[1])),
+              chapter=Number(x.chapter!=null?x.chapter:(chapterTag?chapterTag.slice(8):parts[2]));
+        if(arcId===s.arcId&&season===Number(s.season)&&chapter===Number(s.chapter))ids.add(String(x.id||[arcId,season,chapter,x.text].join('|')));
+      };
+      (Array.isArray(s.revealed)?s.revealed:[]).forEach(add); AIWorldDB.usedStory().forEach(add);
+      return Math.min(ids.size,STORY_CHAPTER_SIZE);
+    };
+    const readStock=s=>chapterReadCount(s);
     const recentStoryText=s=>{
       const seen=new Set(), rows=(Array.isArray(s.revealed)?s.revealed:[]).concat(AIWorldDB.usedStory()).filter(x=>(x.lang||'ja')===aiWorldLang()&&Number(x.season||0)===Number(s.season||0));
       return rows.sort((a,b)=>String(a.shownAt||'').localeCompare(String(b.shownAt||''))).filter(x=>{ const id=String(x.id||''); if(id&&seen.has(id))return false; if(id)seen.add(id); return true; }).slice(-60).map(x=>{
@@ -8896,8 +8910,7 @@ const AUDIO = (function(){
       }).join('\n');
     };
     function advanceIfComplete(s){
-      const items=chapterItems(s), shown=shownIds(s);
-      if(items.length<STORY_CHAPTER_SIZE||items.some(x=>!shown.has(String(x.id||''))))return s;
+      if(chapterReadCount(s)<STORY_CHAPTER_SIZE)return s;
       if(s.chapter<MAX_CHAPTER){ s.chapter++; s.progress=0; return s; }
       const next=fresh((s.season||0)+1);
       next.facts=['前の事件を解決した']; next.revealed=(s.revealed||[]).slice(-600);
@@ -8993,20 +9006,25 @@ const AUDIO = (function(){
     function localItem(context){
       const s=load(), arc=arcFor(s), ch=arc.chapters[Math.min(s.chapter,arc.chapters.length-1)];
       const name=playerName(), rival=rivalName(), won=s.lastResult&&s.lastResult.place===1;
-      const lines=aiWorldLang()==='vi'?{
-        title:['Một manh mối mới vừa xuất hiện.','Vụ việc hôm qua lại có chuyển biến.'],
-        battle:[rival+'「Lá bài đó... tôi đã thấy rồi.」','Một dấu lạ thoáng hiện trên lá bài của '+name+'.'],
-        map:['Dấu lạ ấy lại xuất hiện bên đường.','Có người đã đi qua đây trước đoàn tuần hành.'],
-        result:[won?'Tên của '+name+' vừa hiện lên trong hồ sơ.':'Có người đã viết trước kết quả trận này.','Manh mối mới lại dẫn tới đối thủ.']
-      }:{
-        title:[ch.hook,'昨日の続きが、王都で動き始めた。'],
-        battle:[rival+'「その札、前にも見た気がする」',ch.clue,name+'の出した札に、黒い印が一瞬浮かんだ。'],
-        map:['道ばたに同じ黒い印が残っている。',ch.clue],
-        result:[won?'勝利の記録に、新しい文字が浮かんだ。':'敗戦の記録だけ、誰かが先に書いていた。',ch.hook]
-      };
-      const arr=lines[context]||lines.battle, key=keyFor(s)+'|'+context, i=(s.localCursor[key]||0)%arr.length;
-      s.localCursor[key]=i+1; save(s);
-      return {id:'local-story-'+key+'-'+i,type:'event',context,speaker:context==='battle'?rival:(aiWorldLang()==='vi'?'Câu chuyện':'物語'),text:arr[i],tags:tagsFor(s)};
+      // AI在庫が途中で切れても、一言のループに戻さず章の12段階を最後まで運ぶ。
+      const lines=aiWorldLang()==='vi'?[
+        ch.hook,rival+' nhận ra một dấu lạ trên lá bài.',name+' thấy dấu ấy trùng với hồ sơ cũ.',
+        rival+' nghi có người đã sửa hồ sơ.','Cánh cửa kho hồ sơ bị khóa từ bên trong.',
+        'Một mảnh giấy bị xé nằm dưới bàn.','Mảnh giấy ghi: '+ch.clue,
+        rival+' đổi ý và đề nghị cùng điều tra.','Dấu mực dẫn tới một hồ sơ vừa bị giấu.',
+        name+' giữ lại manh mối trước khi nó biến mất.','Một phần bí mật của chương đã được xác nhận.',
+        'Nhưng tên của người tiếp theo đã xuất hiện.'
+      ]:[
+        ch.hook,rival+'が札の端に見慣れない印を見つけた。',name+'は、その印が古い記録と同じだと気づいた。',
+        rival+'は「誰かが記録を直した」と疑った。','記録庫の扉は、内側から鍵がかかっていた。',
+        '机の下に、破られた紙の切れ端が落ちていた。','切れ端にはこう残っていた。'+ch.clue,
+        rival+'は考えを変え、一緒に調べようと言った。','インクの跡は、隠された一冊の記録へ続いていた。',
+        name+'は消える前に、その手がかりを確保した。','章の謎の一つだけ、答えが確かになった。',
+        'しかし記録には、次に消える者の名が浮かんだ。'
+      ];
+      const i=Math.min(STORY_CHAPTER_SIZE-1,chapterReadCount(s)), key=keyFor(s);
+      return {id:'local-story-'+key+'-'+i,type:'event',context:'battle',speaker:i===1||i===3||i===7?rival:(aiWorldLang()==='vi'?'Câu chuyện':'物語'),
+        text:lines[i],storyKey:key,storyOrder:i+1,tags:tagsFor(s)};
     }
     function pick(context){
       // 物語は画面別に枝分かれさせず、どの画面でも章の次の1文だけを順番に出す。
