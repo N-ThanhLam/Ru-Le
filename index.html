@@ -2708,6 +2708,12 @@ const RL = (function(){
   //   場の持ち主に戻ってしまう」場流しバグも根治する(passCount 方式の脆さを置換)。
   function passedSet(state){ if(!Array.isArray(state.passed)) state.passed=[]; return state.passed; }
   function setTurn(state, next){
+    // 上がり済みの席へ手番を置かない。複数効果(巻き込み・分裂・加速など)が同時発火して
+    // 最後の札を出した経路でも、この共通口で必ず現役席へ補正する。
+    // 場が空のパスは仕様上 no-op なので、finished 席を許すと CPU が永久にパスし続ける。
+    if(!state.gameOver && state.players[next] && state.players[next].finished){
+      next = nextActiveFrom(state, next, 1);
+    }
     state.turn = next;
     const s = state.emblemSilence;
     if(s && state.players[s.owner] && state.players[s.owner].finished){ state.emblemSilence = null; return next; }
@@ -3028,6 +3034,15 @@ const RL = (function(){
      場が空(リード中)のパスは無効＝場流れ直後に誤って主導権を渡さない。 */
   function applyPass(state, playerIndex){
     const events=[{kind:'pass', index:playerIndex}];
+    // 旧保存データや複合効果直後など、万一「上がり席に手番」が残った状態もここで自己修復する。
+    // 空場パスは通常 no-op だが、この異常状態だけは次の現役席へ送って無限パスを止める。
+    if(state.players[playerIndex] && state.players[playerIndex].finished && !state.gameOver){
+      const lead = nextActiveFrom(state, playerIndex, 1);
+      setTurn(state, lead);
+      if(state.players[lead]) state.players[lead].freeActed = false;
+      events.push({kind:'recover_turn', from:playerIndex, lead});
+      return { events };
+    }
     const contested = !!fieldCombo(state);
     if(!contested) return { events };
     if(contested && !passedSet(state).includes(playerIndex)) passedSet(state).push(playerIndex);
@@ -3422,6 +3437,17 @@ const RL = (function(){
     xg2.field.combo=singleCombo({rank:'4',suit:'H'}); xg2.field.card=xg2.field.combo.key; xg2.field.ownerIndex=1; xg2.turn=0; xg2.passed=[];
     applyPlay(xg2,0,{rank:'5',suit:'S'},{});
     ok('連撃を最後に出しても上がり処理される', xg2.players[0].finished===true && xg2.turn!==0);
+    // 複合効果で上がった直後に finished 席へ手番が残っても、空場パス連打には入らず自己修復する。
+    const recoverG=newGame(defs.map(x=>({...x})),26);
+    recoverG.players[0].finished=true; recoverG.players[0].hand=[]; recoverG.finishedOrder=[0]; recoverG.players[0].place=1;
+    recoverG.turn=0; clearField(recoverG); recoverG.passed=[];
+    applyPass(recoverG,0);
+    ok('上がり済みCPUの空場パスは次の現役席へ自己修復', recoverG.turn!==0 && !recoverG.players[recoverG.turn].finished);
+    // 場を流して続行する効果経路でも、setTurn の共通防壁が上がり席を選ばない。
+    const recoverSetG=newGame(defs.map(x=>({...x})),27);
+    recoverSetG.players[0].finished=true; recoverSetG.players[0].hand=[]; recoverSetG.finishedOrder=[0]; recoverSetG.players[0].place=1;
+    setTurn(recoverSetG,0);
+    ok('手番設定は上がり済み席を必ず飛ばす', recoverSetG.turn!==0 && !recoverSetG.players[recoverSetG.turn].finished);
     // 10 加速(SKIP)で2人進む
     const sg=newGame(defs.map(x=>({...x})),55);
     sg.players[0].build.rankSlots['3']=['ao01'];
