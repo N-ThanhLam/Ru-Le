@@ -2377,14 +2377,15 @@ const RL = (function(){
   function isSplitSingle(build, combo){
     return !!(build && combo && combo.type==='single' && hasEffect(build, combo.cards[0], 'SPLIT'));
   }
-  // 分裂より単騎専用効果を優先する場面か。ctx={state, handLen}(state が無い旧呼び出しでも越境は判定する)。
-  //   ★分裂は最低優先: 越境、発動中の逆襲が同じ札に乗っていたら分裂しない。
-  //     3返し/一撃は「場の単騎」に対してのみ意味があるので、その場面でだけ分裂を抑制する。
+  // 分裂より単騎専用効果を優先する場面か。ctx={state, handLen}。
+  //   ★場の役に合わせる: 2枚ペアへ返すときは分裂を優先。越境/逆襲が付いていても疑似ペアを壊さない。
+  //     単騎相手など、単騎専用効果が実際に返し手として役立つ場面だけ分裂を抑制する。
   function splitSuppressed(build, combo, ctx){
     const c=combo.cards[0];
-    if(hasEffect(build,c,'WILD')) return true;             // 越境: 分裂より優先＝分裂処理なし(場の有無を問わない)
     if(!ctx || !ctx.state) return false;
     const state=ctx.state, f=fieldCombo(state);
+    if(f && f.type==='set' && f.len===2) return false;      // ペア相手: 越境/逆襲より分裂を優先して疑似ペアで返す
+    if(hasEffect(build,c,'WILD') && f && f.type==='single') return true; // 越境: 単騎相手でだけ分裂せず数字を踏み越える
     if(ctx.handLen!=null && hasEffect(build,c,'WILD_IF_MOST')
        && !state.players.some(pl=> !pl.finished && pl.hand.length > ctx.handLen)) return true; // 逆襲: 劣勢時だけ分裂より優先
     if(!f || f.type!=='single') return false;
@@ -3794,6 +3795,9 @@ const RL = (function(){
       ok('分裂×越境: 場ありでは越境優先で単騎のまま出せる', comboBeats(g, wb, singleCombo({rank:'5',suit:'S'}), g.players[0].rules, 5)===true);
       const e=effectiveCombo(wb, singleCombo({rank:'5',suit:'S'}), {state:g, handLen:5});
       ok('分裂×越境: 疑似ペア化しない', e.type==='single');
+      g.field.combo={type:'set',len:2,key:{rank:'4',suit:'H'},cards:[{rank:'4',suit:'S'},{rank:'4',suit:'H'}]}; g.field.card=g.field.combo.key;
+      const pairMove=effectiveCombo(wb,singleCombo({rank:'5',suit:'S'}),{state:g,handLen:5});
+      ok('分裂×越境: 4ペアには分裂優先で5疑似ペアを出せる', pairMove.type==='set' && pairMove.len===2 && comboBeats(g,wb,singleCombo({rank:'5',suit:'S'}),g.players[0].rules,5)===true);
     })();
     (function(){
       const cb2=buildFrom({suit:{S:['aka07','mi08']}});                               // 3返し+分裂(♠)
@@ -4163,6 +4167,10 @@ const RL = (function(){
         setLens(8,9,3,3);
         const inactive=effectiveCombo(b,singleCombo({rank:'5',suit:'D'}),{state:g,handLen:8});
         ok('分裂×逆襲: 逆襲が無効なら分裂して疑似ペア', inactive.type==='set' && inactive.split===true);
+        setLens(8,3,3,3);
+        g.field.combo={type:'set',len:2,key:{rank:'4',suit:'H'},cards:[{rank:'4',suit:'S'},{rank:'4',suit:'H'}]}; g.field.card=g.field.combo.key;
+        const pairActive=effectiveCombo(b,singleCombo({rank:'5',suit:'D'}),{state:g,handLen:8});
+        ok('分裂×逆襲: 劣勢時でも4ペアには分裂を優先', pairActive.type==='set' && pairActive.len===2 && comboBeats(g,b,singleCombo({rank:'5',suit:'D'}),null,8)===true);
       })();
       // ボム押し付け: 単騎2をボムで切る → 直前owner に罰カード1枚。
       (function(){
@@ -4251,7 +4259,7 @@ const RL = (function(){
       (function(){
         const wb=buildFrom({rank:{'5':['mi08','aka02']}});   // 分裂+越境
         const e1=effectiveCombo(wb, singleCombo({rank:'5',suit:'S'}), {state:null, handLen:5});
-        ok('分裂×越境: 場が無くても(lead)越境優先で分裂しない', e1.type==='single');
+        ok('分裂×越境: 場が無いリードでは分裂を優先', e1.type==='set' && e1.split===true);
       })();
     }
 
