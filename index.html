@@ -450,6 +450,8 @@
 
   /* おすすめ構成オーバーレイ（初心者がワンタップで完成できる“近道”。常時表示せず必要時だけ開く）。 */
   .recolist{ display:flex; gap:22px; justify-content:center; flex-wrap:wrap; max-height:68vh; overflow-y:auto; padding:4px 8px 14px; }
+  .researchbar{ position:absolute; top:106px; left:50%; transform:translateX(-50%); z-index:8; min-width:520px; max-width:900px; padding:8px 20px; border:3px solid #ffe082; border-radius:14px; background:rgba(31,39,74,.94); color:#fff3b0; font-size:22px; font-weight:900; text-align:center; box-shadow:0 5px 16px rgba(0,0,0,.3); }
+  .researchbar.done{ border-color:#81c784; color:#c8e6c9; }
   .recocard{ width:380px; background:#fff; border:6px solid var(--line); border-radius:22px; padding:22px; display:flex; flex-direction:column; gap:12px; }
   .recocard .rico{ font-size:54px; line-height:1; }
   .recocard .rnm{ font-size:38px; font-weight:900; color:var(--ink); }
@@ -1475,6 +1477,7 @@
       <div class="btn small ghost foc" id="build-back" style="display:none;flex-shrink:0;">◀ 中断・タイトルへ</div>
       <div class="title" id="build-title">エンブレム編成</div>
       <div class="spacer"></div>
+      <div class="btn small ghost foc" id="build-research" style="flex-shrink:0;">🧪 研究依頼</div>
       <div class="btn small ghost foc" id="build-recommend" style="flex-shrink:0;" data-i18n="build_recommend">✨ おすすめ構成</div>
       <div class="btn small ghost foc" id="build-clear" style="flex-shrink:0;" data-i18n="build_clear">🗑 解除モード（X）</div>
       <div class="btn small ghost foc" id="build-clearall" style="flex-shrink:0;" data-i18n="build_clearall">🧹 全解除</div>
@@ -1523,6 +1526,15 @@
         </div>
       </div>
     </div>
+    <div class="ovl" id="ovl-research">
+      <div class="card-modal">
+        <h2 id="research-title">研究依頼を選ぶ</h2>
+        <div class="recolist" id="research-cards"></div>
+        <div class="rowbtns" style="margin-top:22px;">
+          <div class="btn ghost foc" id="research-close">とじる ✕</div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ===================== MATCH ===================== -->
@@ -1533,6 +1545,7 @@
       <div class="btn small ghost foc" id="match-inspect" data-i18n="match_inspect">🔍 しらべる</div>
       <div class="btn small ghost foc" id="match-menu" style="margin-left:14px;" data-i18n="match_menu">☰ メニュー</div>
     </div>
+    <div class="researchbar" id="match-research"></div>
     <div class="opps" id="match-opps"></div>
     <div class="center">
       <div class="fieldzone">
@@ -4695,6 +4708,7 @@ const AUDIO = (function(){
       world_close:'◀ もどる', world_topbar:'Ru-Leの世界', world_empty:'今日はまだ新しい話が届いていません。', world_today_title:'今日のRu-Le', world_theme:'今日のテーマ：{0}',
       world_tab_story:'連載物語を読む', world_tab_today:'今日の世界', world_tab_growth:'成長記録', world_growth_title:'旅の成長記録',
       world_growth_summary:'対戦 {0}回・戦法研究 {1}種・宿敵との対戦 {2}回', world_growth_strategy:'戦法研究', world_growth_rivals:'宿敵との関係',
+      world_growth_contract:'選択中の研究依頼', world_growth_contract_none:'編成画面で次の研究依頼を選ぶ',
       world_growth_events:'解放した出来事', world_growth_challenge_wait:'次の対戦：{0}との因縁戦',
       world_growth_challenge_reward:'勝つと宿敵の得意エンブレムを獲得',
       world_growth_world:'世界の変化', world_growth_world_line:'シーズン{0}・次まで {1}/100', world_growth_world_stats:'治安 {0}・復興 {1}・敵勢力 {2}・生態 {3}',
@@ -4707,6 +4721,13 @@ const AUDIO = (function(){
       growth_challenge_title:'因縁戦：{0}', growth_challenge_talk:'研究が進んだようだね。今度は本気で行くよ。', growth_unlock_head:'🌱 新しい成長',
       growth_reco_name:'研究構成：{0}', growth_reco_desc:'研究した効果を「{0}」から「{1}」へ移して、別の使い方を試す。', growth_reco_apply:'この研究構成を試す',
       growth_reco_new_name:'新戦法：{0}', growth_reco_new_desc:'獲得したばかりの「{0}」を{1}へ入れて試す。勝敗より、まず効果を起こしてみよう。',
+      research_btn:'🧪 研究依頼', research_title:'研究依頼を1つ選ぶ', research_close:'とじる ✕',
+      research_active:'研究中：{0}', research_active_bonus:'研究中：{0}（今回 コスト+{1}）', research_progress:'{0}　{1}/{2}', research_done:'達成！ {0}', research_need_pick:'対戦前に研究依頼を選んでください',
+      research_continue:'研究継続：{0}　{1}/{2}（次戦へ持ち越し）',
+      research_reward:'研究成功 {0}/3', research_unlock:'研究成果で', research_budget_ready:'次の研究戦：編成コスト +{0}', research_budget_gain:'🧪 次の研究戦は編成コスト +{0}', research_split:'分裂でペアを返す', research_split_ds:'分裂を実際に1回発動させる。',
+      research_choose:'指名で流れを変える', research_choose_ds:'指名を実際に1回発動させる。', research_activate:'溜め撃ちを使う', research_activate_ds:'発動を1回使う。',
+      research_combo:'大きな役を作る', research_combo_ds:'3枚以上の役を1回出す。', research_no_pass:'パスせず上がる', research_no_pass_ds:'一度もパスせず2位以内に入る。',
+      research_variety:'二つの効果を試す', research_variety_ds:'異なるエンブレムを2種類発動する。', research_react:'後出しを決める', research_react_ds:'反撃の後出しを1回成功させる。',
       world_story_empty:'ゲーム内で表示された物語はまだありません。', world_story_count:'既読{0}件・現在 第{1}章', world_chapter:'第{0}章',
       world_series:'連載{0}「{1}」',
       world_prev:'▲ 前へ', world_next:'▼ 次へ',
@@ -4958,6 +4979,7 @@ const AUDIO = (function(){
       world_close:'◀ Quay lại', world_topbar:'Thế giới Ru-Le', world_empty:'Hôm nay chưa có tin mới.', world_today_title:'Ru-Le hôm nay', world_theme:'Chủ đề hôm nay: {0}',
       world_tab_story:'Đọc truyện dài kỳ', world_tab_today:'Thế giới hôm nay', world_tab_growth:'Tiến trình', world_growth_title:'Hành trình trưởng thành',
       world_growth_summary:'{0} trận・{1} chiến thuật・{2} lần đấu đối thủ', world_growth_strategy:'Nghiên cứu chiến thuật', world_growth_rivals:'Quan hệ đối thủ',
+      world_growth_contract:'Nhiệm vụ đang chọn', world_growth_contract_none:'Chọn nhiệm vụ tiếp theo ở màn hình cấu hình',
       world_growth_events:'Sự kiện đã mở', world_growth_challenge_wait:'Trận tiếp theo: duyên nợ với {0}',
       world_growth_challenge_reward:'Thắng để nhận biểu tượng sở trường của đối thủ',
       world_growth_world:'Thay đổi thế giới', world_growth_world_line:'Mùa {0}・Tiến độ {1}/100', world_growth_world_stats:'An ninh {0}・Phục hồi {1}・Thế lực địch {2}・Sinh thái {3}',
@@ -4970,6 +4992,13 @@ const AUDIO = (function(){
       growth_challenge_title:'Trận duyên nợ: {0}', growth_challenge_talk:'Có vẻ bạn đã tiến bộ. Lần này tôi sẽ đấu hết sức.', growth_unlock_head:'🌱 Tiến triển mới',
       growth_reco_name:'Cấu hình nghiên cứu: {0}', growth_reco_desc:'Chuyển hiệu ứng đã nghiên cứu từ “{0}” sang “{1}” để thử cách dùng mới.', growth_reco_apply:'Thử cấu hình nghiên cứu',
       growth_reco_new_name:'Chiến thuật mới: {0}', growth_reco_new_desc:'Gắn “{0}” vừa nhận vào {1} để thử. Trước hết hãy kích hoạt hiệu ứng.',
+      research_btn:'🧪 Nhiệm vụ nghiên cứu', research_title:'Chọn một nhiệm vụ nghiên cứu', research_close:'Đóng ✕',
+      research_active:'Đang nghiên cứu: {0}', research_active_bonus:'Đang nghiên cứu: {0} (trận này +{1} chi phí)', research_progress:'{0}　{1}/{2}', research_done:'Hoàn thành! {0}', research_need_pick:'Hãy chọn nhiệm vụ trước trận',
+      research_continue:'Tiếp tục nghiên cứu: {0}　{1}/{2} (giữ sang trận sau)',
+      research_reward:'Nghiên cứu thành công {0}/3', research_unlock:'Phần thưởng nghiên cứu: ', research_budget_ready:'Trận nghiên cứu kế: +{0} chi phí', research_budget_gain:'🧪 Trận nghiên cứu kế được +{0} chi phí', research_split:'Dùng Phân Liệt đáp đôi', research_split_ds:'Kích hoạt Phân Liệt 1 lần.',
+      research_choose:'Đổi nhịp bằng Chỉ Định', research_choose_ds:'Kích hoạt Chỉ Định 1 lần.', research_activate:'Dùng kỹ năng nạp', research_activate_ds:'Dùng kích hoạt 1 lần.',
+      research_combo:'Tạo bộ lớn', research_combo_ds:'Đánh một bộ từ 3 lá.', research_no_pass:'Về mà không bỏ lượt', research_no_pass_ds:'Không bỏ lượt và đạt hạng 1 hoặc 2.',
+      research_variety:'Thử hai hiệu ứng', research_variety_ds:'Kích hoạt 2 biểu tượng khác nhau.', research_react:'Phản đòn thành công', research_react_ds:'Dùng phản đòn 1 lần.',
       world_story_empty:'Chưa có đoạn truyện nào xuất hiện trong game.', world_story_count:'Đã đọc {0} mục・Hiện tại Chương {1}', world_chapter:'Chương {0}',
       world_series:'Phần {0} “{1}”',
       world_prev:'▲ Trước', world_next:'▼ Tiếp',
@@ -5476,6 +5505,7 @@ const AUDIO = (function(){
     if(activeScreenOvl('#ovl-net')) return; // ネット通知は専用ボタンのみ
     if(activeScreenOvl('#ovl-choose')) return; // 指名は戻る不可
     if(activeScreenOvl('#ovl-pause')){ closePause(); return; }
+    if(activeScreenOvl('#ovl-research')){ $('#ovl-research').classList.remove('active'); refocusSlot(); return; }
     if(activeScreenOvl('#ovl-recommend')){ $('#ovl-recommend').classList.remove('active'); refocusSlot(); return; } // おすすめ構成を閉じる
     switch(currentScreen){
       case 's-inspect': closeInspect(); return; // 対戦中のエンブレム閲覧を閉じる
@@ -6583,7 +6613,9 @@ const AUDIO = (function(){
   function currentBudget(){
     // 巡業は深度予算＋次戦ボーナス(+25・次戦のみ・100上限を超えてよい)。クイック/オンは固定100。
     const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
-    return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta());   // お題＋誓約(p_budget)の予算増減を反映(下限30・100系)
+    const research = MODE.kind!=='online' && GROWTH.ensure().research.active;
+    const researchBonus = research ? Math.max(0,Number(research.bonus)||0) : 0;
+    return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta() + researchBonus);   // お題＋誓約＋研究成功ボーナスを反映
   }
   function currentDiscountIds(){
     return (MODE.kind==='run' && MODE.run) ? discountIdsFor(MODE.run) : [];
@@ -6833,6 +6865,21 @@ const AUDIO = (function(){
     }
     return null;
   }
+  function openResearch(){
+    const host=$('#research-cards'); if(!host)return; host.innerHTML='';
+    $('#research-title').textContent=T('research_title');
+    $('#research-close').textContent=T('research_close');
+    GROWTH.researchOffers().forEach(def=>{
+      const card=el('div','recocard foc');
+      const pending=Math.max(0,Number(GROWTH.ensure().research.pendingBonus)||0);
+      card.innerHTML='<div class="rico">🧪</div><div class="rnm">'+worldEsc(def.name)+'</div><div class="rds">'+worldEsc(def.desc)+'</div>'
+        +'<div class="rcost">'+worldEsc(pending?T('research_budget_ready',pending):T('research_reward',(GROWTH.ensure().research.completed||0)%3))+'</div>';
+      card.onclick=()=>{ GROWTH.selectResearch(def.id); if(buildState)buildState.budget=currentBudget(); $('#ovl-research').classList.remove('active'); AUDIO.confirm(); renderBuild(); refocusSlot(); };
+      host.appendChild(card);
+    });
+    $('#ovl-research').classList.add('active'); AUDIO.move(); setTimeout(focusFirst,0);
+  }
+  function closeResearch(){ $('#ovl-research').classList.remove('active'); AUDIO.back(); refocusSlot(); }
   function openRecommend(){
     const host=$('#reco-cards'); if(!host||!buildState) return; host.innerHTML='';
     const experiment=researchExperimentBuild();
@@ -6905,6 +6952,10 @@ const AUDIO = (function(){
   }
   function renderBuild(){
     const b=buildState.build;
+    const research=GROWTH.ensure().research.active, researchBtn=$('#build-research');
+    if(researchBtn)researchBtn.textContent=research
+      ? (research.bonus?T('research_active_bonus',research.name,research.bonus):T('research_active',research.name))
+      : T('research_btn');
     // お題バナー(今回の対戦に掛かる共通ルール)＋宿敵の標的宣言(メタ崩壊)
     renderMutatorBanner($('#build-mutator'));
     renderBanBanner($('#build-ban'));
@@ -7256,11 +7307,14 @@ const AUDIO = (function(){
   $('#build-clear').onclick=()=> toggleRemoveMode();
   $('#build-clearall').onclick=()=> clearAllSlots();
   $('#build-recommend').onclick=()=> openRecommend();
+  $('#build-research').onclick=()=> openResearch();
   $('#reco-close').onclick=()=> closeRecommend();
+  $('#research-close').onclick=()=> closeResearch();
   $('#emblem-close').onclick=()=>{ AUDIO.back(); closeEmblemPicker(); };
   // 編成→対戦開始(けってい)。ボタンとキー設定の「対戦開始」両方から呼ぶ。
   function startMatchFromBuild(){
     if(!buildState || currentScreen!=='s-build') return;
+    if(MODE.kind!=='online'&&!GROWTH.ensure().research.active){ AUDIO.bad(); toast(T('research_need_pick'),'#ff9800'); openResearch(); return; }
     if(runBuildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
     if(MODE.kind==='online'){ store.saveBuild(buildState.build); AUDIO.confirm(); NET.afterBuild(buildState.build); return; }  // オンライン=ロビーへ反映
     if(MODE.kind==='quick') store.saveBuild(buildState.build);   // クイックの自分ビルドを永続化(次回の既定になる)
@@ -7421,7 +7475,7 @@ const AUDIO = (function(){
      将来の会話・事件・特殊戦・図鑑解放が読む共通の保存基盤。
      ============================================================ */
   const GROWTH = {
-    fresh(){ return {version:1,matches:0,strategies:{},rivals:{},world:{season:1,progress:0,security:50,restoration:0,enemyPower:50,ecology:50,activeIncident:null,incidents:[]},collection:{emblems:{},titles:[],newEmblems:[]},milestones:{},events:[],talkQueue:[],challengeQueue:[]}; },
+    fresh(){ return {version:1,matches:0,strategies:{},rivals:{},research:{completed:0,rewards:0,active:null,offers:null,pendingBonus:0},world:{season:1,progress:0,security:50,restoration:0,enemyPower:50,ecology:50,activeIncident:null,incidents:[]},collection:{emblems:{},titles:[],newEmblems:[]},milestones:{},events:[],talkQueue:[],challengeQueue:[]}; },
     ensure(){
       const base=this.fresh();
       if(!store.growth||typeof store.growth!=='object')store.growth=base;
@@ -7430,6 +7484,10 @@ const AUDIO = (function(){
       if(g.matches==null)g.matches=0;
       g.strategies=(g.strategies&&typeof g.strategies==='object')?g.strategies:{};
       g.rivals=(g.rivals&&typeof g.rivals==='object')?g.rivals:{};
+      g.research=(g.research&&typeof g.research==='object')?g.research:{completed:0,rewards:0,active:null,offers:null};
+      if(g.research.completed==null)g.research.completed=0;
+      if(g.research.rewards==null)g.research.rewards=0;
+      if(g.research.pendingBonus==null)g.research.pendingBonus=0;
       g.world=(g.world&&typeof g.world==='object')?g.world:{};
       Object.keys(base.world).forEach(k=>{ if(g.world[k]===undefined)g.world[k]=base.world[k]; });
       g.collection=(g.collection&&typeof g.collection==='object')?g.collection:{};
@@ -7513,6 +7571,70 @@ const AUDIO = (function(){
       const g=this.ensure(); if(g.collection.titles.some(x=>x.key===key))return null;
       g.collection.titles.push({key,name,at:g.matches||0}); g.collection.titles=g.collection.titles.slice(-100);
       return this.milestone('title:'+key,'称号「'+name+'」を獲得した。');
+    },
+    researchDefs(){
+      return [
+        {id:'split',name:T('research_split'),desc:T('research_split_ds'),target:1,requires:'mi08'},
+        {id:'choose',name:T('research_choose'),desc:T('research_choose_ds'),target:1,requires:'ao04'},
+        {id:'activate',name:T('research_activate'),desc:T('research_activate_ds'),target:1},
+        {id:'combo',name:T('research_combo'),desc:T('research_combo_ds'),target:1},
+        {id:'no_pass',name:T('research_no_pass'),desc:T('research_no_pass_ds'),target:1},
+        {id:'variety',name:T('research_variety'),desc:T('research_variety_ds'),target:2},
+        {id:'react',name:T('research_react'),desc:T('research_react_ds'),target:1,requires:'aka12'}
+      ];
+    },
+    researchOffers(){
+      const g=this.ensure(), owns=id=>store.unlocked.includes(id);
+      const valid=this.researchDefs().filter(x=>{
+        if(x.requires&&!owns(x.requires))return false;
+        if(x.id==='activate'&&!store.unlocked.some(id=>RL.emblem(id)&&RL.emblem(id).activated))return false;
+        if(x.id==='combo'&&!['set3','mi05','mi06'].some(owns))return false;
+        if(x.id==='variety'&&store.unlocked.filter(id=>RL.emblem(id)).length<2)return false;
+        return true;
+      });
+      if(!Array.isArray(g.research.offers)||g.research.offers.length!==3){
+        const start=((g.matches||0)+(g.research.completed||0))%valid.length;
+        g.research.offers=[0,1,2].map(k=>valid[(start+k*2)%valid.length].id);
+        if(new Set(g.research.offers).size<3)g.research.offers=valid.slice(0,3).map(x=>x.id);
+        store.save();
+      }
+      return g.research.offers.map(id=>valid.find(x=>x.id===id)).filter(Boolean);
+    },
+    selectResearch(id){
+      const g=this.ensure(), def=this.researchDefs().find(x=>x.id===id);
+      if(!def||def.requires&&!store.unlocked.includes(def.requires))return false;
+      const bonus=Math.max(0,Number(g.research.pendingBonus)||0);
+      g.research.active={id:def.id,name:def.name,target:def.target,selectedAt:g.matches||0,bonus};
+      g.research.pendingBonus=0; store.save(); return true;
+    },
+    researchProgress(stats, finalPlace){
+      const active=this.ensure().research.active; if(!active)return {cur:0,target:1,done:false};
+      const acts=(stats&&stats.humanActions)||{}, fired=(stats&&stats.firedEmblems)||{};
+      let cur=0;
+      if(active.id==='split')cur=fired.mi08||0;
+      else if(active.id==='choose')cur=fired.ao04||0;
+      else if(active.id==='activate')cur=acts.activate||0;
+      else if(active.id==='combo')cur=(stats&&stats.maxCombo||0)>=3?1:0;
+      else if(active.id==='no_pass')cur=(finalPlace&&finalPlace<=2&&(acts.pass||0)===0)?1:0;
+      else if(active.id==='variety')cur=Object.keys(fired).filter(id=>(fired[id]||0)>0).length;
+      else if(active.id==='react')cur=acts.react||0;
+      return {cur:Math.min(active.target,cur),target:active.target,done:cur>=active.target};
+    },
+    finishResearch(me, stats){
+      const g=this.ensure(), active=g.research.active; if(!active)return [];
+      const progress=this.researchProgress(stats,Number(me&&me.place)||4); if(!progress.done)return [];
+      const notices=[]; g.research.completed=(g.research.completed||0)+1;
+      const done=this.milestone('research:'+g.research.completed,active.name+'の研究依頼を達成した。'); if(done)notices.push(done);
+      g.research.active=null; g.research.offers=null;
+      g.research.pendingBonus=10;
+      notices.push({text:T('research_budget_gain',10)});
+      const rewardCount=Math.floor(g.research.completed/3);
+      if(rewardCount>(g.research.rewards||0)){
+        g.research.rewards=rewardCount;
+        const pool=['mi08','ao04','aka11','aka12','ao02','mi03','ki04','aka03','mi06','mi05','aka07','ao03','ki03','mi02'];
+        const reward=this.unlockEmblem(pool,T('research_unlock')); if(reward)notices.push(reward);
+      }
+      store.save(); return notices;
     },
     recordMatch(me, rivalSeats, stats){
       const g=this.ensure(), notices=[]; g.matches=(g.matches||0)+1;
@@ -7866,6 +7988,7 @@ const AUDIO = (function(){
     MODE.growthTalk=MODE.growthChallenge?'':GROWTH.takeTalk();
     MODE.growthIncident=GROWTH.activeIncident();
     MODE.growthNotices=[];
+    MODE.researchOutcome=null;
     let rivalIdxs = growthChallengeIdx!=null?[growthChallengeIdx]:[];
     if(bossIdx>=0&&!rivalIdxs.includes(bossIdx)) rivalIdxs.push(bossIdx);
     const rivalP = hasPact('rival') ? 1 : 0.25;   // ★v0.28 誓約(p_rival): 宿敵が毎戦かならず参戦(席が埋まるまで)
@@ -7903,6 +8026,9 @@ const AUDIO = (function(){
       humanActions:{play:0,pass:0,react:0,activate:0},
       maxCombo:0
     };
+    // 成功報酬の追加編成枠は、この対戦を始めた時点で使い切る。依頼そのものは未達なら次戦へ持ち越す。
+    const matchResearch=GROWTH.ensure().research.active;
+    if(matchResearch&&matchResearch.bonus){ matchResearch.bonus=0; store.save(); }
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
@@ -7994,6 +8120,14 @@ const AUDIO = (function(){
     const cap = rr.chargeCap || RL.CONFIG.REACT_COST_DEFAULT;
     return '<span class="chgpill'+(((p.charge||0)>=cap)?' full':'')+'">⚡'+(p.charge||0)+'/'+cap+'</span>';
   }
+  function renderResearchProgress(){
+    const host=$('#match-research'); if(!host)return;
+    const active=GROWTH.ensure().research.active;
+    if(!active||NET.active){ host.style.display='none'; host.textContent=''; return; }
+    const p=GROWTH.researchProgress(MODE.matchStats,null);
+    host.style.display='block'; host.classList.toggle('done',p.done);
+    host.textContent=p.done?T('research_done',active.name):T('research_progress',active.name,p.cur,p.target);
+  }
   function renderMatch(){
     if(!G) return;
     // 相手
@@ -8013,6 +8147,7 @@ const AUDIO = (function(){
     });
     // 場
     renderField();
+    renderResearchProgress();
     // 状態バッジ
     const sc=$('#match-state'); sc.innerHTML='';
     if(G.mutator && G.mutator.effect!=='NONE') sc.appendChild(badge(G.mutator.ico,T('badge_mut'), mutName(G.mutator), true));
@@ -8180,8 +8315,8 @@ const AUDIO = (function(){
   function matchTalkPick(scene){
     try{
       const tag=scene?'scene:'+scene:'scene:chatter';
-      const strict=scene==='chatter'?[tag,aiWorldDailyTag()]:[tag,'timeless'];
-      const item=AIWorldDB.pick(['conversation'], 'battle', ['対戦',tag,aiWorldDailyTag()], 8, strict);
+      const strict=scene==='chatter'?[tag,aiWorldDailyTag(),DAILY_THEME_FORMAT_TAG]:[tag,'timeless'];
+      const item=AIWorldDB.pick(['conversation'], 'battle', ['対戦',tag,aiWorldDailyTag(),DAILY_THEME_FORMAT_TAG], 8, strict);
       if(!item) return null;
       matchTalkSeen.push(item.id); if(matchTalkSeen.length>80) matchTalkSeen=matchTalkSeen.slice(-40);
       return item;
@@ -8253,6 +8388,7 @@ const AUDIO = (function(){
         acts[action]=(acts[action]||0)+1;
         embIds.forEach(id=>{ st.firedEmblems=st.firedEmblems||{}; st.firedEmblems[id]=(st.firedEmblems[id]||0)+1; });
         if(cards&&cards.length)st.maxCombo=Math.max(st.maxCombo||0,cards.length);
+        renderResearchProgress();
       }
       let special='';
       if(playedBomb)special='ボムで場を返した';
@@ -8589,7 +8725,11 @@ const AUDIO = (function(){
       MODE.matchStats.challengeIdx=MODE.growthChallenge.idx;
       MODE.matchStats.challengeWon=!!(enemy&&myPlace<(enemy.place||4));
     }
-    MODE.growthNotices=GROWTH.recordMatch(me,seats,MODE.matchStats).notices;
+    const activeResearch=GROWTH.ensure().research.active;
+    MODE.researchOutcome=activeResearch?{name:activeResearch.name,...GROWTH.researchProgress(MODE.matchStats,myPlace)}:null;
+    const growthResult=GROWTH.recordMatch(me,seats,MODE.matchStats);
+    const researchNotices=GROWTH.finishResearch(me,MODE.matchStats);
+    MODE.growthNotices=growthResult.notices.concat(researchNotices);
     if(MODE.kind==='run') endRunMatch(myPlace);
     else showResult();
   }
@@ -8605,7 +8745,9 @@ const AUDIO = (function(){
     if(rew){
       const incidentNow=GROWTH.activeIncident(), incidentLine=(MODE.growthIncident&&incidentNow&&MODE.growthIncident.key===incidentNow.key)
         ? worldEsc('⚠️ '+incidentNow.title+'　'+T('world_growth_incident_line',incidentNow.progress||0,incidentNow.target||1)) : '';
-      const growthLines=(MODE.growthNotices||[]).map(x=>worldEsc(x.text)).concat(incidentLine?[incidentLine]:[]).join('<br>');
+      const researchLine=MODE.researchOutcome&&!MODE.researchOutcome.done
+        ? worldEsc(T('research_continue',MODE.researchOutcome.name,MODE.researchOutcome.cur,MODE.researchOutcome.target)) : '';
+      const growthLines=(MODE.growthNotices||[]).map(x=>worldEsc(x.text)).concat(incidentLine?[incidentLine]:[]).concat(researchLine?[researchLine]:[]).join('<br>');
       if(reward||growthLines){
         rew.innerHTML=(reward?'<div class="rwd-h">'+reward.head+'</div><div class="rwd-l">'+reward.line+'</div>':'')
           +(growthLines?'<div class="rwd-h">'+T('growth_unlock_head')+'</div><div class="rwd-l">'+growthLines+'</div>':'');
@@ -9492,25 +9634,48 @@ const AUDIO = (function(){
   }
   function aiWorldDateLabel(date){ const d=date||new Date(); return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
   function aiWorldDailyTag(date){ return 'date:'+aiWorldDateLabel(date).replace(/\//g,'-'); }
+  const DAILY_THEME_FORMAT_TAG='daily-theme:2';   // 年内重複なしテーマ。旧5日循環の在庫を再利用しないための形式タグ。
   function aiWorldThemeForDate(date){
-    const d=date||new Date(), m=d.getMonth()+1, day=aiWorldCalendarDay(d);
-    const pool=(m===12||m<=2)?['冬','雪の日','暖炉','冬の市場','王都']
-      :(m<=5)?['春','花祭り','旅立ち','春の雨','魔女の森']
-      :(m<=8)?['夏','夏祭り','夕立','港町','にぎやかな市場']
-      :['秋','収穫','旅','秋の雨','古い遺跡'];
-    const theme=pool[(day-1)%pool.length];
-    if(aiWorldLang()!=='vi')return theme;
-    return ({'冬':'Mùa đông','雪の日':'Ngày tuyết','暖炉':'Bên lò sưởi','冬の市場':'Chợ mùa đông','王都':'Kinh thành','春':'Mùa xuân','花祭り':'Lễ hội hoa','旅立ち':'Lên đường','春の雨':'Mưa xuân','魔女の森':'Rừng phù thủy','夏':'Mùa hè','夏祭り':'Lễ hội mùa hè','夕立':'Mưa rào chiều','港町':'Thành phố cảng','にぎやかな市場':'Khu chợ nhộn nhịp','秋':'Mùa thu','収穫':'Mùa thu hoạch','旅':'Chuyến đi','秋の雨':'Mưa thu','古い遺跡':'Tàn tích cổ'})[theme]||theme;
+    const d=date||new Date(), y=d.getFullYear(), m=d.getMonth()+1, vi=aiWorldLang()==='vi';
+    const daysBetween=(a,b)=>Math.floor((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate())-Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000);
+    let key, start, index;
+    if(m===12||m<=2){
+      key='winter';
+      // 冬だけ年をまたいで分かれる。同一年内で重ならないよう、12月を1〜2月の続きとして数える。
+      if(m===12){ const jan=new Date(y,0,1), mar=new Date(y,2,1); index=daysBetween(jan,mar)+daysBetween(new Date(y,11,1),d); }
+      else index=daysBetween(new Date(y,0,1),d);
+    } else if(m<=5){ key='spring'; start=new Date(y,2,1); index=daysBetween(start,d); }
+    else if(m<=8){ key='summer'; start=new Date(y,5,1); index=daysBetween(start,d); }
+    else { key='autumn'; start=new Date(y,8,1); index=daysBetween(start,d); }
+    const sets={
+      winter:{
+        ja:['雪の日','暖炉','冬の市場','温かいスープ','白い息','厚手の服','凍った道','冬の星','年越し','冬の朝'],
+        vi:['ngày tuyết','lò sưởi','chợ mùa đông','súp nóng','hơi thở trắng','áo ấm','đường đóng băng','sao mùa đông','đón năm mới','sáng mùa đông']},
+      spring:{
+        ja:['花祭り','旅立ち','春の雨','魔女の森','新しい靴','若葉','小鳥の声','春の市場','花粉','川の雪解け'],
+        vi:['lễ hội hoa','lên đường','mưa xuân','rừng phù thủy','giày mới','lá non','tiếng chim','chợ mùa xuân','phấn hoa','sông tan băng']},
+      summer:{
+        ja:['夏祭り','夕立','港町','冷たい麦茶','入道雲','セミの声','川遊び','夏の市場','日かげ','夜の花火'],
+        vi:['lễ hội mùa hè','mưa rào chiều','thành phố cảng','trà lúa mạch lạnh','mây mùa hạ','tiếng ve','chơi bên sông','chợ mùa hè','bóng râm','pháo hoa đêm']},
+      autumn:{
+        ja:['収穫祭','秋の旅','秋の雨','古い遺跡','落ち葉','焼きいも','渡り鳥','秋の市場','長い夜','山の紅葉'],
+        vi:['lễ hội thu hoạch','chuyến đi mùa thu','mưa thu','tàn tích cổ','lá rụng','khoai nướng','chim di trú','chợ mùa thu','đêm dài','lá đỏ trên núi']}
+    };
+    const angles=vi
+      ?['buổi sáng','lúc chuẩn bị','trên đường về','một kỷ niệm','một lời đồn','điều mong chờ','chuyện rắc rối','thứ vừa tìm thấy','người muốn đi cùng','điều muốn giới thiệu']
+      :['の朝','の準備','の帰り道','の思い出','の噂','の楽しみ','で困ったこと','で見つけたもの','を一緒に楽しみたい人','のおすすめ'];
+    const bases=sets[key][vi?'vi':'ja'], base=bases[index%bases.length], angle=angles[Math.floor(index/bases.length)%angles.length];
+    return vi ? (angle+' về '+base) : (base+angle);
   }
   function aiWorldDailyTask(offset){
     const d=new Date(); d.setDate(d.getDate()+(offset||0));
     const day=aiWorldCalendarDay(d), theme=aiWorldThemeForDate(d), dateTag=aiWorldDailyTag(d), tomorrow=(offset||0)>0;
     const vi=aiWorldLang()==='vi', stockNow=aiWorldDailyStock(d), stockTarget=18;
-    return {id:tomorrow?'daily_theme_next':'daily_theme',lang:aiWorldLang(),type:'conversation',types:['conversation'],theme:vi?('Trò chuyện tự nhiên về '+theme):(theme+'の日の自然な雑談'),count:Math.max(1,stockTarget-stockNow),label:'Day '+day+' '+(vi?(tomorrow?'Hội thoại ngày mai':'Hội thoại hôm nay'):(tomorrow?'明日の会話':'今日の会話')),context:'battle',stockTarget,stockNow,tags:['battle','対戦',dateTag],sceneTags:['scene:chatter'],day,dateLabel:aiWorldDateLabel(d),daily:true};
+    return {id:tomorrow?'daily_theme_next':'daily_theme',lang:aiWorldLang(),type:'conversation',types:['conversation'],theme:vi?('Trò chuyện tự nhiên về '+theme):(theme+'の日の自然な雑談'),count:Math.max(1,stockTarget-stockNow),label:'Day '+day+' '+(vi?(tomorrow?'Hội thoại ngày mai':'Hội thoại hôm nay'):(tomorrow?'明日の会話':'今日の会話')),context:'battle',stockTarget,stockNow,tags:['battle','対戦',dateTag,DAILY_THEME_FORMAT_TAG],sceneTags:['scene:chatter'],day,dateLabel:aiWorldDateLabel(d),daily:true};
   }
   function aiWorldDailyStock(date){
     const day=aiWorldCalendarDay(date), dateTag=aiWorldDailyTag(date);
-    return AIWorldDB.list('conversation',360).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.day===day&&(x.tags||[]).includes(dateTag)&&(x.tags||[]).includes('scene:chatter')).length;
+    return AIWorldDB.list('conversation',360).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.day===day&&(x.tags||[]).includes(dateTag)&&(x.tags||[]).includes('scene:chatter')&&(x.tags||[]).includes(DAILY_THEME_FORMAT_TAG)).length;
   }
   const AI_WORLD_SCHEMA={type:'OBJECT',properties:{items:{type:'ARRAY',items:{type:'OBJECT',properties:{type:{type:'STRING'},order:{type:'NUMBER'},day:{type:'NUMBER'},theme:{type:'STRING'},context:{type:'STRING'},speaker:{type:'STRING'},target:{type:'STRING'},text:{type:'STRING'},continuity:{type:'STRING'},tags:{type:'ARRAY',items:{type:'STRING'}}},required:['type','day','theme','context','text']}},memorySummary:{type:'STRING'},relations:{type:'ARRAY',items:{type:'OBJECT',properties:{pair:{type:'STRING'},state:{type:'STRING'}},required:['pair','state']}}},required:['items','memorySummary']};
   let aiWorldBusy=false, aiWorldTaskIndex=0, aiWorldLastModel='—', aiWorldResetEpoch=0;
@@ -9710,6 +9875,9 @@ const AUDIO = (function(){
       $('#world-count').textContent=T('world_growth_summary',g.matches||0,strategies.length,duelTotal);
       let html='';
       if(!strategies.length&&!duelTotal)html='<div class="world-digest"><div class="world-card"><div class="txt">'+worldEsc(T('world_growth_empty'))+'</div></div></div>';
+      const contract=g.research&&g.research.active;
+      html+='<div class="story-chapter">'+worldEsc(T('world_growth_contract'))+'</div><div class="world-card"><div class="meta"><b>🧪 '
+        +worldEsc(contract?contract.name:T('world_growth_contract_none'))+'</b></div><div class="txt">'+worldEsc(T('research_reward',(g.research&&g.research.completed||0)%3))+'</div></div>';
       if(strategies.length){
         html+='<div class="story-chapter">'+worldEsc(T('world_growth_strategy'))+'</div>';
         strategies.forEach(([id,row])=>{
