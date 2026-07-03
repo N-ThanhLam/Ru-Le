@@ -450,8 +450,6 @@
 
   /* おすすめ構成オーバーレイ（初心者がワンタップで完成できる“近道”。常時表示せず必要時だけ開く）。 */
   .recolist{ display:flex; gap:22px; justify-content:center; flex-wrap:wrap; max-height:68vh; overflow-y:auto; padding:4px 8px 14px; }
-  .researchbar{ position:absolute; top:106px; left:50%; transform:translateX(-50%); z-index:8; min-width:520px; max-width:900px; padding:8px 20px; border:3px solid #ffe082; border-radius:14px; background:rgba(31,39,74,.94); color:#fff3b0; font-size:22px; font-weight:900; text-align:center; box-shadow:0 5px 16px rgba(0,0,0,.3); }
-  .researchbar.done{ border-color:#81c784; color:#c8e6c9; }
   .recocard{ width:380px; background:#fff; border:6px solid var(--line); border-radius:22px; padding:22px; display:flex; flex-direction:column; gap:12px; }
   .recocard .rico{ font-size:54px; line-height:1; }
   .recocard .rnm{ font-size:38px; font-weight:900; color:var(--ink); }
@@ -1011,6 +1009,19 @@
   #s-result #result-rival .rv-rec{ font-size:21px; margin-top:2px; }
   #s-result #result-rival .rv-ban{ font-size:22px; margin-top:1px; }
   #s-result #result-btns{ margin-top:0; align-self:center; }
+  /* 巡業新聞：結果の次に一面を丸ごと使う。本文も既存UIに合わせて小さくしすぎない。 */
+  #s-newspaper{ background:#d8c89f; color:#17140f; }
+  .newspaper-page{ position:absolute; inset:112px 54px 34px; background:#f4edda; border:8px double #211d16; box-shadow:0 22px 55px rgba(0,0,0,.55); padding:24px 42px 28px; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; gap:14px; overflow:hidden; }
+  .newspaper-mast{ display:flex; align-items:flex-end; justify-content:space-between; border-bottom:7px double #211d16; padding-bottom:8px; }
+  .newspaper-name{ font-family:Georgia,'Yu Mincho','Hiragino Mincho ProN',serif; font-size:62px; font-weight:900; letter-spacing:.12em; }
+  .newspaper-date{ font-size:25px; font-weight:800; text-align:right; }
+  .newspaper-headline{ font-family:Georgia,'Yu Mincho','Hiragino Mincho ProN',serif; font-size:56px; line-height:1.12; font-weight:900; text-align:center; border-bottom:4px solid #211d16; padding:4px 18px 14px; }
+  .newspaper-body{ min-height:0; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(360px,.72fr); gap:34px; overflow:hidden; }
+  .newspaper-article{ font-family:Georgia,'Yu Mincho','Hiragino Mincho ProN',serif; font-size:31px; line-height:1.6; white-space:pre-wrap; padding:8px 12px; column-count:2; column-gap:34px; column-rule:2px solid #8c826c; overflow:auto; }
+  .newspaper-facts{ border-left:4px solid #211d16; padding:12px 0 0 26px; font-size:27px; line-height:1.55; font-weight:700; }
+  .newspaper-facts .cap{ font-size:34px; font-weight:900; border-bottom:3px solid #211d16; margin-bottom:12px; }
+  .newspaper-facts .row{ border-bottom:1px solid #8c826c; padding:8px 2px; }
+  #newspaper-next{ justify-self:center; min-width:360px; }
 
   /* ドラフト */
   .draft{ display:flex; flex-wrap:wrap; gap:26px; justify-content:center; }
@@ -1477,7 +1488,6 @@
       <div class="btn small ghost foc" id="build-back" style="display:none;flex-shrink:0;">◀ 中断・タイトルへ</div>
       <div class="title" id="build-title">エンブレム編成</div>
       <div class="spacer"></div>
-      <div class="btn small ghost foc" id="build-research" style="flex-shrink:0;">🧪 研究依頼</div>
       <div class="btn small ghost foc" id="build-recommend" style="flex-shrink:0;" data-i18n="build_recommend">✨ おすすめ構成</div>
       <div class="btn small ghost foc" id="build-clear" style="flex-shrink:0;" data-i18n="build_clear">🗑 解除モード（X）</div>
       <div class="btn small ghost foc" id="build-clearall" style="flex-shrink:0;" data-i18n="build_clearall">🧹 全解除</div>
@@ -1526,15 +1536,6 @@
         </div>
       </div>
     </div>
-    <div class="ovl" id="ovl-research">
-      <div class="card-modal">
-        <h2 id="research-title">研究依頼を選ぶ</h2>
-        <div class="recolist" id="research-cards"></div>
-        <div class="rowbtns" style="margin-top:22px;">
-          <div class="btn ghost foc" id="research-close">とじる ✕</div>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ===================== MATCH ===================== -->
@@ -1545,7 +1546,6 @@
       <div class="btn small ghost foc" id="match-inspect" data-i18n="match_inspect">🔍 しらべる</div>
       <div class="btn small ghost foc" id="match-menu" style="margin-left:14px;" data-i18n="match_menu">☰ メニュー</div>
     </div>
-    <div class="researchbar" id="match-research"></div>
     <div class="opps" id="match-opps"></div>
     <div class="center">
       <div class="fieldzone">
@@ -1621,6 +1621,23 @@
       </div>
         <div class="rowbtns" id="result-btns"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== TOUR NEWSPAPER ===================== -->
+  <section id="s-newspaper" class="screen">
+    <div class="topbar"><div class="title" id="newspaper-top">巡業新聞</div></div>
+    <div class="newspaper-page">
+      <div class="newspaper-mast">
+        <div class="newspaper-name" id="newspaper-name">ルール日報</div>
+        <div class="newspaper-date" id="newspaper-date"></div>
+      </div>
+      <div class="newspaper-headline" id="newspaper-headline"></div>
+      <div class="newspaper-body">
+        <div class="newspaper-article" id="newspaper-article"></div>
+        <div class="newspaper-facts" id="newspaper-facts"></div>
+      </div>
+      <div class="btn primary foc" id="newspaper-next">次へ ▶</div>
     </div>
   </section>
 
@@ -1818,7 +1835,6 @@
         <div class="world-tabs">
           <div class="world-tab foc" id="world-tab-story">連載物語を読む</div>
           <div class="world-tab foc" id="world-tab-today">今日の世界</div>
-          <div class="world-tab foc" id="world-tab-growth">成長記録</div>
         </div>
         <div class="world-list" id="world-list"></div>
         <div class="world-reader-nav" id="world-reader-nav">
@@ -4465,7 +4481,7 @@ const AUDIO = (function(){
 
   const store = {
     bestDepth:0, sfx:true, rankMode:'2high', lang:'ja', gfx:'lite', unlocked:BASE_UNLOCKED.slice(), colVer:0, savedBuild:null, savedRun:null,
-    keymap:null, padmap:null, netKw:'', netName:'', playerProfile:null, rival:null, rivals:null, rivalProf:null, growth:null, heatBest:{}, titleBest:{}, aiKeys:[''],
+    keymap:null, padmap:null, netKw:'', netName:'', playerProfile:null, rival:null, rivals:null, rivalProf:null, heatBest:{}, titleBest:{}, aiKeys:[''],
     load(){
       try{ const o=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}'); Object.assign(this,o); }catch(e){}
       if(!Array.isArray(this.unlocked)) this.unlocked = [];
@@ -4484,7 +4500,6 @@ const AUDIO = (function(){
       this.rival = (this.rival && typeof this.rival==='object') ? this.rival : null;   // 旧:単一宿敵(移行用に読むだけ・RIVAL.ensure で rivals へ継承後に破棄)
       this.rivals = (Array.isArray(this.rivals) && this.rivals.length===4) ? this.rivals : null;   // 宿敵4人(名前/戦績hist)
       this.rivalProf = (this.rivalProf && typeof this.rivalProf==='object') ? this.rivalProf : null; // あなたのビルド傾向(共有・学習型/ban が使う)
-      this.growth = (this.growth && typeof this.growth==='object') ? this.growth : null; // 累積成長(戦法研究・宿敵関係・将来の世界変化)
       this.heatBest = (this.heatBest && typeof this.heatBest==='object') ? this.heatBest : {};   // ★v0.28 Heat段位→最高到達深度(名誉記録)
       this.titleBest = (this.titleBest && typeof this.titleBest==='object') ? this.titleBest : {};   // ラン称号→最高到達深度(名誉記録)
       this.aiKeys = Array.isArray(this.aiKeys) ? this.aiKeys.slice(0,4) : [''];
@@ -4493,7 +4508,7 @@ const AUDIO = (function(){
       AUDIO.setOn(this.sfx); RL.setRankOrder(this.rankMode);
     },
     resetInput(){ this.keymap = normInputMap(null, DEFAULT_KEYMAP); this.padmap = normInputMap(null, DEFAULT_PADMAP); this.save(); },
-    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, playerProfile:this.playerProfile, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, growth:this.growth, heatBest:this.heatBest, titleBest:this.titleBest, aiKeys:this.aiKeys})); }catch(e){} },
+    save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({bestDepth:this.bestDepth, sfx:this.sfx, rankMode:this.rankMode, lang:this.lang, gfx:this.gfx, unlocked:this.unlocked, colVer:this.colVer, savedBuild:this.savedBuild, savedRun:this.savedRun, keymap:this.keymap, padmap:this.padmap, netKw:this.netKw, netName:this.netName, playerProfile:this.playerProfile, rival:this.rival, rivals:this.rivals, rivalProf:this.rivalProf, heatBest:this.heatBest, titleBest:this.titleBest, aiKeys:this.aiKeys})); }catch(e){} },
     unlock(id){ if(RL.emblem(id) && !this.unlocked.includes(id)){ this.unlocked.push(id); this.save(); return true; } return false; },
     saveBuild(b){ this.savedBuild = JSON.parse(JSON.stringify(b)); this.save(); },
     saveRun(run, mutator){ this.savedRun = { run: JSON.parse(JSON.stringify(run)), mutator: mutator ? JSON.parse(JSON.stringify(mutator)) : null }; this.save(); },
@@ -4706,28 +4721,7 @@ const AUDIO = (function(){
       aiworld_reset_story:'物語を最初から', aiworld_reset_title:'物語をリセット', aiworld_reset_body:'生成済みの物語在庫、既読履歴、章の進行、物語の要約をすべて消して、第1章から始め直します。通常会話などは残ります。', aiworld_reset_ok:'リセットする', aiworld_reset_done:'物語を第1章・在庫0に戻しました（{0}件削除）',
       aiworld_wait:'次の補充まで {0}秒', aiworld_err_auth:'APIキーが通りません。キーを確認してください。', aiworld_err_rate:'制限または混雑中です。2分間隔のまま次回に回します。', aiworld_err_net:'通信できません。オフラインでもゲーム本体は遊べます。', aiworld_err_model:'使用できるGeminiモデルが見つかりません。モデル確認を試してください。', aiworld_err_empty:'生成内容が0件でした。メモリーは更新せず、次回に再試行します。', aiworld_err_other:'補充に失敗しました。次回の自動補充で再試行します。',
       world_close:'◀ もどる', world_topbar:'Ru-Leの世界', world_empty:'今日はまだ新しい話が届いていません。', world_today_title:'今日のRu-Le', world_theme:'今日のテーマ：{0}',
-      world_tab_story:'連載物語を読む', world_tab_today:'今日の世界', world_tab_growth:'成長記録', world_growth_title:'旅の成長記録',
-      world_growth_summary:'対戦 {0}回・戦法研究 {1}種・宿敵との対戦 {2}回', world_growth_strategy:'戦法研究', world_growth_rivals:'宿敵との関係',
-      world_growth_contract:'選択中の研究依頼', world_growth_contract_none:'編成画面で次の研究依頼を選ぶ',
-      world_growth_events:'解放した出来事', world_growth_challenge_wait:'次の対戦：{0}との因縁戦',
-      world_growth_challenge_reward:'勝つと宿敵の得意エンブレムを獲得',
-      world_growth_world:'世界の変化', world_growth_world_line:'シーズン{0}・次まで {1}/100', world_growth_world_stats:'治安 {0}・復興 {1}・敵勢力 {2}・生態 {3}',
-      world_growth_book:'エンブレム図鑑', world_growth_book_line:'使用 {0}戦・発動 {1}回・勝利 {2}回・最大{3}枚役',
-      world_growth_incident:'進行中の世界事件', world_growth_incident_line:'解決度 {0}/{1}', world_growth_titles:'獲得した称号',
-      world_growth_rule:'クイック特殊ルール：{0}', world_growth_reward_hint:'解決すると新しいエンブレムを獲得',
-      growth_incident_title:'事件戦：{0}', growth_record_speaker:'成長記録',
-      world_growth_empty:'まだ記録はありません。対戦すると少しずつ育ちます。', world_growth_lv:'研究Lv.{0}', world_growth_xp:'研究値 {0}',
-      world_growth_relation:'親しさ {0}・信頼 {1}・対抗心 {2}', world_growth_duels:'対戦 {0}回・関係Lv.{1}', world_growth_next:'次のレベルまで {0}',
-      growth_challenge_title:'因縁戦：{0}', growth_challenge_talk:'研究が進んだようだね。今度は本気で行くよ。', growth_unlock_head:'🌱 新しい成長',
-      growth_reco_name:'研究構成：{0}', growth_reco_desc:'研究した効果を「{0}」から「{1}」へ移して、別の使い方を試す。', growth_reco_apply:'この研究構成を試す',
-      growth_reco_new_name:'新戦法：{0}', growth_reco_new_desc:'獲得したばかりの「{0}」を{1}へ入れて試す。勝敗より、まず効果を起こしてみよう。',
-      research_btn:'🧪 研究依頼', research_title:'研究依頼を1つ選ぶ', research_close:'とじる ✕',
-      research_active:'研究中：{0}', research_active_bonus:'研究中：{0}（今回 コスト+{1}）', research_progress:'{0}　{1}/{2}', research_done:'達成！ {0}', research_need_pick:'対戦前に研究依頼を選んでください',
-      research_continue:'研究継続：{0}　{1}/{2}（次戦へ持ち越し）',
-      research_reward:'研究成功 {0}/3', research_unlock:'研究成果で', research_budget_ready:'次の研究戦：編成コスト +{0}', research_budget_gain:'🧪 次の研究戦は編成コスト +{0}', research_split:'分裂でペアを返す', research_split_ds:'分裂を実際に1回発動させる。',
-      research_choose:'指名で流れを変える', research_choose_ds:'指名を実際に1回発動させる。', research_activate:'溜め撃ちを使う', research_activate_ds:'発動を1回使う。',
-      research_combo:'大きな役を作る', research_combo_ds:'3枚以上の役を1回出す。', research_no_pass:'パスせず上がる', research_no_pass_ds:'一度もパスせず2位以内に入る。',
-      research_variety:'二つの効果を試す', research_variety_ds:'異なるエンブレムを2種類発動する。', research_react:'後出しを決める', research_react_ds:'反撃の後出しを1回成功させる。',
+      world_tab_story:'連載物語を読む', world_tab_today:'今日の世界',
       world_story_empty:'ゲーム内で表示された物語はまだありません。', world_story_count:'既読{0}件・現在 第{1}章', world_chapter:'第{0}章',
       world_series:'連載{0}「{1}」',
       world_prev:'▲ 前へ', world_next:'▼ 次へ',
@@ -4977,28 +4971,7 @@ const AUDIO = (function(){
       aiworld_reset_story:'Bắt đầu lại truyện', aiworld_reset_title:'Đặt lại truyện', aiworld_reset_body:'Xóa toàn bộ kho truyện, lịch sử đã đọc, tiến độ chương và bản tóm tắt rồi bắt đầu lại từ Chương 1. Hội thoại thường vẫn được giữ lại.', aiworld_reset_ok:'Đặt lại', aiworld_reset_done:'Đã đưa truyện về Chương 1, kho 0 (xóa {0} mục)',
       aiworld_wait:'Lần bổ sung tiếp theo sau {0} giây', aiworld_err_auth:'API key không hợp lệ. Hãy kiểm tra lại key.', aiworld_err_rate:'Đang bị giới hạn hoặc máy chủ bận. Sẽ thử lại theo nhịp 2 phút.', aiworld_err_net:'Không kết nối được. Game vẫn chơi được khi offline.', aiworld_err_model:'Không tìm thấy model Gemini dùng được. Hãy thử kiểm tra model.', aiworld_err_empty:'Không có nội dung nào được tạo. Bộ nhớ không được cập nhật và sẽ thử lại lần sau.', aiworld_err_other:'Bổ sung thất bại. Sẽ thử lại ở lần tự động tiếp theo.',
       world_close:'◀ Quay lại', world_topbar:'Thế giới Ru-Le', world_empty:'Hôm nay chưa có tin mới.', world_today_title:'Ru-Le hôm nay', world_theme:'Chủ đề hôm nay: {0}',
-      world_tab_story:'Đọc truyện dài kỳ', world_tab_today:'Thế giới hôm nay', world_tab_growth:'Tiến trình', world_growth_title:'Hành trình trưởng thành',
-      world_growth_summary:'{0} trận・{1} chiến thuật・{2} lần đấu đối thủ', world_growth_strategy:'Nghiên cứu chiến thuật', world_growth_rivals:'Quan hệ đối thủ',
-      world_growth_contract:'Nhiệm vụ đang chọn', world_growth_contract_none:'Chọn nhiệm vụ tiếp theo ở màn hình cấu hình',
-      world_growth_events:'Sự kiện đã mở', world_growth_challenge_wait:'Trận tiếp theo: duyên nợ với {0}',
-      world_growth_challenge_reward:'Thắng để nhận biểu tượng sở trường của đối thủ',
-      world_growth_world:'Thay đổi thế giới', world_growth_world_line:'Mùa {0}・Tiến độ {1}/100', world_growth_world_stats:'An ninh {0}・Phục hồi {1}・Thế lực địch {2}・Sinh thái {3}',
-      world_growth_book:'Bách khoa biểu tượng', world_growth_book_line:'Dùng {0} trận・Kích hoạt {1}・Thắng {2}・Bộ lớn nhất {3} lá',
-      world_growth_incident:'Sự kiện thế giới đang diễn ra', world_growth_incident_line:'Tiến độ {0}/{1}', world_growth_titles:'Danh hiệu đã nhận',
-      world_growth_rule:'Luật đặc biệt trận nhanh: {0}', world_growth_reward_hint:'Giải quyết để nhận biểu tượng mới',
-      growth_incident_title:'Trận sự kiện: {0}', growth_record_speaker:'Tiến trình',
-      world_growth_empty:'Chưa có dữ liệu. Hãy đấu để tích lũy.', world_growth_lv:'Cấp nghiên cứu {0}', world_growth_xp:'Điểm nghiên cứu {0}',
-      world_growth_relation:'Thân thiết {0}・Tin cậy {1}・Cạnh tranh {2}', world_growth_duels:'Đã đấu {0}・Quan hệ cấp {1}', world_growth_next:'Còn {0} đến cấp tiếp theo',
-      growth_challenge_title:'Trận duyên nợ: {0}', growth_challenge_talk:'Có vẻ bạn đã tiến bộ. Lần này tôi sẽ đấu hết sức.', growth_unlock_head:'🌱 Tiến triển mới',
-      growth_reco_name:'Cấu hình nghiên cứu: {0}', growth_reco_desc:'Chuyển hiệu ứng đã nghiên cứu từ “{0}” sang “{1}” để thử cách dùng mới.', growth_reco_apply:'Thử cấu hình nghiên cứu',
-      growth_reco_new_name:'Chiến thuật mới: {0}', growth_reco_new_desc:'Gắn “{0}” vừa nhận vào {1} để thử. Trước hết hãy kích hoạt hiệu ứng.',
-      research_btn:'🧪 Nhiệm vụ nghiên cứu', research_title:'Chọn một nhiệm vụ nghiên cứu', research_close:'Đóng ✕',
-      research_active:'Đang nghiên cứu: {0}', research_active_bonus:'Đang nghiên cứu: {0} (trận này +{1} chi phí)', research_progress:'{0}　{1}/{2}', research_done:'Hoàn thành! {0}', research_need_pick:'Hãy chọn nhiệm vụ trước trận',
-      research_continue:'Tiếp tục nghiên cứu: {0}　{1}/{2} (giữ sang trận sau)',
-      research_reward:'Nghiên cứu thành công {0}/3', research_unlock:'Phần thưởng nghiên cứu: ', research_budget_ready:'Trận nghiên cứu kế: +{0} chi phí', research_budget_gain:'🧪 Trận nghiên cứu kế được +{0} chi phí', research_split:'Dùng Phân Liệt đáp đôi', research_split_ds:'Kích hoạt Phân Liệt 1 lần.',
-      research_choose:'Đổi nhịp bằng Chỉ Định', research_choose_ds:'Kích hoạt Chỉ Định 1 lần.', research_activate:'Dùng kỹ năng nạp', research_activate_ds:'Dùng kích hoạt 1 lần.',
-      research_combo:'Tạo bộ lớn', research_combo_ds:'Đánh một bộ từ 3 lá.', research_no_pass:'Về mà không bỏ lượt', research_no_pass_ds:'Không bỏ lượt và đạt hạng 1 hoặc 2.',
-      research_variety:'Thử hai hiệu ứng', research_variety_ds:'Kích hoạt 2 biểu tượng khác nhau.', research_react:'Phản đòn thành công', research_react_ds:'Dùng phản đòn 1 lần.',
+      world_tab_story:'Đọc truyện dài kỳ', world_tab_today:'Thế giới hôm nay',
       world_story_empty:'Chưa có đoạn truyện nào xuất hiện trong game.', world_story_count:'Đã đọc {0} mục・Hiện tại Chương {1}', world_chapter:'Chương {0}',
       world_series:'Phần {0} “{1}”',
       world_prev:'▲ Trước', world_next:'▼ Tiếp',
@@ -5505,7 +5478,6 @@ const AUDIO = (function(){
     if(activeScreenOvl('#ovl-net')) return; // ネット通知は専用ボタンのみ
     if(activeScreenOvl('#ovl-choose')) return; // 指名は戻る不可
     if(activeScreenOvl('#ovl-pause')){ closePause(); return; }
-    if(activeScreenOvl('#ovl-research')){ $('#ovl-research').classList.remove('active'); refocusSlot(); return; }
     if(activeScreenOvl('#ovl-recommend')){ $('#ovl-recommend').classList.remove('active'); refocusSlot(); return; } // おすすめ構成を閉じる
     switch(currentScreen){
       case 's-inspect': closeInspect(); return; // 対戦中のエンブレム閲覧を閉じる
@@ -5534,6 +5506,7 @@ const AUDIO = (function(){
         else if(MODE.kind==='quick'){ show('s-title'); }
         // 巡業の結果は「すすむ」専用ボタンのみ＝ESC では先に進めない(誤操作防止)
         break;
+      case 's-newspaper': $('#newspaper-next').click(); break;
       case 's-draft':   if(MODE.run){ clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); } break;
       case 's-map':     if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); } MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;   // ★v0.23 マップで戻る=中断してタイトル
       case 's-rest':    restContinue(); break;   // ★v0.25 休憩は引き返せない＝Esc も「すすむ」に寄せる
@@ -6118,8 +6091,7 @@ const AUDIO = (function(){
   function startQuick(){
     MODE.kind='quick';
     MODE.run=null;
-    const incident=GROWTH.activeIncident();
-    MODE.mutator = incident&&incident.mutator ? RL.mutator(incident.mutator) : rollMutator(0);
+    MODE.mutator = rollMutator(0);
     // 既定は「自分の保存ビルド」。無ければ空から自由編成(プリセットは例外的に呼べる)。予算100。
     MODE.quickBuild = MODE.quickBuild || (store.savedBuild ? RL.normalizeBuild(JSON.parse(JSON.stringify(store.savedBuild))) : RL.emptyBuild());
     openBuild(T('bt_quick'));
@@ -6613,9 +6585,7 @@ const AUDIO = (function(){
   function currentBudget(){
     // 巡業は深度予算＋次戦ボーナス(+25・次戦のみ・100上限を超えてよい)。クイック/オンは固定100。
     const base = MODE.kind==='run' ? (MODE.run.budget + (MODE.run.nextBonus||0)) : RL.CONFIG.MAX_BUILD_COST;
-    const research = MODE.kind!=='online' && GROWTH.ensure().research.active;
-    const researchBonus = research ? Math.max(0,Number(research.bonus)||0) : 0;
-    return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta() + researchBonus);   // お題＋誓約＋研究成功ボーナスを反映
+    return Math.max(30, base + mutatorBudgetDelta() + pactBudgetDelta());   // お題＋誓約(p_budget)の予算増減を反映
   }
   function currentDiscountIds(){
     return (MODE.kind==='run' && MODE.run) ? discountIdsFor(MODE.run) : [];
@@ -6821,81 +6791,8 @@ const AUDIO = (function(){
     host.innerHTML='<span class="btag">'+uiMark('💸','HALF')+' '+T('discount_banner')+'</span><span class="bds">'+T('discount_banner_ds', nm)+'</span>';
   }
   // おすすめ構成オーバーレイ：初心者がワンタップで完成形を入れられる近道。常時表示はせず、必要な時だけ開く。
-  function researchExperimentBuild(){
-    if(!buildState)return null;
-    const g=GROWTH.ensure(), owned=new Set(buildState.owned||[]);
-    const equipped=new Set(buildUsedEmblemIds(buildState.build));
-    for(const id of (g.collection.newEmblems||[])){
-      if(!owned.has(id)||equipped.has(id)||!RL.emblem(id))continue;
-      const e=RL.emblem(id), candidates=[];
-      if(RL.placeOf(id)==='whole')candidates.push({type:'rule',key:'rule'});
-      else {
-        RL.DISPLAY_RANKS.forEach(key=>{ if(RL.canScope(id,'rank',key))candidates.push({type:'rank',key}); });
-        RL.SUITS.forEach(key=>{ if(RL.canScope(id,'suit',key))candidates.push({type:'suit',key}); });
-      }
-      for(const to of candidates){
-        const b=cloneBuild(buildState.build), dst=to.type==='rule'?b.ruleSlots:(to.type==='rank'?b.rankSlots[to.key]:b.suitSlots[to.key]);
-        if(dst.includes(id))continue; dst.push(id);
-        if(runBuildCost(b)<=buildState.budget)return {id,build:b,isNew:true,from:'',to:slotDisplayLabel(to.type,to.key)};
-      }
-      if(candidates.length){
-        const to=candidates[0], b=RL.emptyBuild(), dst=to.type==='rule'?b.ruleSlots:(to.type==='rank'?b.rankSlots[to.key]:b.suitSlots[to.key]);
-        dst.push(id);
-        if(runBuildCost(b)<=buildState.budget)return {id,build:b,isNew:true,from:'',to:slotDisplayLabel(to.type,to.key)};
-      }
-    }
-    const studied=Object.entries(g.strategies||{})
-      .filter(([id,row])=>owned.has(id)&&RL.emblem(id)&&GROWTH.level(row.xp||0,6)>=2)
-      .sort((a,b)=>(b[1].xp||0)-(a[1].xp||0));
-    for(const [id] of studied){
-      if(RL.placeOf(id)==='whole')continue;
-      const base=cloneBuild(buildState.build), slots=[];
-      RL.DISPLAY_RANKS.forEach(r=>{ if((base.rankSlots[r]||[]).includes(id))slots.push({type:'rank',key:r}); });
-      RL.SUITS.forEach(s=>{ if((base.suitSlots[s]||[]).includes(id))slots.push({type:'suit',key:s}); });
-      if(!slots.length)continue;
-      const from=slots[0], candidates=from.type==='rank'
-        ? RL.DISPLAY_RANKS.filter(k=>k!==from.key&&RL.canScope(id,'rank',k)).map(key=>({type:'rank',key}))
-        : RL.SUITS.filter(k=>k!==from.key&&RL.canScope(id,'suit',k)).map(key=>({type:'suit',key}));
-      for(const to of candidates){
-        const b=cloneBuild(base), src=from.type==='rank'?b.rankSlots[from.key]:b.suitSlots[from.key], at=src.indexOf(id);
-        if(at>=0)src.splice(at,1);
-        const dst=to.type==='rank'?b.rankSlots[to.key]:b.suitSlots[to.key]; if(dst.includes(id))continue; dst.push(id);
-        if(runBuildCost(b)<=buildState.budget)return {id,build:b,from:slotDisplayLabel(from.type,from.key),to:slotDisplayLabel(to.type,to.key)};
-      }
-    }
-    return null;
-  }
-  function openResearch(){
-    const host=$('#research-cards'); if(!host)return; host.innerHTML='';
-    $('#research-title').textContent=T('research_title');
-    $('#research-close').textContent=T('research_close');
-    GROWTH.researchOffers().forEach(def=>{
-      const card=el('div','recocard foc');
-      const pending=Math.max(0,Number(GROWTH.ensure().research.pendingBonus)||0);
-      card.innerHTML='<div class="rico">🧪</div><div class="rnm">'+worldEsc(def.name)+'</div><div class="rds">'+worldEsc(def.desc)+'</div>'
-        +'<div class="rcost">'+worldEsc(pending?T('research_budget_ready',pending):T('research_reward',(GROWTH.ensure().research.completed||0)%3))+'</div>';
-      card.onclick=()=>{ GROWTH.selectResearch(def.id); if(buildState)buildState.budget=currentBudget(); $('#ovl-research').classList.remove('active'); AUDIO.confirm(); renderBuild(); refocusSlot(); };
-      host.appendChild(card);
-    });
-    $('#ovl-research').classList.add('active'); AUDIO.move(); setTimeout(focusFirst,0);
-  }
-  function closeResearch(){ $('#ovl-research').classList.remove('active'); AUDIO.back(); refocusSlot(); }
   function openRecommend(){
     const host=$('#reco-cards'); if(!host||!buildState) return; host.innerHTML='';
-    const experiment=researchExperimentBuild();
-    if(experiment){
-      const e=RL.emblem(experiment.id), cost=runBuildCost(experiment.build), card=el('div','recocard foc');
-      card.innerHTML='<div class="rico">'+(experiment.isNew?'🎁':'🧪')+'</div><div class="rnm">'+worldEsc(T(experiment.isNew?'growth_reco_new_name':'growth_reco_name',embName(e)))+'</div>'
-        +'<div class="rds">'+worldEsc(experiment.isNew?T('growth_reco_new_desc',embName(e),experiment.to):T('growth_reco_desc',experiment.from,experiment.to))+'</div>'
-        +'<div class="rcost">'+T('reco_cost',cost,buildState.budget)+'</div>';
-      card.onclick=()=>{
-        const b=buildState.build, x=cloneBuild(experiment.build);
-        b.rankSlots=x.rankSlots; b.suitSlots=x.suitSlots; b.ruleSlots=x.ruleSlots;
-        if(experiment.isNew)GROWTH.markEmblemTried(experiment.id);
-        $('#ovl-recommend').classList.remove('active'); AUDIO.emb(); toast(T('growth_reco_apply'),'#43a047'); renderBuild();
-      };
-      host.appendChild(card);
-    }
     RL.PRESETS.forEach(p=>{
       const cost=runBuildCost(RL.presetBuild(p.id));
       const card=el('div','recocard foc');
@@ -6952,10 +6849,6 @@ const AUDIO = (function(){
   }
   function renderBuild(){
     const b=buildState.build;
-    const research=GROWTH.ensure().research.active, researchBtn=$('#build-research');
-    if(researchBtn)researchBtn.textContent=research
-      ? (research.bonus?T('research_active_bonus',research.name,research.bonus):T('research_active',research.name))
-      : T('research_btn');
     // お題バナー(今回の対戦に掛かる共通ルール)＋宿敵の標的宣言(メタ崩壊)
     renderMutatorBanner($('#build-mutator'));
     renderBanBanner($('#build-ban'));
@@ -7307,14 +7200,11 @@ const AUDIO = (function(){
   $('#build-clear').onclick=()=> toggleRemoveMode();
   $('#build-clearall').onclick=()=> clearAllSlots();
   $('#build-recommend').onclick=()=> openRecommend();
-  $('#build-research').onclick=()=> openResearch();
   $('#reco-close').onclick=()=> closeRecommend();
-  $('#research-close').onclick=()=> closeResearch();
   $('#emblem-close').onclick=()=>{ AUDIO.back(); closeEmblemPicker(); };
   // 編成→対戦開始(けってい)。ボタンとキー設定の「対戦開始」両方から呼ぶ。
   function startMatchFromBuild(){
     if(!buildState || currentScreen!=='s-build') return;
-    if(MODE.kind!=='online'&&!GROWTH.ensure().research.active){ AUDIO.bad(); toast(T('research_need_pick'),'#ff9800'); openResearch(); return; }
     if(runBuildCost(buildState.build)>buildState.budget){ AUDIO.bad(); toast(T('toast_cost_over_start'), '#ff7043'); return; }
     if(MODE.kind==='online'){ store.saveBuild(buildState.build); AUDIO.confirm(); NET.afterBuild(buildState.build); return; }  // オンライン=ロビーへ反映
     if(MODE.kind==='quick') store.saveBuild(buildState.build);   // クイックの自分ビルドを永続化(次回の既定になる)
@@ -7983,13 +7873,7 @@ const AUDIO = (function(){
     // ★v0.26 宿敵は4人。基本は各々25%で参戦(0人〜CPU席いっぱいまで)。ボス戦はその幕のボス宿敵を必ず1人＋他は各25%。
     //   CPU席は3。参戦が3を超えたらボスを保持して3人に切り詰める。
     const bossIdx = _bossNow ? bossRivalIndex(_bossNow) : -1;
-    const growthChallengeIdx=GROWTH.takeChallenge();
-    MODE.growthChallenge=growthChallengeIdx!=null?{idx:growthChallengeIdx}:null;
-    MODE.growthTalk=MODE.growthChallenge?'':GROWTH.takeTalk();
-    MODE.growthIncident=GROWTH.activeIncident();
-    MODE.growthNotices=[];
-    MODE.researchOutcome=null;
-    let rivalIdxs = growthChallengeIdx!=null?[growthChallengeIdx]:[];
+    let rivalIdxs = [];
     if(bossIdx>=0&&!rivalIdxs.includes(bossIdx)) rivalIdxs.push(bossIdx);
     const rivalP = hasPact('rival') ? 1 : 0.25;   // ★v0.28 誓約(p_rival): 宿敵が毎戦かならず参戦(席が埋まるまで)
     for(let i=0;i<RIVAL.count();i++){ if(i!==bossIdx&&!rivalIdxs.includes(i)&&Math.random()<rivalP) rivalIdxs.push(i); }
@@ -8002,8 +7886,7 @@ const AUDIO = (function(){
     const cpuDefs=[];
     rivalIdxs.forEach(ri=>{
       const isBoss = !!(_bossNow && BOSSES[ri] && BOSSES[ri].id===_bossNow.id);
-      const challengeBoss=MODE.growthChallenge&&MODE.growthChallenge.idx===ri?BOSSES[ri]:null;
-      const bossBuild=isBoss?_bossNow:challengeBoss;
+      const bossBuild=isBoss?_bossNow:null;
       const rb = rivalBuild(ri, depth, bossBuild);
       cpuDefs.push({ name:(bossBuild?'👑':'🔥')+RIVAL.name(ri), isHuman:false, build:rb.build, _rivalIdx:ri, _boss:bossBuild?bossBuild.id:null });
     });
@@ -8022,33 +7905,19 @@ const AUDIO = (function(){
       budget: currentBudget(),
       livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0,
       usedEmblems: buildUsedEmblemIds(MODE.kind==='run' ? manualCostBuild : human.build),
-      firedEmblems:{},
-      humanActions:{play:0,pass:0,react:0,activate:0},
-      maxCombo:0
+      news:{plays:0,passes:0,reacts:0,activates:0,maxCombo:0,revolutions:0,bombs:0,chooses:0,splits:0}
     };
-    // 成功報酬の追加編成枠は、この対戦を始めた時点で使い切る。依頼そのものは未達なら次戦へ持ち越す。
-    const matchResearch=GROWTH.ensure().research.active;
-    if(matchResearch&&matchResearch.bonus){ matchResearch.bonus=0; store.save(); }
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
     G = RL.newGame(defs, seed, MODE.mutator);   // 先手は seed 由来でランダム決定(弱者は♠3保持で先手・英雄は配り時1位)
     if(MODE.kind==='run'){ MODE.run.nextBonus=0; MODE.run.inMatch=true; store.saveRun(MODE.run, MODE.mutator); }   // 対戦開始で1位ボーナス(+25)を消費＋inMatch=true(未完で抜けると残機-1)＋中断用セーブ(確定ビルドを永続化)
     busy=false; pendingChoose=null; endedShown=false;
-    $('#match-title').textContent = MODE.growthChallenge ? T('growth_challenge_title',RIVAL.name(MODE.growthChallenge.idx))
-      : MODE.growthIncident ? T('growth_incident_title',MODE.growthIncident.title)
-      : (MODE.kind==='run' ? T('mt_run', depth, MODE.run.lives) : T('mt_quick'));
+    $('#match-title').textContent = MODE.kind==='run' ? T('mt_run', depth, MODE.run.lives) : T('mt_quick');
     show('s-match');
     renderMatch();
     setTimeout(()=>{
       if(!G||currentScreen!=='s-match')return;
-      if(MODE.growthChallenge){
-        const rs=(MODE.rivalSeats||[]).find(x=>x.idx===MODE.growthChallenge.idx), p=rs&&G.players[rs.seat], box=$('#match-talk');
-        if(box&&p){ box.insertAdjacentHTML('beforeend','<div class="talkbubble"><div class="who">'+worldEsc(p.name)+'</div><div class="txt">'+worldEsc(T('growth_challenge_talk'))+'</div></div>'); box.classList.add('show'); matchTalkLastAt=Date.now(); }
-      } else if(MODE.growthTalk){
-        const box=$('#match-talk'); if(box){ box.insertAdjacentHTML('beforeend','<div class="talkbubble"><div class="who">'+worldEsc(T('growth_record_speaker'))+'</div><div class="txt">'+worldEsc(MODE.growthTalk)+'</div></div>'); box.classList.add('show'); matchTalkLastAt=Date.now(); }
-      } else if(MODE.growthIncident){
-        const box=$('#match-talk'); if(box){ box.insertAdjacentHTML('beforeend','<div class="talkbubble"><div class="who">'+worldEsc(T('growth_record_speaker'))+'</div><div class="txt">'+worldEsc(MODE.growthIncident.desc)+'</div></div>'); box.classList.add('show'); matchTalkLastAt=Date.now(); }
-      } else matchTalkEvent('greeting',G.turn,true);
+      matchTalkEvent('greeting',G.turn,true);
     },350);
     scheduleMatchThemeTalk(6000);
     afterStep();
@@ -8120,14 +7989,6 @@ const AUDIO = (function(){
     const cap = rr.chargeCap || RL.CONFIG.REACT_COST_DEFAULT;
     return '<span class="chgpill'+(((p.charge||0)>=cap)?' full':'')+'">⚡'+(p.charge||0)+'/'+cap+'</span>';
   }
-  function renderResearchProgress(){
-    const host=$('#match-research'); if(!host)return;
-    const active=GROWTH.ensure().research.active;
-    if(!active||NET.active){ host.style.display='none'; host.textContent=''; return; }
-    const p=GROWTH.researchProgress(MODE.matchStats,null);
-    host.style.display='block'; host.classList.toggle('done',p.done);
-    host.textContent=p.done?T('research_done',active.name):T('research_progress',active.name,p.cur,p.target);
-  }
   function renderMatch(){
     if(!G) return;
     // 相手
@@ -8147,7 +8008,6 @@ const AUDIO = (function(){
     });
     // 場
     renderField();
-    renderResearchProgress();
     // 状態バッジ
     const sc=$('#match-state'); sc.innerHTML='';
     if(G.mutator && G.mutator.effect!=='NONE') sc.appendChild(badge(G.mutator.ico,T('badge_mut'), mutName(G.mutator), true));
@@ -8383,12 +8243,14 @@ const AUDIO = (function(){
     const hasEff=eff=>embIds.some(id=>{ const e=RL.emblem(id); return e&&String(e.effect||'').split('+').includes(eff); });
     const rules=G.players[actorIdx]&&G.players[actorIdx].rules, playedCombo=cards&&cards.length?RL.classifyCombo(cards,rules):null, playedBomb=!!(playedCombo&&RL.isBomb(playedCombo,rules));
     if(actorIdx===meIdx()){
-      if(MODE.matchStats){
-        const st=MODE.matchStats, acts=st.humanActions||(st.humanActions={});
-        acts[action]=(acts[action]||0)+1;
-        embIds.forEach(id=>{ st.firedEmblems=st.firedEmblems||{}; st.firedEmblems[id]=(st.firedEmblems[id]||0)+1; });
-        if(cards&&cards.length)st.maxCombo=Math.max(st.maxCombo||0,cards.length);
-        renderResearchProgress();
+      if(MODE.matchStats&&MODE.matchStats.news){
+        const n=MODE.matchStats.news;
+        if(action==='play')n.plays++; else if(action==='pass')n.passes++; else if(action==='react')n.reacts++; else if(action==='activate')n.activates++;
+        if(cards&&cards.length)n.maxCombo=Math.max(n.maxCombo||0,cards.length);
+        if(playedBomb)n.bombs++;
+        if(ev.some(x=>x.kind==='revolution'))n.revolutions++;
+        if(hasEff('CHOOSE_NEXT'))n.chooses++;
+        if(embIds.includes('mi08'))n.splits++;
       }
       let special='';
       if(playedBomb)special='ボムで場を返した';
@@ -8714,25 +8576,58 @@ const AUDIO = (function(){
       AIStory.recordAction('build',{special:names.join('・')+'を使った'});
     }
     AIStory.recordResult(myPlace,MODE.kind==='run'&&MODE.run?MODE.run.depth:1,resultTagKeys(me));
-    if(NET.active){ MODE.growthNotices=GROWTH.recordMatch(me,[],MODE.matchStats).notices; showResult(); return; } // オンラインも戦法研究だけ蓄積
+    if(NET.active){ showResult(); return; }
     // 宿敵モデル更新: 参戦した各宿敵の因縁の戦績を記録＋(誰か居れば)あなたのビルド傾向を観測(学習型/ban が使う)。
     const seats = MODE.rivalSeats || [];
     let anyRival=false;
     seats.forEach(rs=>{ const p=G.players[rs.seat]; if(!p) return; anyRival=true; RIVAL.record(rs.idx, myPlace, p.place||4); });
     if(anyRival) RIVAL.observe(MODE.kind==='run' ? MODE.run.build : MODE.quickBuild);
-    if(MODE.growthChallenge&&MODE.matchStats){
-      const rs=seats.find(x=>x.idx===MODE.growthChallenge.idx), enemy=rs&&G.players[rs.seat];
-      MODE.matchStats.challengeIdx=MODE.growthChallenge.idx;
-      MODE.matchStats.challengeWon=!!(enemy&&myPlace<(enemy.place||4));
-    }
-    const activeResearch=GROWTH.ensure().research.active;
-    MODE.researchOutcome=activeResearch?{name:activeResearch.name,...GROWTH.researchProgress(MODE.matchStats,myPlace)}:null;
-    const growthResult=GROWTH.recordMatch(me,seats,MODE.matchStats);
-    const researchNotices=GROWTH.finishResearch(me,MODE.matchStats);
-    MODE.growthNotices=growthResult.notices.concat(researchNotices);
     if(MODE.kind==='run') endRunMatch(myPlace);
     else showResult();
   }
+  let newspaperContinue=null;
+  function newspaperCondition(place,nodeType,stats){
+    const n=(stats&&stats.news)||{};
+    if(nodeType==='boss')return'boss'; if(nodeType==='elite')return'elite'; if(nodeType==='mutator')return'mutator';
+    if(n.revolutions)return'revolution'; if(n.bombs)return'bomb'; if(n.reacts)return'reaction'; if(n.activates)return'activation';
+    if(n.chooses)return'choose'; if(n.splits)return'split';
+    if((MODE.rivalSeats||[]).length)return'rival'; if((n.maxCombo||0)>=3)return'big_combo';
+    if((stats&&stats.actions||0)<=12)return'fast'; if((stats&&stats.actions||0)>=30)return'long';
+    if((n.passes||0)===0)return'no_pass'; if((stats&&stats.cost||0)<=55)return'low_cost';
+    return place===1?'champion':place===2?'runnerup':place===3?'third':place===4?'last':'standard';
+  }
+  function newspaperFallback(condition,place){
+    const p=store.playerProfile?.name||T('you'), win=place===1?'制した':place===2?'2位に入った':'順位を落とした';
+    return {speaker:(place===1?p+'、巡業戦を制す':p+'、巡業戦を終える'),
+      text:'巡業の対戦が行われ、{player}は{place}となった。試合は「{rule}」の条件で進み、各選手が場の主導権を争った。{player}は{emblem}を軸に札を組み立て、全{turns}手の攻防を経て'+win+'。記録上、今回の焦点は「'+(NEWSPAPER_DEFS.find(x=>x[0]===condition)?.[1]||'巡業対戦')+'」だった。'};
+  }
+  function newspaperFill(text,data){
+    return String(text||'').replace(/\{(player|place|depth|rule|emblem|rival|turns)\}/g,(_,k)=>String(data[k]??'—'));
+  }
+  function prepareNewspaper(place,depth,nodeType){
+    const stats=MODE.matchStats||{}, condition=newspaperCondition(place,nodeType,stats), me=G.players[meIdx()];
+    const item=AIWorldDB.takeNews(condition)||newspaperFallback(condition,place);
+    const used=(stats.usedEmblems||[]).map(id=>RL.emblem(id)).filter(Boolean).slice(0,3).map(embName);
+    const rival=(MODE.rivalSeats||[])[0], data={player:me.name||store.playerProfile?.name||T('you'),place:place+'位',depth:depth,rule:mutName(MODE.mutator),emblem:used.join('・')||'エンブレムなし',rival:rival?RIVAL.name(rival.idx):'巡業参加者',turns:stats.actions||0};
+    const order=G.players.slice().sort((a,b)=>(a.place||9)-(b.place||9));
+    MODE.newspaper={condition,headline:newspaperFill(item.speaker||newspaperFallback(condition,place).speaker,data),article:newspaperFill(item.text,data),data,
+      facts:order.map(p=>(p.place||'-')+'位　'+(p.name||'—')).concat(['特殊条件　'+data.rule,'主な構成　'+data.emblem,'対戦記録　全'+data.turns+'手'])};
+  }
+  function openNewspaper(next){
+    const n=MODE.newspaper; if(!n){ next(); return; }
+    newspaperContinue=next;
+    $('#newspaper-top').textContent=aiWorldLang()==='vi'?'Báo hành trình':'巡業新聞';
+    $('#newspaper-name').textContent=aiWorldLang()==='vi'?'NHẬT BÁO RU-LE':'ルール日報';
+    $('#newspaper-next').textContent=aiWorldLang()==='vi'?'Tiếp tục ▶':'次へ ▶';
+    $('#newspaper-date').textContent=aiWorldDateLabel()+'　巡業深度 '+n.data.depth;
+    $('#newspaper-headline').textContent=n.headline;
+    $('#newspaper-article').textContent=n.article;
+    $('#newspaper-facts').innerHTML='<div class="cap">対戦記録</div>'+n.facts.map(x=>'<div class="row">'+worldEsc(x)+'</div>').join('');
+    show('s-newspaper'); setTimeout(()=>setFocus($('#newspaper-next')),0);
+    const task=NEWSPAPER_TASKS.find(x=>x.id==='newspaper_'+n.condition);
+    if(task&&aiWorldTaskStock(task)<task.stockTarget){ aiWorldForcedTask=task; aiWorldNextAllowedAt=Date.now(); setTimeout(()=>aiWorldGenerateOnce(),0); }
+  }
+  $('#newspaper-next').onclick=()=>{ const next=newspaperContinue; newspaperContinue=null; MODE.newspaper=null; AUDIO.confirm(); if(next)next(); };
   function showResult(nextLabel, onNext, reward, runDepth){
     const online = NET.active;
     // 巡業の結果タイトルは「今プレイした深度」を出す(前進処理を先に適用済みでも runDepth で固定できる)。
@@ -8743,14 +8638,8 @@ const AUDIO = (function(){
     // 巡業の1位報酬(=次戦コスト容量+25)を結果に出す。reward={head,line} or null。無ければ枠を消す。
     const rew=$('#result-reward');
     if(rew){
-      const incidentNow=GROWTH.activeIncident(), incidentLine=(MODE.growthIncident&&incidentNow&&MODE.growthIncident.key===incidentNow.key)
-        ? worldEsc('⚠️ '+incidentNow.title+'　'+T('world_growth_incident_line',incidentNow.progress||0,incidentNow.target||1)) : '';
-      const researchLine=MODE.researchOutcome&&!MODE.researchOutcome.done
-        ? worldEsc(T('research_continue',MODE.researchOutcome.name,MODE.researchOutcome.cur,MODE.researchOutcome.target)) : '';
-      const growthLines=(MODE.growthNotices||[]).map(x=>worldEsc(x.text)).concat(incidentLine?[incidentLine]:[]).concat(researchLine?[researchLine]:[]).join('<br>');
-      if(reward||growthLines){
-        rew.innerHTML=(reward?'<div class="rwd-h">'+reward.head+'</div><div class="rwd-l">'+reward.line+'</div>':'')
-          +(growthLines?'<div class="rwd-h">'+T('growth_unlock_head')+'</div><div class="rwd-l">'+growthLines+'</div>':'');
+      if(reward){
+        rew.innerHTML='<div class="rwd-h">'+reward.head+'</div><div class="rwd-l">'+reward.line+'</div>';
         rew.classList.add('show');
       } else { rew.innerHTML=''; rew.classList.remove('show'); }
     }
@@ -8790,11 +8679,11 @@ const AUDIO = (function(){
       const lv=el('div','btn ghost foc',T('btn_leave_title')); lv.onclick=()=>{ AUDIO.back(); NET.leave(); buildTitle(); show('s-title'); };
       btns.append(lb, lv);
     } else if(MODE.kind==='quick'){
-      const again=el('div','btn primary foc',T('btn_again')); again.onclick=()=>{ AUDIO.confirm(); const q=GROWTH.activeIncident(); MODE.mutator=q&&q.mutator?RL.mutator(q.mutator):rollMutator(0); openBuild(T('bt_quick')); };
+      const again=el('div','btn primary foc',T('btn_again')); again.onclick=()=>{ AUDIO.confirm(); MODE.mutator=rollMutator(0); openBuild(T('bt_quick')); };
       const ttl=el('div','btn ghost foc',T('btn_to_title')); ttl.onclick=()=>{ AUDIO.back(); show('s-title'); };
       btns.append(again, ttl);
     } else if(onNext){
-      const nx=el('div','btn primary foc', nextLabel); nx.onclick=()=>{ AUDIO.confirm(); onNext(); };
+      const nx=el('div','btn primary foc', nextLabel); nx.onclick=()=>{ AUDIO.confirm(); if(MODE.kind==='run')openNewspaper(onNext); else onNext(); };
       btns.append(nx);
     }
     me.place===1?AUDIO.win():(me.place>=3?AUDIO.lose():AUDIO.finish());
@@ -8826,6 +8715,7 @@ const AUDIO = (function(){
     MODE.lastOutcome={ place, depth:playedDepth, tags:resultTagKeys(G.players[meIdx()]) };   // ★v0.25 物語ログ用: この戦闘の結果(advanceMap で記録／run.depth++ 前に確定)
     run.momentum = (place===1) ? (run.momentum||0)+1 : 0;   // ★v0.28 連勝の昂り: 1位で伸び、崩れたら0
     const _nodeT = MODE.curNode ? MODE.curNode.type : null;
+    prepareNewspaper(place,playedDepth,_nodeT);
     aiWorldRecordRunResult(place, playedDepth, _nodeT, MODE.lastOutcome.tags||[]);
     applyRunCostDrift(run, (MODE.matchStats&&MODE.matchStats.usedEmblems)||[]);
     const mutatorCool = (place===1 && _nodeT==='mutator') ? halveRunHighCostMods(run) : 0;
@@ -9249,7 +9139,7 @@ const AUDIO = (function(){
       if(!text) return null;
       const fixedScene=(task.sceneTags&&task.sceneTags.length===1)?task.sceneTags:[];
       const tags=(task.tags||[]).concat(fixedScene,Array.isArray(x.tags)?x.tags:[]).map(v=>String(v).slice(0,20)).filter(Boolean);
-      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,(task.daily||task.story)?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context, speaker:String(x.speaker||'').slice(0,30), target:String(x.target||'').slice(0,30), text:text.slice(0,220), continuity:String(x.continuity||'').slice(0,160), storyKey:String(task.storyKey||x.storyKey||'').slice(0,80), storyOrder:task.story?Math.max(1,Math.round(Number(x.order))||Number(itemIndex||0)+1):0, tags:[...new Set(tags)].slice(0,8) };
+      return { id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9), createdAt:new Date().toISOString(), lang:task.lang||aiWorldLang(), type, day:Math.max(1,(task.daily||task.story)?task.day:Math.round(Number(x.day)||task.day||1)), theme:String(task.daily?task.theme:(x.theme||task.theme||'旅')).slice(0,40), context, speaker:String(x.speaker||'').slice(0,80), target:String(x.target||'').slice(0,30), text:text.slice(0,task.newspaper?520:220), continuity:String(x.continuity||'').slice(0,160), storyKey:String(task.storyKey||x.storyKey||'').slice(0,80), storyOrder:task.story?Math.max(1,Math.round(Number(x.order))||Number(itemIndex||0)+1):0, tags:[...new Set(tags)].slice(0,8) };
     };
     const inferUse=(x)=>{
       const s=[x.type,x.theme,x.speaker,x.text].join(' ');
@@ -9302,6 +9192,13 @@ const AUDIO = (function(){
         return pick;
       },
       recent(n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>all.push(x))); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
+      takeNews(condition){
+        const db=load(), tag='news:'+condition, pool=(db.news||[]).filter(x=>(x.lang||'ja')===aiWorldLang()&&(x.tags||[]).map(String).includes(tag));
+        if(!pool.length)return null;
+        const pick=pool[Math.floor(Math.random()*pool.length)];
+        db.news=db.news.filter(x=>x.id!==pick.id); db._meta.useCycles={}; save(db);
+        return pick;
+      },
       usedStory(){ const db=load(), atById=new Map(); Object.values(db._meta.useLog||{}).forEach(log=>(Array.isArray(log)?log:[]).forEach(u=>{ const id=String(u&&u.id||u||''); if(id)atById.set(id,Math.max(atById.get(id)||0,Number(u&&u.at)||0)); })); const out=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>{ if(!x||!atById.has(x.id)||!(x.tags||[]).map(String).includes('story'))return; out.push({...x,shownAt:new Date(atById.get(x.id)||Date.parse(x.createdAt)||Date.now()).toISOString()}); })); return out; },
       resetStory(){ const db=load(), removedIds=new Set(); let removed=0; TYPES.forEach(t=>{ db[t]=(db[t]||[]).filter(x=>{ const story=(x.tags||[]).map(String).includes('story')||!!x.storyKey; if(story){ removed++; if(x.id)removedIds.add(String(x.id)); } return !story; }); }); Object.keys(db._meta.useLog||{}).forEach(k=>{ db._meta.useLog[k]=(db._meta.useLog[k]||[]).filter(u=>!removedIds.has(String(u&&u.id||u||''))); }); db._meta.useCycles={}; save(db); return removed; }
     };
@@ -9609,6 +9506,17 @@ const AUDIO = (function(){
     return { async generateJSON({apiKey,systemInstruction,userText,schema,generationConfig}){ const res=await requestRaw(apiKey,_buildBody({systemInstruction,userText,schema,generationConfig})); if(!res.ok)return res; const parts=res.data?.candidates?.[0]?.content?.parts||[], visible=parts.filter(p=>!p.thought&&typeof p.text==='string').map(p=>p.text), text=(visible.length?visible:parts.filter(p=>typeof p.text==='string').map(p=>p.text)).join(''); return{ok:true,model:res.model,text,raw:res.data}; }, async peekModels(apiKey){ return _ensureModels(apiKey); }, invalidateModels(){ _models=null; _modelsAt=0; } };
   })();
 
+  const NEWSPAPER_DEFS=[
+    ['champion','優勝・堂々の勝利'],['runnerup','2位・あと一歩'],['third','3位・苦戦'],['last','4位・厳しい敗戦'],
+    ['revolution','革命が起きた対戦'],['bomb','大きな役やボム'],['reaction','後出し反撃'],['activation','溜め撃ち発動'],
+    ['choose','指名で流れが変化'],['split','分裂が活躍'],['rival','宿敵との対戦'],['boss','ボス戦'],
+    ['elite','強敵戦'],['mutator','特殊ルール戦'],['big_combo','3枚以上の大役'],['fast','短期決戦'],
+    ['long','長期戦'],['no_pass','パスを抑えた戦い'],['low_cost','低コスト編成'],['standard','標準的な巡業対戦']
+  ];
+  const NEWSPAPER_TASKS=NEWSPAPER_DEFS.map(([id,label])=>({
+    id:'newspaper_'+id,type:'news',types:['news'],theme:'巡業新聞の'+label+'記事テンプレート',count:5,label:'新聞・'+label,
+    context:'result',stockTarget:5,tags:['newspaper','news:'+id,'timeless'],newspaper:true
+  }));
   const AI_WORLD_TASKS=[
     {id:'battle_open',type:'conversation',types:['conversation'],theme:'対戦開始と初手の自然な一言',count:24,label:'開始会話',context:'battle',stockTarget:60,tags:['battle','対戦','timeless'],sceneTags:['scene:greeting','scene:first_play']},
     {id:'battle_regular',type:'conversation',types:['conversation'],theme:'札を出す・パスする時の短い一言',count:24,label:'通常会話',context:'battle',stockTarget:80,tags:['battle','対戦','timeless'],sceneTags:['scene:play','scene:pass']},
@@ -9616,7 +9524,7 @@ const AUDIO = (function(){
     {id:'battle_disrupt',type:'conversation',types:['conversation'],theme:'加速で飛ばされた・指名された・場を流した・革命が起きた時の反応',count:28,label:'妨害会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:skipped','scene:chosen','scene:clear','scene:revolution']},
     {id:'battle_counter',type:'conversation',types:['conversation'],theme:'最強札を返された・後出しされた・ボムを重ねられた・エンブレムを発動した時の反応',count:28,label:'逆転会話',context:'battle',stockTarget:84,tags:['battle','対戦','timeless'],sceneTags:['scene:top_beaten','scene:react','scene:bomb','scene:activate']},
     {id:'battle_finish',type:'conversation',types:['conversation'],theme:'自分が上がった・相手に上がられた時の自然な一言',count:24,label:'決着会話',context:'battle',stockTarget:72,tags:['battle','対戦','timeless'],sceneTags:['scene:finish_self','scene:finish_other']}
-  ];
+  ].concat(NEWSPAPER_TASKS);
   const AI_WORLD_VI={
     battle_open:['Hội thoại mở đầu','Lời chào và câu nói tự nhiên khi đánh lá đầu tiên'],
     battle_regular:['Hội thoại thường','Câu ngắn dùng được mọi ngày khi đánh hoặc bỏ lượt'],
@@ -9678,19 +9586,31 @@ const AUDIO = (function(){
     return AIWorldDB.list('conversation',360).filter(x=>(x.lang||'ja')===aiWorldLang()&&x.day===day&&(x.tags||[]).includes(dateTag)&&(x.tags||[]).includes('scene:chatter')&&(x.tags||[]).includes(DAILY_THEME_FORMAT_TAG)).length;
   }
   const AI_WORLD_SCHEMA={type:'OBJECT',properties:{items:{type:'ARRAY',items:{type:'OBJECT',properties:{type:{type:'STRING'},order:{type:'NUMBER'},day:{type:'NUMBER'},theme:{type:'STRING'},context:{type:'STRING'},speaker:{type:'STRING'},target:{type:'STRING'},text:{type:'STRING'},continuity:{type:'STRING'},tags:{type:'ARRAY',items:{type:'STRING'}}},required:['type','day','theme','context','text']}},memorySummary:{type:'STRING'},relations:{type:'ARRAY',items:{type:'OBJECT',properties:{pair:{type:'STRING'},state:{type:'STRING'}},required:['pair','state']}}},required:['items','memorySummary']};
-  let aiWorldBusy=false, aiWorldTaskIndex=0, aiWorldLastModel='—', aiWorldResetEpoch=0;
+  let aiWorldBusy=false, aiWorldTaskIndex=0, aiWorldLastModel='—', aiWorldResetEpoch=0, aiWorldForcedTask=null;
   function aiWorldTaskStock(task){
     const tags=new Set((task.tags||[]).map(String)), types=task.types||[task.type]; let n=0;
     const scenes=new Set((task.sceneTags||[]).map(String));
-    const required=[...tags].filter(tag=>tag==='timeless'||tag.startsWith('date:'));
+    // 日替わりは日付ごと、物語は作品・シーズン・章ごとに数える。別の日や別章の在庫を混ぜない。
+    const required=[...tags].filter(tag=>tag==='timeless'||tag.startsWith('date:')||tag.startsWith('arc:')||tag.startsWith('season:')||tag.startsWith('chapter:')||tag.startsWith('story-format:')||tag.startsWith('news:'));
     types.forEach(t=>AIWorldDB.list(t,360).forEach(x=>{ if((x.lang||'ja')!==aiWorldLang())return; const xt=new Set((x.tags||[]).map(String)); if(required.some(tag=>!xt.has(tag)))return; if(scenes.size?[...scenes].some(tag=>xt.has(tag)):((x.context&&x.context===task.context)||[...tags].some(tag=>xt.has(tag)))) n++; }));
     return n;
   }
+  function aiWorldTaskIsFull(task){
+    if(!task)return true;
+    return aiWorldTaskStock(task)>=Math.max(0,Number(task.stockTarget)||0);
+  }
   function aiWorldStockRows(){
     const st=AIStory.task();
-    return [[st.label,Math.min(st.stockNow,st.stockTarget),st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',Math.min(aiWorldDailyStock(),18),18]].concat(AI_WORLD_TASKS.map(t=>[aiWorldTaskLabel(t),Math.min(aiWorldTaskStock(t),t.stockTarget||0),t.stockTarget||0]));
+    const normal=AI_WORLD_TASKS.filter(t=>!t.newspaper).map(t=>[aiWorldTaskLabel(t),Math.min(aiWorldTaskStock(t),t.stockTarget||0),t.stockTarget||0]);
+    const newsNow=NEWSPAPER_TASKS.reduce((n,t)=>n+Math.min(aiWorldTaskStock(t),t.stockTarget||0),0);
+    return [[st.label,Math.min(st.stockNow,st.stockTarget),st.stockTarget],[aiWorldLang()==='vi'?'Hội thoại hôm nay':'今日の会話',Math.min(aiWorldDailyStock(),18),18],['巡業新聞',newsNow,NEWSPAPER_TASKS.length*5]].concat(normal);
   }
   function aiWorldNextTask(){
+    if(aiWorldForcedTask){
+      const forced=aiWorldForcedTask; aiWorldForcedTask=null;
+      const n=aiWorldTaskStock(forced);
+      if(n<(forced.stockTarget||0))return Object.assign({},forced,{lang:aiWorldLang(),day:aiWorldCalendarDay(),stockNow:n,count:Math.max(1,(forced.stockTarget||1)-n)});
+    }
     const story=AIStory.task();
     if(story.stockNow<story.stockTarget) return story;
     const prefetchedStory=AIStory.prefetchTask();
@@ -9724,16 +9644,14 @@ const AUDIO = (function(){
     : 'あなたはRu-Le世界の脚本家。ゲーム結果やルールは絶対に決めず、保存用の短い世界コンテンツだけを書く。人格は固定し、変化するのは関係性だけ。出力はJSONのみ。現代の12歳がすぐ分かる、やさしく自然な日本語で書く。かっこつけた文、詩のような文、重々しい文、難しい単語は使わない。友達同士が普通に話すような言葉を優先し、同じ言い換えを避ける。キャラを便利な説明役にしない。'; }
   function aiWorldProfileWord(v){ if(aiWorldLang()!=='vi')return v; return ({'未設定':'Chưa đặt','男':'Nam','女':'Nữ','その他':'Khác','旅札師':'Người chơi bài lữ hành','騎士':'Hiệp sĩ','魔女':'Phù thủy','商人':'Thương nhân','盗賊':'Đạo tặc','傭兵':'Lính đánh thuê','吟遊詩人':'Nhạc sĩ lang thang','学者':'Học giả','神官':'Tu sĩ','狩人':'Thợ săn','錬金術師':'Nhà giả kim','王国監察官':'Thanh tra hoàng gia','飛脚':'Người đưa tin','旅芸人':'Nghệ sĩ rong','商会主':'Chủ thương hội'})[v]||v; }
   function aiWorldCastPrompt(){ RIVAL.ensure(); const p=store.playerProfile||{name:'プレイヤー',gender:'未設定',job:'旅札師'}; if(aiWorldLang()==='vi'){ const people=[`Nhân vật chính ${p.name}: ${aiWorldProfileWord(p.gender)}, ${aiWorldProfileWord(p.job)}. Đây là người chơi, không tự gán tính xấu hay tính cách cố định.`]; store.rivals.forEach((r,i)=>people.push(`Đối thủ ${i+1} ${r.name}: ${aiWorldProfileWord(r.gender)}, ${aiWorldProfileWord(r.job)}.`)); return people.concat(['Hiệp sĩ: Dũng cảm, nghiêm túc, coi trọng danh dự.','Phù thủy: Hay châm chọc, hiểu biết nhưng vẫn quan tâm mọi người.','Thương nhân: Coi trọng lợi ích nhưng có trách nhiệm với việc buôn bán trong thị trấn.','Đạo tặc: Tự do, hay đùa nhưng mềm lòng với người yếu.']).join('\n'); } const people=[`主人公 ${p.name}: ${p.gender}、${p.job}。プレイヤー本人なので勝手に悪人化・性格固定しない。`]; store.rivals.forEach((r,i)=>people.push(`宿敵${i+1} ${r.name}: ${r.gender}、${r.job}。${rivalStyleLine(i,null)}`)); return people.concat(['騎士: 勇敢で真面目。名誉を重んじ、曖昧な儲け話を嫌う。','魔女: 皮肉屋で知識人。人情はあるが直接は言わない。','商人: 利益優先。損得で語るが、町の物流には責任感がある。','盗賊: 自由人。軽口が多いが、弱い者には妙に甘い。']).join('\n'); }
-  function growthWorldPrompt(){
-    const w=GROWTH.ensure().world;
-    const incident=w.activeIncident
-      ? (aiWorldLang()==='vi'?` Sự kiện đang diễn ra: ${w.activeIncident.title}, tiến độ ${w.activeIncident.progress}/${w.activeIncident.target}.`:` 進行中の事件: ${w.activeIncident.title}、解決度${w.activeIncident.progress}/${w.activeIncident.target}。`)
-      : '';
-    return aiWorldLang()==='vi'
-      ? `Trạng thái thế giới tích lũy: Mùa ${w.season||1}, an ninh ${w.security||0}, phục hồi ${w.restoration||0}, thế lực địch ${w.enemyPower||0}, sinh thái ${w.ecology||0}.${incident} Hãy phản ánh nhẹ nhàng vào cảnh và hội thoại.`
-      : `累積した世界状態: シーズン${w.season||1}、治安${w.security||0}、復興${w.restoration||0}、敵勢力${w.enemyPower||0}、生態${w.ecology||0}。${incident} 会話や町の様子へ自然に少し反映する。`;
-  }
-  function aiWorldUserPrompt(task){ const meta=AIWorldDB.meta(), recentItems=AIWorldDB.recent(30).filter(x=>(x.lang||'ja')===aiWorldLang()&&(x.day||0)<=task.day).slice(0,10), scenes=task.sceneTags||[]; if(aiWorldLang()==='vi'){ const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`Ngày ${x.day} ${x.speaker||'Người kể'}: ${x.text}`).join('\n'); return [`Day: ${task.day}`,`Ngày thực: ${task.dateLabel||aiWorldDateLabel()}`,`Chủ đề: ${task.theme}`,`Loại: ${task.type}`,`Nơi dùng: ${task.context||'general'}`,`Tag bắt buộc: ${(task.tags||[]).join(', ')}`,scenes.length?`Tag tình huống trận đấu: ${scenes.join(', ')}`:'',task.daily?'Gói riêng cho ngày đã chỉ định. Mọi item là trò chuyện liên quan tự nhiên tới chủ đề ngày đó qua thời tiết, đồ ăn, thị trấn, kế hoạch hoặc chuyện hôm trước. Không bắt mọi người nói thẳng tên chủ đề. Mỗi item phải có date tag đã cho và scene:chatter.':'',`Kho hiện tại: ${task.stockNow||0} / mục tiêu ${task.stockTarget||0}`,`Số item bắt buộc: ${task.count}`,'Không được trả items rỗng hoặc chỉ trả memorySummary.',scenes.length?'Chia đều các tag tình huống. Mỗi item chỉ dùng một tag scene phù hợp. scene:chatter là chuyện phiếm theo chủ đề; các scene khác phải phản ứng trực tiếp với sự việc. Không ghi tên người nói trong text.':'','Nhân vật cố định:',aiWorldCastPrompt(),'Dùng đúng tên, giới tính và nghề đã đặt. Không gọi nhân vật chính là "bạn" hay "người chơi".','Quan hệ hiện tại:',rel||'Chưa có','Quy tắc: Mỗi câu 8-45 ký tự, tiếng Việt đời thường, dễ hiểu, không từ cổ, không ví von vòng vo. Không tự quyết định thắng thua.','Mỗi item.context phải là title, battle, map hoặc result.','memorySummary chỉ giữ quan hệ và chuyện chưa kết thúc, viết dễ hiểu trong 120-220 ký tự.','relations có dạng [{"pair":"Hiệp sĩ-Thương nhân","state":"mô tả ngắn"}].',meta.summary?`Tóm tắt thế giới:\n${meta.summary}`:'Tóm tắt thế giới: Chưa có',recent?`Ký ức gần đây:\n${recent}`:'Ký ức gần đây: Chưa có'].filter(Boolean).join('\n'); } const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`${x.day}日 ${x.speaker||'語り手'}: ${x.text}`).join('\n'), dailyRule=task.daily?'指定日専用パック。全itemをその日のテーマに関係する雑談にする。ただし全員がテーマ名を直接言う不自然な文にはせず、天気・食べ物・町の様子・予定・前日からの話などへ自然に散らす。全itemのtagsに指定されたdateタグとscene:chatterを必ず入れる。':''; return [`Day: ${task.day}`,`対象の現実日付: ${task.dateLabel||aiWorldDateLabel()}`,`テーマ: ${task.theme}`,`種類: ${task.type}`,`使いどころ: ${task.context||'general'}`,`優先タグ: ${(task.tags||[]).join(', ')}`,scenes.length?`対戦場面タグ: ${scenes.join(', ')}`:'',dailyRule,`現在在庫: ${task.stockNow||0} / 目標 ${task.stockTarget||0}`,`必ず生成するitems件数: ${task.count}`,'最重要: itemsを空配列にしない。memorySummaryだけを返さない。指定件数の短文をitemsへ入れる。',scenes.length?'対戦場面タグを全種類ほぼ同じ件数ずつ作る。各itemのtagsには、内容に合う対戦場面タグを必ず1つだけそのまま入れる。scene:chatterだけは指定日のテーマに沿った軽い雑談にする。ほかは場面への直接の反応にする。話す人物も偏らせない。text内には話し手自身の名前を入れず、実際の対戦参加者が言っても自然な文にする。':'','固定人物:',aiWorldCastPrompt(),'人物名を優先して使い、主人公を「あなた」「プレイヤー」と呼ばない。設定済みの名前・性別・職業を矛盾させない。','現在の関係性:',rel||'なし','文章ルール: 現代の12歳が読んですぐ分かる言葉だけを使う。普段の会話のように書く。かっこよく見せようとしない。古い言い回し、詩的な表現、難しい漢語、回りくどい例えは禁止。短い文にする。','条件: 1件8〜45文字。昨日の話題を少し引き継いでよい。ゲームの勝敗を勝手に決めない。場面タグで示された出来事への感想は書いてよい。','これは読みに行く記事ではなく、タイトル/対戦/巡業マップ/結果画面で1件ずつ引っ張り出すストック。単体で短く成立する文にする。','各itemのcontextには title / battle / map / result のどれかを入れる。通常tagsには使いどころを混ぜる: 酒場, 王都, 旅, 巡業, 噂, 新聞 など。','memorySummaryには、関係性とまだ終わっていない話だけを、やさしい言葉で120〜220文字にまとめる。','relationsは変化した関係だけを [{"pair":"騎士-商人","state":"短くてやさしい説明"}] の形で返す。',meta.summary?`世界の要約:\n${meta.summary}`:'世界の要約: なし',recent?`最近の記憶:\n${recent}`:'最近の記憶: なし'].filter(Boolean).join('\n'); }
+  function aiWorldUserPrompt(task){ if(task.newspaper){ return [
+    '巡業対戦後に全面表示する、新聞記事のテンプレートを作る。',
+    '条件: '+task.theme,'必ず'+task.count+'件。',
+    '各itemは type=news、context=result。speakerは22文字以内の大見出し、textは客観的な新聞本文を180〜360文字で書く。',
+    '使える差し込み記号: {player} {place} {depth} {rule} {emblem} {rival} {turns}。固有名や勝敗を勝手に固定せず、必要な場所へ記号を残す。',
+    '実況口調・本人の心情・詩的表現は禁止。記者が試合経過と勝負の要点を客観的に整理する。12歳でも分かる自然な日本語。',
+    '全itemのtagsに '+(task.tags||[]).join(', ')+' を付ける。memorySummaryは空文字でよい。'
+  ].join('\n'); } const meta=AIWorldDB.meta(), recentItems=AIWorldDB.recent(30).filter(x=>(x.lang||'ja')===aiWorldLang()&&(x.day||0)<=task.day).slice(0,10), scenes=task.sceneTags||[]; if(aiWorldLang()==='vi'){ const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`Ngày ${x.day} ${x.speaker||'Người kể'}: ${x.text}`).join('\n'); return [`Day: ${task.day}`,`Ngày thực: ${task.dateLabel||aiWorldDateLabel()}`,`Chủ đề: ${task.theme}`,`Loại: ${task.type}`,`Nơi dùng: ${task.context||'general'}`,`Tag bắt buộc: ${(task.tags||[]).join(', ')}`,scenes.length?`Tag tình huống trận đấu: ${scenes.join(', ')}`:'',task.daily?'Gói riêng cho ngày đã chỉ định. Mọi item là trò chuyện liên quan tự nhiên tới chủ đề ngày đó qua thời tiết, đồ ăn, thị trấn, kế hoạch hoặc chuyện hôm trước. Không bắt mọi người nói thẳng tên chủ đề. Mỗi item phải có date tag đã cho và scene:chatter.':'',`Kho hiện tại: ${task.stockNow||0} / mục tiêu ${task.stockTarget||0}`,`Số item bắt buộc: ${task.count}`,'Không được trả items rỗng hoặc chỉ trả memorySummary.',scenes.length?'Chia đều các tag tình huống. Mỗi item chỉ dùng một tag scene phù hợp. scene:chatter là chuyện phiếm theo chủ đề; các scene khác phải phản ứng trực tiếp với sự việc. Không ghi tên người nói trong text.':'','Nhân vật cố định:',aiWorldCastPrompt(),'Dùng đúng tên, giới tính và nghề đã đặt. Không gọi nhân vật chính là "bạn" hay "người chơi".','Quan hệ hiện tại:',rel||'Chưa có','Quy tắc: Mỗi câu 8-45 ký tự, tiếng Việt đời thường, dễ hiểu, không từ cổ, không ví von vòng vo. Không tự quyết định thắng thua.','Mỗi item.context phải là title, battle, map hoặc result.','memorySummary chỉ giữ quan hệ và chuyện chưa kết thúc, viết dễ hiểu trong 120-220 ký tự.','relations có dạng [{"pair":"Hiệp sĩ-Thương nhân","state":"mô tả ngắn"}].',meta.summary?`Tóm tắt thế giới:\n${meta.summary}`:'Tóm tắt thế giới: Chưa có',recent?`Ký ức gần đây:\n${recent}`:'Ký ức gần đây: Chưa có'].filter(Boolean).join('\n'); } const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`${x.day}日 ${x.speaker||'語り手'}: ${x.text}`).join('\n'), dailyRule=task.daily?'指定日専用パック。全itemをその日のテーマに関係する雑談にする。ただし全員がテーマ名を直接言う不自然な文にはせず、天気・食べ物・町の様子・予定・前日からの話などへ自然に散らす。全itemのtagsに指定されたdateタグとscene:chatterを必ず入れる。':''; return [`Day: ${task.day}`,`対象の現実日付: ${task.dateLabel||aiWorldDateLabel()}`,`テーマ: ${task.theme}`,`種類: ${task.type}`,`使いどころ: ${task.context||'general'}`,`優先タグ: ${(task.tags||[]).join(', ')}`,scenes.length?`対戦場面タグ: ${scenes.join(', ')}`:'',dailyRule,`現在在庫: ${task.stockNow||0} / 目標 ${task.stockTarget||0}`,`必ず生成するitems件数: ${task.count}`,'最重要: itemsを空配列にしない。memorySummaryだけを返さない。指定件数の短文をitemsへ入れる。',scenes.length?'対戦場面タグを全種類ほぼ同じ件数ずつ作る。各itemのtagsには、内容に合う対戦場面タグを必ず1つだけそのまま入れる。scene:chatterだけは指定日のテーマに沿った軽い雑談にする。ほかは場面への直接の反応にする。話す人物も偏らせない。text内には話し手自身の名前を入れず、実際の対戦参加者が言っても自然な文にする。':'','固定人物:',aiWorldCastPrompt(),'人物名を優先して使い、主人公を「あなた」「プレイヤー」と呼ばない。設定済みの名前・性別・職業を矛盾させない。','現在の関係性:',rel||'なし','文章ルール: 現代の12歳が読んですぐ分かる言葉だけを使う。普段の会話のように書く。かっこよく見せようとしない。古い言い回し、詩的な表現、難しい漢語、回りくどい例えは禁止。短い文にする。','条件: 1件8〜45文字。昨日の話題を少し引き継いでよい。ゲームの勝敗を勝手に決めない。場面タグで示された出来事への感想は書いてよい。','これは読みに行く記事ではなく、タイトル/対戦/巡業マップ/結果画面で1件ずつ引っ張り出すストック。単体で短く成立する文にする。','各itemのcontextには title / battle / map / result のどれかを入れる。通常tagsには使いどころを混ぜる: 酒場, 王都, 旅, 巡業, 噂, 新聞 など。','memorySummaryには、関係性とまだ終わっていない話だけを、やさしい言葉で120〜220文字にまとめる。','relationsは変化した関係だけを [{"pair":"騎士-商人","state":"短くてやさしい説明"}] の形で返す。',meta.summary?`世界の要約:\n${meta.summary}`:'世界の要約: なし',recent?`最近の記憶:\n${recent}`:'最近の記憶: なし'].filter(Boolean).join('\n'); }
   function aiWorldParsePack(text){ const unpack=data=>{ const rel=Array.isArray(data?.relations)?Object.fromEntries(data.relations.filter(x=>x&&x.pair).map(x=>[String(x.pair),String(x.state||'')])):(data?.relations&&typeof data.relations==='object'?data.relations:null); return {items:Array.isArray(data?.items)?data.items:[],memorySummary:data?.memorySummary||'',relations:rel}; }; try{ return unpack(JSON.parse(text)); }catch(e){ const m=String(text||'').match(/\{[\s\S]*\}/); if(m){ try{ return unpack(JSON.parse(m[0])); }catch(_){} } } return {items:[],memorySummary:'',relations:null}; }
   function aiWorldRecordRunResult(place, depth, nodeType, tags){
     try{
@@ -9777,18 +9695,34 @@ const AUDIO = (function(){
   const AI_WORLD_FIRST_DELAY_MS=30*1000, AI_WORLD_INTERVAL_MS=120*1000;
   let aiWorldNextAllowedAt=Date.now()+AI_WORLD_FIRST_DELAY_MS, aiWorldTimerStarted=false, aiWorldTimerHandle=null;
   async function aiWorldGenerateOnce(){
-    const now=Date.now();
-    if(now<aiWorldNextAllowedAt){ aiWorldStatus(T('aiworld_wait', Math.ceil((aiWorldNextAllowedAt-now)/1000)), 'wait'); return; }
-    aiWorldNextAllowedAt=now+AI_WORLD_INTERVAL_MS;
     if(aiWorldBusy)return;
+    const now=Date.now();
+    // 最初に在庫を見る。今日・翌日・物語・通常ストックが全部満杯なら、キー確認もAPI準備もしない。
+    let task=aiWorldNextTask();
+    if(!task){
+      aiWorldNextAllowedAt=now+AI_WORLD_INTERVAL_MS;
+      aiWorldStatus(aiWorldLang()==='vi'?'Kho đã đủ.':'在庫はすべて補充済みです。','ok');
+      return;
+    }
+    // 保存内容が別タブ等で更新された場合に備え、選んだ対象も現在値で再確認する。
+    if(aiWorldTaskIsFull(task)){
+      task=aiWorldNextTask();
+      if(!task||aiWorldTaskIsFull(task)){
+        aiWorldNextAllowedAt=now+AI_WORLD_INTERVAL_MS;
+        aiWorldStatus(aiWorldLang()==='vi'?'Kho đã đủ.':'在庫はすべて補充済みです。','ok');
+        return;
+      }
+    }
+    if(now<aiWorldNextAllowedAt){ aiWorldStatus(T('aiworld_wait', Math.ceil((aiWorldNextAllowedAt-now)/1000)), 'wait'); return; }
     const keys=aiWorldKeys(); if(!keys.length){ aiWorldStatus(T('aiworld_no_key'), 'bad'); return; }
-    const task=aiWorldNextTask();
-    if(!task){ aiWorldStatus(aiWorldLang()==='vi'?'Kho đã đủ.':'在庫はすべて補充済みです。','ok'); return; }
+    aiWorldNextAllowedAt=now+AI_WORLD_INTERVAL_MS;
     aiWorldBusy=true; const generationEpoch=aiWorldResetEpoch; aiWorldStatus(T('aiworld_generating',task.label), 'wait');
     try{
       let last=null;
       for(const key of keys){
-        const userText=(task.story?AIStory.prompt(task):aiWorldUserPrompt(task))+'\n'+growthWorldPrompt();
+        // 1本目のキー試行中に別タブが補充した場合、次のキーへ無駄打ちしない。
+        if(aiWorldTaskIsFull(task)){ aiWorldStatus(aiWorldLang()==='vi'?'Kho đã đủ.':'在庫はすべて補充済みです。','ok'); return; }
+        const userText=task.story?AIStory.prompt(task):aiWorldUserPrompt(task);
         const res=await GeminiWorldAdapter.generateJSON({apiKey:key,systemInstruction:aiWorldSystemPrompt(),userText,schema:AI_WORLD_SCHEMA});
         last=res;
         if(!res.ok)continue;
@@ -9859,73 +9793,13 @@ const AUDIO = (function(){
   let worldViewMode='story';
   function renderWorld(){
     const list=$('#world-list'); if(!list)return;
-    const storyBtn=$('#world-tab-story'), todayBtn=$('#world-tab-today'), growthBtn=$('#world-tab-growth'), readerNav=$('#world-reader-nav');
+    const storyBtn=$('#world-tab-story'), todayBtn=$('#world-tab-today'), readerNav=$('#world-reader-nav');
     if(storyBtn){ storyBtn.textContent=T('world_tab_story'); storyBtn.classList.toggle('on',worldViewMode==='story'); }
     if(todayBtn){ todayBtn.textContent=T('world_tab_today'); todayBtn.classList.toggle('on',worldViewMode==='today'); }
-    if(growthBtn){ growthBtn.textContent=T('world_tab_growth'); growthBtn.classList.toggle('on',worldViewMode==='growth'); }
     if(readerNav)readerNav.style.display=worldViewMode==='story'?'flex':'none';
     if($('#world-story-prev'))$('#world-story-prev').textContent=T('world_prev');
     if($('#world-story-next'))$('#world-story-next').textContent=T('world_next');
     list.classList.toggle('story-reader',worldViewMode==='story');
-    if(worldViewMode==='growth'){
-      RIVAL.ensure();
-      const g=GROWTH.ensure(), strategies=Object.entries(g.strategies||{}).filter(([id,row])=>RL.emblem(id)&&(row.xp||0)>0).sort((a,b)=>(b[1].xp||0)-(a[1].xp||0));
-      const rels=store.rivals.map((r,i)=>({r,i,rel:GROWTH.relation(i)})), duelTotal=rels.reduce((n,x)=>n+(x.rel.duels||0),0);
-      $('#world-head').textContent=T('world_growth_title');
-      $('#world-count').textContent=T('world_growth_summary',g.matches||0,strategies.length,duelTotal);
-      let html='';
-      if(!strategies.length&&!duelTotal)html='<div class="world-digest"><div class="world-card"><div class="txt">'+worldEsc(T('world_growth_empty'))+'</div></div></div>';
-      const contract=g.research&&g.research.active;
-      html+='<div class="story-chapter">'+worldEsc(T('world_growth_contract'))+'</div><div class="world-card"><div class="meta"><b>🧪 '
-        +worldEsc(contract?contract.name:T('world_growth_contract_none'))+'</b></div><div class="txt">'+worldEsc(T('research_reward',(g.research&&g.research.completed||0)%3))+'</div></div>';
-      if(strategies.length){
-        html+='<div class="story-chapter">'+worldEsc(T('world_growth_strategy'))+'</div>';
-        strategies.forEach(([id,row])=>{
-          const e=RL.emblem(id), lv=GROWTH.level(row.xp,6), next=GROWTH.next(row.xp,6);
-          html+='<div class="world-card"><div class="meta"><b>'+worldEsc(e.ico+' '+embName(e))+'</b>　'+worldEsc(T('world_growth_lv',lv))+'</div>'
-            +'<div class="txt">'+worldEsc(T('world_growth_xp',row.xp||0))+'　'+worldEsc(T('world_growth_next',next))+'<br>'
-            +'<span style="font-size:.82em;opacity:.76;">'+worldEsc('使用 '+(row.matches||0)+'戦・発動 '+(row.fires||0)+'回・勝利 '+(row.wins||0)+'回')+'</span></div></div>';
-        });
-      }
-      if(duelTotal){
-        html+='<div class="story-chapter">'+worldEsc(T('world_growth_rivals'))+'</div>';
-        rels.filter(x=>x.rel.duels>0).forEach(x=>{
-          const score=(x.rel.affection||0)+(x.rel.trust||0)+(x.rel.rivalry||0), lv=GROWTH.level(score,8), next=GROWTH.next(score,8);
-          html+='<div class="world-card"><div class="meta"><b>🔥 '+worldEsc(x.r.name)+'</b>　'+worldEsc(T('world_growth_duels',x.rel.duels,lv))+'</div>'
-            +'<div class="txt">'+worldEsc(T('world_growth_relation',x.rel.affection||0,x.rel.trust||0,x.rel.rivalry||0))+'<br>'
-            +'<span style="font-size:.82em;opacity:.76;">'+worldEsc(T('world_growth_next',next))+'</span></div></div>';
-        });
-      }
-      if((g.matches||0)>0){
-        const w=g.world;
-        html+='<div class="story-chapter">'+worldEsc(T('world_growth_world'))+'</div>'
-          +'<div class="world-card"><div class="meta"><b>🏘️ '+worldEsc(T('world_growth_world_line',w.season||1,w.progress||0))+'</b></div>'
-          +'<div class="txt">'+worldEsc(T('world_growth_world_stats',w.security||0,w.restoration||0,w.enemyPower||0,w.ecology||0))+'</div></div>';
-        if(w.activeIncident)html+='<div class="story-chapter">'+worldEsc(T('world_growth_incident'))+'</div>'
-          +'<div class="world-card"><div class="meta"><b>⚠️ '+worldEsc(w.activeIncident.title)+'</b></div><div class="txt">'+worldEsc(w.activeIncident.desc)+'<br>'
-          +worldEsc(T('world_growth_incident_line',w.activeIncident.progress||0,w.activeIncident.target||1))+'<br>'
-          +worldEsc(T('world_growth_rule',mutName(RL.mutator(w.activeIncident.mutator))))+'<br>'+worldEsc(T('world_growth_reward_hint'))+'</div></div>';
-        const books=Object.entries((g.collection&&g.collection.emblems)||{}).filter(([id])=>RL.emblem(id)).sort((a,b)=>(b[1].fires||0)-(a[1].fires||0)||(b[1].matches||0)-(a[1].matches||0));
-        if(books.length){
-          html+='<div class="story-chapter">'+worldEsc(T('world_growth_book'))+'</div>';
-          books.forEach(([id,row])=>{ const e=RL.emblem(id); html+='<div class="world-card"><div class="meta"><b>'+worldEsc(e.ico+' '+embName(e))+'</b></div><div class="txt">'+worldEsc(T('world_growth_book_line',row.matches||0,row.fires||0,row.wins||0,row.maxCombo||0))+'</div></div>'; });
-        }
-        const titles=(g.collection&&g.collection.titles)||[];
-        if(titles.length){
-          html+='<div class="story-chapter">'+worldEsc(T('world_growth_titles'))+'</div>';
-          titles.slice(-20).reverse().forEach(x=>{ html+='<div class="world-card"><div class="meta">🏅 '+worldEsc(x.name)+'</div></div>'; });
-        }
-      }
-      if((g.challengeQueue||[]).length){
-        const ci=Number(g.challengeQueue[0]), cr=RIVAL.get(ci);
-        if(cr)html+='<div class="world-card"><div class="meta"><b>⚔️ '+worldEsc(T('world_growth_challenge_wait',cr.name))+'</b></div><div class="txt">'+worldEsc(T('world_growth_challenge_reward'))+'</div></div>';
-      }
-      if((g.events||[]).length){
-        html+='<div class="story-chapter">'+worldEsc(T('world_growth_events'))+'</div>';
-        g.events.slice(-12).reverse().forEach(ev=>{ html+='<div class="world-card"><div class="meta">🌱 '+worldEsc(ev.text)+'</div></div>'; });
-      }
-      list.innerHTML=html; list.scrollTop=0; return;
-    }
     if(worldViewMode==='story'){
       const story=AIStory.reader(), items=story.items;
       $('#world-head').textContent=story.title;
@@ -9951,11 +9825,9 @@ const AUDIO = (function(){
     const item=items.length?items[day%items.length]:null;
     $('#world-head').textContent=T('world_today_title');
     $('#world-count').textContent=aiWorldDateLabel()+' ・ Day '+day;
-    const ww=GROWTH.ensure().world, incidentState=ww.activeIncident?'<div class="world-card"><div class="meta">⚠️ '+worldEsc(ww.activeIncident.title)+'</div><div class="txt">'+worldEsc(T('world_growth_incident_line',ww.activeIncident.progress||0,ww.activeIncident.target||1))+'<br>'+worldEsc(T('world_growth_rule',mutName(RL.mutator(ww.activeIncident.mutator))))+'</div></div>':'',
-      worldState='<div class="world-card"><div class="meta">🏘️ '+worldEsc(T('world_growth_world_line',ww.season||1,ww.progress||0))+'</div><div class="txt">'+worldEsc(T('world_growth_world_stats',ww.security||0,ww.restoration||0,ww.enemyPower||0,ww.ecology||0))+'</div></div>'+incidentState;
-    if(!item){ list.innerHTML='<div class="world-digest"><div class="theme">'+worldEsc(T('world_theme',theme))+'</div>'+worldState+'<div class="world-card"><div class="txt">'+worldEsc(T('world_empty'))+'</div></div></div>'; return; }
+    if(!item){ list.innerHTML='<div class="world-digest"><div class="theme">'+worldEsc(T('world_theme',theme))+'</div><div class="world-card"><div class="txt">'+worldEsc(T('world_empty'))+'</div></div></div>'; return; }
     const who=item.speaker?'<div class="meta">'+worldEsc(item.speaker)+'</div>':'';
-    list.innerHTML='<div class="world-digest"><div class="theme">'+worldEsc(T('world_theme',theme))+'</div>'+worldState+'<div class="world-card">'+who+'<div class="txt">'+worldEsc(item.text)+'</div></div></div>';
+    list.innerHTML='<div class="world-digest"><div class="theme">'+worldEsc(T('world_theme',theme))+'</div><div class="world-card">'+who+'<div class="txt">'+worldEsc(item.text)+'</div></div></div>';
   }
   function worldStoryScroll(dir){
     const list=$('#world-list'); if(!list)return;
@@ -10048,7 +9920,6 @@ const AUDIO = (function(){
   };
   $('#world-tab-story').onclick=()=>{ AUDIO.confirm(); worldViewMode='story'; renderWorld(); };
   $('#world-tab-today').onclick=()=>{ AUDIO.confirm(); worldViewMode='today'; renderWorld(); };
-  $('#world-tab-growth').onclick=()=>{ AUDIO.confirm(); worldViewMode='growth'; renderWorld(); };
   $('#world-story-prev').onclick=()=>worldStoryScroll(-1);
   $('#world-story-next').onclick=()=>worldStoryScroll(1);
   wireReliablePointerButton($('#world-close'),()=>{ AUDIO.back(); buildTitle(); show('s-title'); });
