@@ -8613,14 +8613,23 @@ const AUDIO = (function(){
   function newspaperFill(text,data){
     return String(text||'').replace(/\{(player|place|depth|rule|emblem|rival|turns|opponentCards|nearestOpponent|totalActions)\}/g,(_,k)=>String(data[k]??'—'));
   }
+  function newspaperRemoveNumericGuess(text){
+    // 事前生成文には数値の意味を解釈させない。数値プレースホルダーを含む文は捨て、
+    // 正確な説明をゲーム側の recordParagraph で必ず補う。
+    return String(text||'').replace(/[^。！？.!?\n]*\{(?:turns|opponentCards|nearestOpponent|totalActions)\}[^。！？.!?\n]*[。！？.!?]?/g,'').replace(/\n{3,}/g,'\n\n').trim();
+  }
   function prepareNewspaper(place,depth,nodeType){
     const stats=MODE.matchStats||{}, condition=newspaperCondition(place,nodeType,stats), me=G.players[meIdx()];
     const item=AIWorldDB.takeNews(condition)||newspaperFallback(condition,place);
     const used=(stats.usedEmblems||[]).map(id=>RL.emblem(id)).filter(Boolean).slice(0,3).map(embName);
     const rival=(MODE.rivalSeats||[])[0], ns=stats.news||{}, data={player:me.name||store.playerProfile?.name||T('you'),place:place+'位',depth:depth,rule:mutName(MODE.mutator),emblem:used.join('・')||'エンブレムなし',rival:rival?RIVAL.name(rival.idx):'巡業参加者',turns:ns.finishTurn||ns.playerTurns||'—',opponentCards:ns.opponentCardsAtFinish||0,nearestOpponent:(ns.minOpponentHandAtFinish>=0&&ns.minOpponentHandAtFinish<99)?ns.minOpponentHandAtFinish:'—',totalActions:stats.actions||0};
-    const rivalComment=rival?newspaperFill(item.target||'{rival}は「次はこのままでは終わらせない」と試合を振り返った。',data):'';
-    const article=newspaperFill(item.text,data)+(rivalComment?'\n\n―― 宿敵コメント\n'+rivalComment:'');
-    MODE.newspaper={condition,headline:newspaperFill(item.speaker||newspaperFallback(condition,place).speaker,data),article,data};
+    const rivalComment=rival?newspaperFill(newspaperRemoveNumericGuess(item.target)||'{rival}は「次はこのままでは終わらせない」と試合を振り返った。',data):'';
+    const recordParagraph=data.turns==='—'
+      ? '公式記録では、'+data.player+'は'+data.place+'。対戦全体では'+data.totalActions+'手が記録された。'
+      : '公式記録では、'+data.player+'が上がるまでに使った手番は'+data.turns+'回。上がった時点で、まだ上がっていない相手の手札は合計'+data.opponentCards+'枚で、その中で最も手札が少ない相手は残り'+data.nearestOpponent+'枚だった。対戦全体では'+data.totalActions+'手が記録された。';
+    const article=newspaperFill(newspaperRemoveNumericGuess(item.text),data)+'\n\n'+recordParagraph+(rivalComment?'\n\n―― 宿敵コメント\n'+rivalComment:'');
+    const headlineTemplate=newspaperRemoveNumericGuess(item.speaker)||newspaperFallback(condition,place).speaker;
+    MODE.newspaper={condition,headline:newspaperFill(headlineTemplate,data),article,data};
   }
   function openNewspaper(next){
     const n=MODE.newspaper; if(!n){ next(); return; }
@@ -9205,7 +9214,7 @@ const AUDIO = (function(){
       },
       recent(n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>all.push(x))); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
       takeNews(condition){
-        const db=load(), tag='news:'+condition, pool=(db.news||[]).filter(x=>{ const tags=(x.tags||[]).map(String); return (x.lang||'ja')===aiWorldLang()&&tags.includes(tag)&&tags.includes('newspaper-format:2'); });
+        const db=load(), tag='news:'+condition, pool=(db.news||[]).filter(x=>{ const tags=(x.tags||[]).map(String); return (x.lang||'ja')===aiWorldLang()&&tags.includes(tag)&&tags.includes('newspaper-format:3'); });
         if(!pool.length)return null;
         const pick=pool[Math.floor(Math.random()*pool.length)];
         db.news=db.news.filter(x=>x.id!==pick.id); db._meta.useCycles={}; save(db);
@@ -9527,7 +9536,7 @@ const AUDIO = (function(){
   ];
   const NEWSPAPER_TASKS=NEWSPAPER_DEFS.map(([id,label])=>({
     id:'newspaper_'+id,type:'news',types:['news'],theme:'巡業新聞の'+label+'記事テンプレート',count:5,label:'新聞・'+label,
-    context:'result',stockTarget:5,tags:['newspaper','news:'+id,'newspaper-format:2','timeless'],newspaper:true
+    context:'result',stockTarget:5,tags:['newspaper','news:'+id,'newspaper-format:3','timeless'],newspaper:true
   }));
   const AI_WORLD_TASKS=[
     {id:'battle_open',type:'conversation',types:['conversation'],theme:'対戦開始と初手の自然な一言',count:24,label:'開始会話',context:'battle',stockTarget:60,tags:['battle','対戦','timeless'],sceneTags:['scene:greeting','scene:first_play']},
@@ -9660,7 +9669,11 @@ const AUDIO = (function(){
     '巡業対戦後に全面表示する、新聞記事のテンプレートを作る。',
     '条件: '+task.theme,'必ず'+task.count+'件。',
     '各itemは type=news、context=result。speakerは22文字以内の大見出し、textは客観的な新聞本文を320〜600文字で書く。',
-    '使える差し込み記号: {player} {place} {depth} {rule} {emblem} {rival} {turns} {opponentCards} {nearestOpponent} {totalActions}。固有名や勝敗を勝手に固定せず、必要な場所へ記号を残す。',
+    '本文と見出しで使える差し込み記号は {player} {place} {depth} {rule} {emblem} {rival} だけ。固有名や勝敗を勝手に固定せず、必要な場所へ記号を残す。',
+    '禁止: {turns} {opponentCards} {nearestOpponent} {totalActions} を本文・見出し・targetへ書かない。数字の説明はゲーム側が別段落で正確に追加する。',
+    '重要: 「激闘・長期戦」は長期戦条件だけ、「短期決戦」は短期決戦条件だけ、「紙一重・接戦」は大接戦条件だけ、「圧勝・一方的」は圧勝条件だけで使う。それ以外の記事では決着の長短や差を断定しない。',
+    '{opponentCards}が意味するのは、プレイヤーが上がった瞬間に、まだ上がっていない全対戦相手が手元に残していた札の合計である。対戦した札数、倒した札数、相手にした札数ではない。ただしAI本文ではこの値に一切触れない。',
+    '{turns}が意味するのは、プレイヤー本人が上がるまでに迎えた手番の回数であり、対戦全体の手数ではない。ただしAI本文ではこの値に一切触れない。',
     '読んだ子が「すごい試合だった」と次も遊びたくなる熱量を出す。見出しは新聞らしく強く短くする。',
     '圧勝条件では、早い上がりと相手に残った札の多さを大記録として扱う。接戦条件では、最後まで結果が読めなかった緊張と紙一重の決着を中心にする。',
     'ただし実況口調・本人の心情・詩的表現・事実にない逆転は禁止。記者が確認できる数字と試合経過から、勝負の価値を客観的に高く評価する。12歳でも分かる自然な日本語。',
