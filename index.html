@@ -5507,7 +5507,7 @@ const AUDIO = (function(){
         // 巡業の結果は「すすむ」専用ボタンのみ＝ESC では先に進めない(誤操作防止)
         break;
       case 's-newspaper': $('#newspaper-next').click(); break;
-      case 's-draft':   if(MODE.run){ clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); } break;
+      case 's-draft':   if(MODE.run){ clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftWithNewspaper(); } break;
       case 's-map':     if(MODE.run){ store.saveRun(MODE.run, MODE.mutator); } MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); break;   // ★v0.23 マップで戻る=中断してタイトル
       case 's-rest':    restContinue(); break;   // ★v0.25 休憩は引き返せない＝Esc も「すすむ」に寄せる
       case 's-pact':    pactBack(); break;       // ★v0.28 誓約: 開始時=取りやめてタイトル / ボス後=現状で確定して進む
@@ -7905,7 +7905,7 @@ const AUDIO = (function(){
       budget: currentBudget(),
       livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0,
       usedEmblems: buildUsedEmblemIds(MODE.kind==='run' ? manualCostBuild : human.build),
-      news:{plays:0,passes:0,reacts:0,activates:0,maxCombo:0,revolutions:0,bombs:0,chooses:0,splits:0}
+      news:{plays:0,passes:0,reacts:0,activates:0,playerTurns:0,finishTurn:0,opponentCardsAtFinish:0,minOpponentHandAtFinish:99,maxOpponentHandAtFinish:0,maxCombo:0,revolutions:0,bombs:0,chooses:0,splits:0}
     };
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
@@ -8245,7 +8245,7 @@ const AUDIO = (function(){
     if(actorIdx===meIdx()){
       if(MODE.matchStats&&MODE.matchStats.news){
         const n=MODE.matchStats.news;
-        if(action==='play')n.plays++; else if(action==='pass')n.passes++; else if(action==='react')n.reacts++; else if(action==='activate')n.activates++;
+        if(action==='play'){ n.plays++; n.playerTurns++; } else if(action==='pass'){ n.passes++; n.playerTurns++; } else if(action==='react')n.reacts++; else if(action==='activate')n.activates++;
         if(cards&&cards.length)n.maxCombo=Math.max(n.maxCombo||0,cards.length);
         if(playedBomb)n.bombs++;
         if(ev.some(x=>x.kind==='revolution'))n.revolutions++;
@@ -8263,6 +8263,13 @@ const AUDIO = (function(){
     const finish=ev.find(x=>x.kind==='finish');
     if(finish){
       if(actorIdx===meIdx()){
+        if(MODE.matchStats&&MODE.matchStats.news){
+          const n=MODE.matchStats.news, others=G.players.filter((_,i)=>i!==actorIdx&&!G.players[i].finished).map(p=>p.hand.length);
+          n.finishTurn=n.playerTurns||0;
+          n.opponentCardsAtFinish=others.reduce((a,b)=>a+b,0);
+          n.minOpponentHandAtFinish=others.length?Math.min(...others):99;
+          n.maxOpponentHandAtFinish=others.length?Math.max(...others):0;
+        }
         const place=Number(G.players[actorIdx]?.place)||4;
         if(place<=2)return emitMatchStoryTalk(true);
         return matchTalkSpecial('finish_self',actorIdx);
@@ -8588,6 +8595,8 @@ const AUDIO = (function(){
   let newspaperContinue=null;
   function newspaperCondition(place,nodeType,stats){
     const n=(stats&&stats.news)||{};
+    if(place===1&&(n.minOpponentHandAtFinish||99)>=3&&((n.finishTurn||99)<=5||(n.opponentCardsAtFinish||0)>=18||(n.maxOpponentHandAtFinish||0)>=7))return'landslide';
+    if(place<=2&&(n.finishTurn||0)>0&&((n.minOpponentHandAtFinish||99)<=1||(n.opponentCardsAtFinish||99)<=6))return'photo_finish';
     if(nodeType==='boss')return'boss'; if(nodeType==='elite')return'elite'; if(nodeType==='mutator')return'mutator';
     if(n.revolutions)return'revolution'; if(n.bombs)return'bomb'; if(n.reacts)return'reaction'; if(n.activates)return'activation';
     if(n.chooses)return'choose'; if(n.splits)return'split';
@@ -8599,19 +8608,19 @@ const AUDIO = (function(){
   function newspaperFallback(condition,place){
     const p=store.playerProfile?.name||T('you'), win=place===1?'制した':place===2?'2位に入った':'順位を落とした';
     return {speaker:(place===1?p+'、巡業戦を制す':p+'、巡業戦を終える'),
-      text:'巡業の対戦が行われ、{player}は{place}となった。試合は「{rule}」の条件で進み、各選手が場の主導権を争った。{player}は{emblem}を軸に札を組み立て、全{turns}手の攻防を経て'+win+'。記録上、今回の焦点は「'+(NEWSPAPER_DEFS.find(x=>x[0]===condition)?.[1]||'巡業対戦')+'」だった。'};
+      text:'巡業の対戦が行われ、{player}は{place}となった。試合は「{rule}」の条件で進み、各選手が場の主導権を争った。{player}は{emblem}を軸に札を組み立て、{turns}回目の手番で勝負を決めて'+win+'。上がった時点で対戦相手には合計{opponentCards}枚が残っており、今回の焦点は「'+(NEWSPAPER_DEFS.find(x=>x[0]===condition)?.[1]||'巡業対戦')+'」だった。'};
   }
   function newspaperFill(text,data){
-    return String(text||'').replace(/\{(player|place|depth|rule|emblem|rival|turns)\}/g,(_,k)=>String(data[k]??'—'));
+    return String(text||'').replace(/\{(player|place|depth|rule|emblem|rival|turns|opponentCards|nearestOpponent|totalActions)\}/g,(_,k)=>String(data[k]??'—'));
   }
   function prepareNewspaper(place,depth,nodeType){
     const stats=MODE.matchStats||{}, condition=newspaperCondition(place,nodeType,stats), me=G.players[meIdx()];
     const item=AIWorldDB.takeNews(condition)||newspaperFallback(condition,place);
     const used=(stats.usedEmblems||[]).map(id=>RL.emblem(id)).filter(Boolean).slice(0,3).map(embName);
-    const rival=(MODE.rivalSeats||[])[0], data={player:me.name||store.playerProfile?.name||T('you'),place:place+'位',depth:depth,rule:mutName(MODE.mutator),emblem:used.join('・')||'エンブレムなし',rival:rival?RIVAL.name(rival.idx):'巡業参加者',turns:stats.actions||0};
+    const rival=(MODE.rivalSeats||[])[0], ns=stats.news||{}, data={player:me.name||store.playerProfile?.name||T('you'),place:place+'位',depth:depth,rule:mutName(MODE.mutator),emblem:used.join('・')||'エンブレムなし',rival:rival?RIVAL.name(rival.idx):'巡業参加者',turns:ns.finishTurn||ns.playerTurns||'—',opponentCards:ns.opponentCardsAtFinish||0,nearestOpponent:(ns.minOpponentHandAtFinish>=0&&ns.minOpponentHandAtFinish<99)?ns.minOpponentHandAtFinish:'—',totalActions:stats.actions||0};
     const order=G.players.slice().sort((a,b)=>(a.place||9)-(b.place||9));
     MODE.newspaper={condition,headline:newspaperFill(item.speaker||newspaperFallback(condition,place).speaker,data),article:newspaperFill(item.text,data),data,
-      facts:order.map(p=>(p.place||'-')+'位　'+(p.name||'—')).concat(['特殊条件　'+data.rule,'主な構成　'+data.emblem,'対戦記録　全'+data.turns+'手'])};
+      facts:order.map(p=>(p.place||'-')+'位　'+(p.name||'—')).concat(['特殊条件　'+data.rule,'主な構成　'+data.emblem,'上がりまで　'+data.turns+'手番','相手の残り札　合計'+data.opponentCards+'枚','最も迫った相手　残り'+data.nearestOpponent+'枚','対戦全体　'+data.totalActions+'手'])};
   }
   function openNewspaper(next){
     const n=MODE.newspaper; if(!n){ next(); return; }
@@ -8683,7 +8692,7 @@ const AUDIO = (function(){
       const ttl=el('div','btn ghost foc',T('btn_to_title')); ttl.onclick=()=>{ AUDIO.back(); show('s-title'); };
       btns.append(again, ttl);
     } else if(onNext){
-      const nx=el('div','btn primary foc', nextLabel); nx.onclick=()=>{ AUDIO.confirm(); if(MODE.kind==='run')openNewspaper(onNext); else onNext(); };
+      const nx=el('div','btn primary foc', nextLabel); nx.onclick=()=>{ AUDIO.confirm(); onNext(); };
       btns.append(nx);
     }
     me.place===1?AUDIO.win():(me.place>=3?AUDIO.lose():AUDIO.finish());
@@ -8775,7 +8784,7 @@ const AUDIO = (function(){
       logNode(run, MODE.lastOutcome); MODE.lastOutcome=null;   // ★v0.25 最後の一戦も物語ログへ(この経路は advanceMap を通らない)
       recordHeatBest(heatN, playedDepth);   // ★v0.28 Heat段位の名誉記録(死亡=その段位での到達深度を確定)
       store.clearRun();
-      showResult(T('next_see_result'), ()=> runOver(), reward, playedDepth);
+      showResult(T('next_see_result'), ()=> openNewspaper(()=>runOver()), reward, playedDepth);
       return;
     }
     // ★1戦終わるたびに、次の深度へ前進した状態を即・中断用セーブ(タイトル復帰に依存しない＝確実に残す)。
@@ -8968,7 +8977,7 @@ const AUDIO = (function(){
     store.saveRun(run, MODE.mutator);   // ドラフトの戦利品を中断セーブに反映
     if(run.draftRemain>0){ openDraft(); return; }
     clearDraftState(run);
-    afterDraftNode();   // ★v0.23 ドラフト後はマップへ戻る(現在地を進める)。編成は次ノード入場時に行う
+    afterDraftWithNewspaper();   // 対戦後だけ、獲得を済ませてから新聞を読み、その後マップへ戻る
   }
   function rerollDraft(){
     const run=MODE.run; if(!run || (run.draftRerolls||0)<=0){ AUDIO.bad(); return; }
@@ -8978,7 +8987,11 @@ const AUDIO = (function(){
     openDraft();
   }
   $('#draft-reroll').onclick=()=> rerollDraft();
-  $('#draft-skip').onclick=()=>{ AUDIO.back(); clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftNode(); };
+  function afterDraftWithNewspaper(){
+    if(MODE.newspaper)openNewspaper(()=>afterDraftNode());
+    else afterDraftNode();
+  }
+  $('#draft-skip').onclick=()=>{ AUDIO.back(); clearDraftState(MODE.run); store.saveRun(MODE.run, MODE.mutator); afterDraftWithNewspaper(); };
   // 巡業マップの「中断してタイトル」(=onBack の s-map と同じ。状態は保存して再開可能に)
   $('#map-back').onclick=()=>{ AUDIO.back(); if(MODE.run) store.saveRun(MODE.run, MODE.mutator); MODE.run=null; MODE.kind='quick'; buildTitle(); show('s-title'); };
   // ★v0.28 誓約画面のボタン
@@ -9510,8 +9523,8 @@ const AUDIO = (function(){
     ['champion','優勝・堂々の勝利'],['runnerup','2位・あと一歩'],['third','3位・苦戦'],['last','4位・厳しい敗戦'],
     ['revolution','革命が起きた対戦'],['bomb','大きな役やボム'],['reaction','後出し反撃'],['activation','溜め撃ち発動'],
     ['choose','指名で流れが変化'],['split','分裂が活躍'],['rival','宿敵との対戦'],['boss','ボス戦'],
-    ['elite','強敵戦'],['mutator','特殊ルール戦'],['big_combo','3枚以上の大役'],['fast','短期決戦'],
-    ['long','長期戦'],['no_pass','パスを抑えた戦い'],['low_cost','低コスト編成'],['standard','標準的な巡業対戦']
+    ['elite','強敵戦'],['mutator','特殊ルール戦'],['landslide','相手に多くの札を残した圧勝'],['photo_finish','残り札わずかの大接戦'],
+    ['big_combo','3枚以上の大役'],['fast','短期決戦'],['long','長期戦'],['no_pass','パスを抑えた戦い'],['low_cost','低コスト編成'],['standard','標準的な巡業対戦']
   ];
   const NEWSPAPER_TASKS=NEWSPAPER_DEFS.map(([id,label])=>({
     id:'newspaper_'+id,type:'news',types:['news'],theme:'巡業新聞の'+label+'記事テンプレート',count:5,label:'新聞・'+label,
@@ -9648,8 +9661,10 @@ const AUDIO = (function(){
     '巡業対戦後に全面表示する、新聞記事のテンプレートを作る。',
     '条件: '+task.theme,'必ず'+task.count+'件。',
     '各itemは type=news、context=result。speakerは22文字以内の大見出し、textは客観的な新聞本文を180〜360文字で書く。',
-    '使える差し込み記号: {player} {place} {depth} {rule} {emblem} {rival} {turns}。固有名や勝敗を勝手に固定せず、必要な場所へ記号を残す。',
-    '実況口調・本人の心情・詩的表現は禁止。記者が試合経過と勝負の要点を客観的に整理する。12歳でも分かる自然な日本語。',
+    '使える差し込み記号: {player} {place} {depth} {rule} {emblem} {rival} {turns} {opponentCards} {nearestOpponent} {totalActions}。固有名や勝敗を勝手に固定せず、必要な場所へ記号を残す。',
+    '読んだ子が「すごい試合だった」と次も遊びたくなる熱量を出す。見出しは新聞らしく強く短くする。',
+    '圧勝条件では、早い上がりと相手に残った札の多さを大記録として扱う。接戦条件では、最後まで結果が読めなかった緊張と紙一重の決着を中心にする。',
+    'ただし実況口調・本人の心情・詩的表現・事実にない逆転は禁止。記者が確認できる数字と試合経過から、勝負の価値を客観的に高く評価する。12歳でも分かる自然な日本語。',
     '全itemのtagsに '+(task.tags||[]).join(', ')+' を付ける。memorySummaryは空文字でよい。'
   ].join('\n'); } const meta=AIWorldDB.meta(), recentItems=AIWorldDB.recent(30).filter(x=>(x.lang||'ja')===aiWorldLang()&&(x.day||0)<=task.day).slice(0,10), scenes=task.sceneTags||[]; if(aiWorldLang()==='vi'){ const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`Ngày ${x.day} ${x.speaker||'Người kể'}: ${x.text}`).join('\n'); return [`Day: ${task.day}`,`Ngày thực: ${task.dateLabel||aiWorldDateLabel()}`,`Chủ đề: ${task.theme}`,`Loại: ${task.type}`,`Nơi dùng: ${task.context||'general'}`,`Tag bắt buộc: ${(task.tags||[]).join(', ')}`,scenes.length?`Tag tình huống trận đấu: ${scenes.join(', ')}`:'',task.daily?'Gói riêng cho ngày đã chỉ định. Mọi item là trò chuyện liên quan tự nhiên tới chủ đề ngày đó qua thời tiết, đồ ăn, thị trấn, kế hoạch hoặc chuyện hôm trước. Không bắt mọi người nói thẳng tên chủ đề. Mỗi item phải có date tag đã cho và scene:chatter.':'',`Kho hiện tại: ${task.stockNow||0} / mục tiêu ${task.stockTarget||0}`,`Số item bắt buộc: ${task.count}`,'Không được trả items rỗng hoặc chỉ trả memorySummary.',scenes.length?'Chia đều các tag tình huống. Mỗi item chỉ dùng một tag scene phù hợp. scene:chatter là chuyện phiếm theo chủ đề; các scene khác phải phản ứng trực tiếp với sự việc. Không ghi tên người nói trong text.':'','Nhân vật cố định:',aiWorldCastPrompt(),'Dùng đúng tên, giới tính và nghề đã đặt. Không gọi nhân vật chính là "bạn" hay "người chơi".','Quan hệ hiện tại:',rel||'Chưa có','Quy tắc: Mỗi câu 8-45 ký tự, tiếng Việt đời thường, dễ hiểu, không từ cổ, không ví von vòng vo. Không tự quyết định thắng thua.','Mỗi item.context phải là title, battle, map hoặc result.','memorySummary chỉ giữ quan hệ và chuyện chưa kết thúc, viết dễ hiểu trong 120-220 ký tự.','relations có dạng [{"pair":"Hiệp sĩ-Thương nhân","state":"mô tả ngắn"}].',meta.summary?`Tóm tắt thế giới:\n${meta.summary}`:'Tóm tắt thế giới: Chưa có',recent?`Ký ức gần đây:\n${recent}`:'Ký ức gần đây: Chưa có'].filter(Boolean).join('\n'); } const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`${x.day}日 ${x.speaker||'語り手'}: ${x.text}`).join('\n'), dailyRule=task.daily?'指定日専用パック。全itemをその日のテーマに関係する雑談にする。ただし全員がテーマ名を直接言う不自然な文にはせず、天気・食べ物・町の様子・予定・前日からの話などへ自然に散らす。全itemのtagsに指定されたdateタグとscene:chatterを必ず入れる。':''; return [`Day: ${task.day}`,`対象の現実日付: ${task.dateLabel||aiWorldDateLabel()}`,`テーマ: ${task.theme}`,`種類: ${task.type}`,`使いどころ: ${task.context||'general'}`,`優先タグ: ${(task.tags||[]).join(', ')}`,scenes.length?`対戦場面タグ: ${scenes.join(', ')}`:'',dailyRule,`現在在庫: ${task.stockNow||0} / 目標 ${task.stockTarget||0}`,`必ず生成するitems件数: ${task.count}`,'最重要: itemsを空配列にしない。memorySummaryだけを返さない。指定件数の短文をitemsへ入れる。',scenes.length?'対戦場面タグを全種類ほぼ同じ件数ずつ作る。各itemのtagsには、内容に合う対戦場面タグを必ず1つだけそのまま入れる。scene:chatterだけは指定日のテーマに沿った軽い雑談にする。ほかは場面への直接の反応にする。話す人物も偏らせない。text内には話し手自身の名前を入れず、実際の対戦参加者が言っても自然な文にする。':'','固定人物:',aiWorldCastPrompt(),'人物名を優先して使い、主人公を「あなた」「プレイヤー」と呼ばない。設定済みの名前・性別・職業を矛盾させない。','現在の関係性:',rel||'なし','文章ルール: 現代の12歳が読んですぐ分かる言葉だけを使う。普段の会話のように書く。かっこよく見せようとしない。古い言い回し、詩的な表現、難しい漢語、回りくどい例えは禁止。短い文にする。','条件: 1件8〜45文字。昨日の話題を少し引き継いでよい。ゲームの勝敗を勝手に決めない。場面タグで示された出来事への感想は書いてよい。','これは読みに行く記事ではなく、タイトル/対戦/巡業マップ/結果画面で1件ずつ引っ張り出すストック。単体で短く成立する文にする。','各itemのcontextには title / battle / map / result のどれかを入れる。通常tagsには使いどころを混ぜる: 酒場, 王都, 旅, 巡業, 噂, 新聞 など。','memorySummaryには、関係性とまだ終わっていない話だけを、やさしい言葉で120〜220文字にまとめる。','relationsは変化した関係だけを [{"pair":"騎士-商人","state":"短くてやさしい説明"}] の形で返す。',meta.summary?`世界の要約:\n${meta.summary}`:'世界の要約: なし',recent?`最近の記憶:\n${recent}`:'最近の記憶: なし'].filter(Boolean).join('\n'); }
   function aiWorldParsePack(text){ const unpack=data=>{ const rel=Array.isArray(data?.relations)?Object.fromEntries(data.relations.filter(x=>x&&x.pair).map(x=>[String(x.pair),String(x.state||'')])):(data?.relations&&typeof data.relations==='object'?data.relations:null); return {items:Array.isArray(data?.items)?data.items:[],memorySummary:data?.memorySummary||'',relations:rel}; }; try{ return unpack(JSON.parse(text)); }catch(e){ const m=String(text||'').match(/\{[\s\S]*\}/); if(m){ try{ return unpack(JSON.parse(m[0])); }catch(_){} } } return {items:[],memorySummary:'',relations:null}; }
