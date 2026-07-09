@@ -8846,13 +8846,45 @@ const AUDIO = (function(){
     };
     return lines[condition]||lines[data.place==='1位'?'champion':'runnerup'];
   }
+  function newspaperProfileParagraph(n){
+    RIVAL.ensure();
+    const vi=aiWorldLang()==='vi', p=store.playerProfile||{name:n.data.player,gender:'未設定',job:'旅札師'};
+    const job=aiWorldProfileWord(p.job||'旅札師'), gender=aiWorldProfileWord(p.gender||'未設定');
+    const playerLine=vi
+      ? `―― Hồ sơ\n${n.data.player} là ${job}. Hồ sơ giới tính: ${gender}. Bài báo này không gọi đó là tính cách cố định, mà xem như bối cảnh của người tham gia lữ hành.`
+      : `―― 人物欄\n${n.data.player}は${p.job||'旅札師'}。登録上の性別は${p.gender||'未設定'}。本紙ではこの設定を性格の決めつけではなく、巡業に挑む人物背景として扱う。`;
+    if(!n.hasRival)return playerLine;
+    const rs=(MODE.rivalSeats||[]).find(x=>RIVAL.name(x.idx)===n.data.rival);
+    const idx=rs?rs.idx:-1, r=idx>=0?RIVAL.get(idx):null;
+    const style=idx>=0?rivalStyleLine(idx,rs.boss):'次戦での出方はまだ読めない';
+    const record=idx>=0?rivalRecordStr(idx):'対戦成績  まだ記録なし';
+    const rivalLine=vi
+      ? `\n\n―― Quan hệ\nĐối thủ lần này là ${n.data.rival}. ${r?`${n.data.rival} là ${aiWorldProfileWord(r.job)}. `:''}Lối đánh đáng chú ý: ${style}. Thành tích đối đầu: ${record}.`
+      : `\n\n―― 関係欄\n今回紙面に名前が残った宿敵は${n.data.rival}。${r?`${n.data.rival}は${r.job}。`:''}流儀は「${style}」。これまでの因縁は「${record}」として記録されている。`;
+    return playerLine+rivalLine;
+  }
+  function newspaperNextAngle(n){
+    const cond=n.condition, vi=aiWorldLang()==='vi';
+    if(vi){
+      if(cond==='rival')return '―― Lần tới\nNếu gặp lại đối thủ này, điểm đáng xem sẽ là ai thay đổi cấu hình trước.';
+      if(cond==='mutator')return '―― Lần tới\nKhi đề bài đổi, cùng một cấu hình có thể mạnh hoặc yếu hẳn đi. Cần chú ý cách chỉnh sau trận.';
+      if(cond==='landslide')return '―― Lần tới\nSau một trận áp đảo, đối thủ thường sẽ tìm cách cắt nhịp sớm hơn.';
+      if(cond==='photo_finish')return '―― Lần tới\nMột trận sát nút khiến mỗi lần bỏ lượt ở cuối trận trở nên đáng xem hơn.';
+      return '―― Lần tới\nĐiều đáng xem không chỉ là thứ hạng, mà là cách người chơi đổi kế hoạch sau bài báo này.';
+    }
+    if(cond==='rival')return '―― 次戦の焦点\n同じ宿敵と再び当たるなら、先に構築を変えるのはどちらか。本紙はそこに注目したい。';
+    if(cond==='mutator')return '―― 次戦の焦点\nお題が変われば、同じ構築でも価値は変わる。次に問われるのは、試合後の組み替えだ。';
+    if(cond==='landslide')return '―― 次戦の焦点\n一方的に見えた試合ほど、次の相手は序盤から流れを切りに来る。再現できるかが見どころになる。';
+    if(cond==='photo_finish')return '―― 次戦の焦点\n紙一重の試合を経験した後は、終盤のパスひとつが以前より重くなる。次戦の終盤に注目したい。';
+    return '―― 次戦の焦点\n順位だけでなく、この記事を受けて構築と出し方がどう変わるか。そこまで含めて巡業は続いていく。';
+  }
   function materializeNewspaper(n){
     if(n.article&&n.headline)return n;
     const item=AIWorldDB.takeNews(n.condition)||newspaperFallback(n.condition,n.place);
     const data=n.data, rivalComment=n.hasRival?newspaperFill(newspaperCleanTemplate(item.target,true)||'「次はこのままでは終わらせない」と試合を振り返った。',data):'';
     let bodyTemplate=newspaperCleanTemplate(item.text,n.hasRival);
     if(bodyTemplate.length<80)bodyTemplate=newspaperCleanTemplate(newspaperFallback(n.condition,n.place).text,n.hasRival);
-    const article=newspaperFill(bodyTemplate,data)+'\n\n―― 編集部の見立て\n'+newspaperEditorialParagraph(n.condition,data)+(rivalComment?'\n\n―― 宿敵コメント\n'+data.rival+'（'+data.rivalPlace+'）は'+rivalComment:'');
+    const article=newspaperFill(bodyTemplate,data)+'\n\n―― 編集部の見立て\n'+newspaperEditorialParagraph(n.condition,data)+'\n\n'+newspaperProfileParagraph(n)+'\n\n'+newspaperNextAngle(n)+(rivalComment?'\n\n―― 宿敵コメント\n'+data.rival+'（'+data.rivalPlace+'）は'+rivalComment:'');
     const headlineTemplate=newspaperCleanTemplate(item.speaker,n.hasRival)||newspaperFallback(n.condition,n.place).speaker;
     n.headline=newspaperFill(headlineTemplate,data); n.article=article;
     return n;
