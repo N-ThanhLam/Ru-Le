@@ -519,6 +519,11 @@
   .talkbubble:last-child .who{ font-size:22px; margin-bottom:2px; }
   .talkbubble:last-child .txt{ font-size:28px; line-height:1.28; }
   .talkbubble.story{ border-color:#d18b2f; background:#fff8df; box-shadow:inset 6px 0 0 #d18b2f, 0 9px 22px rgba(0,0,0,.42); }
+  #match-log{ position:absolute; top:304px; right:46px; width:560px; height:292px; z-index:23; pointer-events:none; display:flex; flex-direction:column; justify-content:flex-end; gap:7px; overflow:hidden; }
+  .mlog{ flex:none; background:rgba(15,20,44,.76); border:3px solid rgba(255,255,255,.22); border-radius:10px; padding:7px 13px; color:#f3f6ff; box-shadow:0 5px 14px rgba(0,0,0,.26); opacity:.62; }
+  .mlog:last-child{ opacity:1; border-color:#ffcf4d; background:rgba(24,31,62,.9); }
+  .mlog .mwho{ font-size:19px; font-weight:900; color:#ffe08a; margin-bottom:1px; }
+  .mlog .mtxt{ font-size:24px; font-weight:850; line-height:1.24; }
   @keyframes pop{ from{ transform:scale(.7); opacity:0;} to{ transform:scale(1); opacity:1;} }
   @keyframes talkIn{ from{ transform:translateY(10px); opacity:0;} to{ transform:none; opacity:1;} }
 
@@ -1017,7 +1022,8 @@
   .newspaper-date{ font-size:25px; font-weight:800; text-align:right; }
   .newspaper-headline{ font-family:Georgia,'Yu Mincho','Hiragino Mincho ProN',serif; font-size:56px; line-height:1.12; font-weight:900; text-align:center; border-bottom:4px solid #211d16; padding:4px 18px 14px; }
   .newspaper-body{ min-height:0; display:block; overflow:hidden; }
-  .newspaper-article{ height:100%; font-family:Georgia,'Yu Mincho','Hiragino Mincho ProN',serif; font-size:31px; line-height:1.6; white-space:pre-wrap; padding:8px 18px; column-count:3; column-gap:38px; column-rule:2px solid #8c826c; overflow:auto; }
+  .newspaper-article{ height:100%; font-family:Georgia,'Yu Mincho','Hiragino Mincho ProN',serif; font-size:31px; line-height:1.68; white-space:pre-wrap; padding:8px 18px 24px; column-count:3; column-gap:38px; column-rule:2px solid #8c826c; overflow:auto; scroll-behavior:smooth; }
+  .newspaper-article::first-letter{ float:left; font-size:72px; line-height:.82; font-weight:900; padding:8px 8px 0 0; }
   #newspaper-next{ justify-self:center; min-width:360px; }
 
   /* ドラフト */
@@ -1070,6 +1076,12 @@
   .mapnode.chosen{ opacity:.9; box-shadow:0 0 0 4px rgba(126,217,87,.45) inset; }
   .mapnode.chosen .nnm::after{ content:' ✓'; color:#2e9b4f; }
   .mapnode.foc.focused{ outline:6px solid #ffd54a; outline-offset:3px; box-shadow:0 10px 28px rgba(0,0,0,.35); }
+  .runplan{ width:1120px; max-width:calc(100vw - 72px); border:4px solid rgba(255,207,77,.55); background:rgba(16,20,42,.78); color:#f5f7ff; border-radius:16px; padding:12px 18px; box-shadow:0 10px 24px rgba(0,0,0,.34); }
+  .runplan .rp-head{ display:flex; align-items:center; gap:12px; font-size:25px; font-weight:900; color:#ffe08a; }
+  .runplan .rp-body{ margin-top:5px; font-size:23px; font-weight:800; line-height:1.35; color:#dfe7ff; }
+  .buildguide.plan{ flex-direction:column; gap:5px; min-height:124px; padding:8px 22px; }
+  .buildguide.plan .bg-main{ color:#ffe08a; }
+  .buildguide.plan .bg-sub{ font-size:22px; font-weight:800; color:#dfe7ff; line-height:1.3; }
 
   /* ---- 休憩(宿敵レポート) ---- */
   #s-rest .rest-card{ position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); max-height:calc(100% - 148px); overflow:auto; }
@@ -1224,7 +1236,7 @@
   .world-tab{ min-width:250px; font-size:25px; font-weight:900; padding:9px 20px; border:3px solid rgba(255,255,255,.4); border-radius:12px; color:#dce5ff; background:rgba(8,12,32,.6); cursor:pointer; text-align:center; }
   .world-tab.on{ color:#2a2100; background:#ffcf4d; border-color:#fff1a6; box-shadow:0 4px 0 #a87900; }
   .world-list{ flex:1; min-height:0; overflow-y:auto; padding-right:8px; display:flex; flex-direction:column; gap:12px; }
-  .world-list.story-reader{ padding:4px 12px 24px 4px; }
+  .world-list.story-reader{ padding:4px 12px 24px 4px; scroll-behavior:smooth; }
   .world-reader-nav{ display:flex; justify-content:center; gap:16px; }
   .world-reader-nav .btn{ min-width:220px; }
   .story-series{ padding:11px 18px; border-radius:12px; background:#6b4813; color:#fff0b5; border:3px solid #d6a63e; font-size:29px; font-weight:900; }
@@ -1552,6 +1564,7 @@
     </div>
     <div id="toast"></div>
     <div id="match-talk"></div>
+    <div id="match-log"></div>
     <div id="embflash"></div>
     <div class="selfbar">
       <div class="me" id="self-name">あなた</div>
@@ -1662,6 +1675,7 @@
       <div class="map-intro">
         <div class="map-hint" id="map-hint" data-i18n="map_hint">分かれ道 — 次に進む先を選ぶ</div>
         <div class="worldline" id="map-worldline"></div>
+        <div class="runplan" id="map-runplan"></div>
       </div>
       <div class="runmap" id="map-rows"></div>
     </div>
@@ -2111,7 +2125,7 @@ const RL = (function(){
     // ───────── 赤 (aka) — 場操作 ─────────
     { id:'aka01', code:'赤01', color:'aka', name:'連火', cost:32, suitCost:43, ico:'🔥', effect:'CLEAR_FIELD',  place:'card', desc:'出すと場を流して、続けてもう一度出せる。', nameVi:'Liên Hỏa', abbrVi:'L.Hỏa', codeVi:'Đ01', descVi:'Khi đánh sẽ dọn sạch bãi và được đánh tiếp ngay.' },
     { id:'aka02', code:'赤02', color:'aka', name:'越境', cost:15, suitCost:30, ico:'🪽', effect:'WILD',         place:'card', desc:'場の役と同じ種類・同じ枚数で出すとき、数字（強弱）だけ無視して重ねて出せる。出す札すべてに越境が必要（例：2に越境3／77に越境ペア33／JQKAに全部越境の5678）。縛り・階段の形は通常どおり守る（縛りは貫通しない）。', nameVi:'Vượt Biên', abbrVi:'V.Biên', codeVi:'Đ02', descVi:'Khi đánh bộ cùng loại và cùng số lá với bãi, được đè bằng cách bỏ qua riêng phần số (mạnh/yếu). Mọi lá đánh ra đều phải có Vượt Biên (vd: heo ← 3 vượt biên; đôi 77 ← đôi 33 vượt biên; JQKA ← 5678 toàn vượt biên). Vẫn phải theo khóa chất và hình sảnh (không xuyên khóa chất).' },
-    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:28, ico:'↕️', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場の強弱を逆転する（次は弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu trên bãi (lượt sau chỉ đánh được lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
+    { id:'aka03', code:'赤03', color:'aka', name:'逆位', cost:33, suitCost:28, ico:'↕️', effect:['REVERSE_CMP','SHED_WEAK_IF_MOST'], place:'card', desc:'場が流れるまで強弱を逆転する（弱い札しか出せない）。自分の手札がいちばん多いときだけ、いちばん弱い札を1枚捨てる。', nameVi:'Đảo Vị', abbrVi:'Đ.Vị', codeVi:'Đ03', descVi:'Đảo ngược mạnh/yếu cho đến khi bãi được dọn (chỉ được đánh lá yếu hơn). Chỉ khi bạn đang cầm nhiều bài nhất thì bỏ 1 lá yếu nhất.' },
     { id:'aka04', code:'赤04', color:'aka', name:'縛り', cost:1, suitCost:2, ico:'⛓️', effect:'LOCK_SUIT', place:'card', desc:'場の札と同じマークで出すと、次はそのマークしか出せない（縛り）。', nameVi:'Khóa Chất', abbrVi:'Khóa', codeVi:'Đ04', descVi:'Khi đánh cùng chất với lá trên bãi, lượt sau chỉ được đánh đúng chất đó (khóa chất).' },
     { id:'aka05',code:'赤05', color:'aka',    name:'革命',     cost:4, ico:'🚩', effect:'REVOLUTION', place:'whole', desc:'同じ数字を4枚出すと強弱が逆転し、次の革命まで続く（革命があれば4枚出しも可）。自分だけが起こせる。', nameVi:'Cách Mạng', abbrVi:'Cm', codeVi:'Đ05', descVi:'Đánh 4 lá cùng số sẽ đảo ngược mạnh/yếu, kéo dài đến lần Cách mạng kế tiếp (có Cách mạng thì được đánh tứ quý). Chỉ mình mới phát động được.' },
     { id:'aka06',code:'赤06', color:'aka',    name:'ボム',     cost:2, ico:'💣', effect:'BOMB',       place:'whole', desc:'ボムがあれば4枚役と「連続ペア3組以上（ペア階段）」を出せ、それで場の最強単騎（2）を切れる。自分だけに適用。さらに、ボムで場を切るたび、そこまで積み上がった“罰カード”を切った相手（直前の人）へ押し付ける（2単騎・弱ボム＝1枚／22・強ボム＝2枚ぶんが積み上がる）。', nameVi:'Chặt Heo', abbrVi:'Chặt', codeVi:'Đ06', descVi:'Cho đánh tứ quý và "ba đôi thông trở lên" (gọi là hàng) để chặt con heo (lá 2 mạnh nhất) trên bãi. Chỉ áp dụng cho mình. Ngoài ra, mỗi lần chặt bằng bom, dồn hết "lá phạt" đã tích lên người vừa bị chặt (người liền trước) — heo lẻ / bom yếu = 1 lá, đôi heo / bom mạnh = 2 lá tích dồn.' },
@@ -2914,7 +2928,8 @@ const RL = (function(){
       }
     }
     state.field.suitLock = nextSuitLock;
-    state.field.reverseCompare = effs.includes('REVERSE_CMP');
+    // 逆位は札を重ねても消えず、clearField で場が流れるまで継続する。
+    state.field.reverseCompare = state.field.reverseCompare || effs.includes('REVERSE_CMP');
     if(lockFired)                      events.push({kind:'emb', emb:firstWith('LOCK_SUIT_PLAYED')||firstWith('LOCK_SUIT')});
     if(effs.includes('REVERSE_CMP'))   events.push({kind:'emb', emb:firstWith('REVERSE_CMP')});
 
@@ -3556,6 +3571,11 @@ const RL = (function(){
     rv.players[0].build.rankSlots['8']=['aka03'];
     applyPlay(rv,0,{rank:'8',suit:'S'},{});
     ok('逆位: 手札最多なら逆転ON＆最弱札を捨てる', rv.players[0].hand.length===1 && rv.players[0].hand[0].rank==='K' && rv.field.reverseCompare===true);
+    rv.players[1].hand=[{rank:'7',suit:'H'},{rank:'K',suit:'H'}];
+    applyPlay(rv,1,{rank:'7',suit:'H'},{});
+    ok('逆位: 通常札を重ねても場が流れるまで継続', rv.field.reverseCompare===true);
+    clearField(rv);
+    ok('逆位: 場が流れると解除', rv.field.reverseCompare===false);
     // 25b 逆位: 手札が最多でないときは逆転のみで捨てない(他3人は配札13枚=自分より多い)
     const rv2=newGame(defs.map(x=>({...x})), 72);
     rv2.players[0].hand=[{rank:'3',suit:'S'},{rank:'K',suit:'S'},{rank:'8',suit:'S'}];
@@ -4553,6 +4573,20 @@ const AUDIO = (function(){
       build_guide_main:'スロットを選んで、エンブレムを付けよう',
       build_guide_sub:'「＋」や空きマスを押すと、付けられるエンブレムが出ます',
       build_guide_remove:'🗑 解除モード中：スロットをタップでエンブレムを全部はずす（もう一度Xでもどる）',
+      build_plan_head:'{0} 今の作戦：{1}',
+      plan_control:'場を支配する',
+      plan_control_ds:'場流し・縛り・逆位で、相手の出せる手をせばめる作戦。',
+      plan_tempo:'手番を動かす',
+      plan_tempo_ds:'加速・連撃・指名で、自分の番を増やして一気に走る作戦。',
+      plan_combo:'大きな役を作る',
+      plan_combo_ds:'ペア・階段・分裂・ボムで、まとめて札を減らす作戦。',
+      plan_shed:'手札を軽くする',
+      plan_shed_ds:'弱い札や余った札を捨てて、上がりやすい手札に整える作戦。',
+      plan_counter:'切り返す',
+      plan_counter_ds:'ボム・3返し・反撃で、相手の強い場をひっくり返す作戦。',
+      plan_plain:'素直に戦う',
+      plan_plain_ds:'まだ軸は薄め。おすすめ構成か、好きなエンブレムを足すと方針が見えやすい。',
+      plan_sub:' サブで「{0}」も狙える。',
       palette_empty:'この枠に付けられるエンブレムはありません',
       toast_clear_all:'全部はずしました',
       hint_slot:'<b>{0}</b>：一覧をひらく ・ <b>{1}</b>：この枠を空に ・ <b>十字</b>：枠を移動',
@@ -4585,6 +4619,14 @@ const AUDIO = (function(){
       place_n:'{0}位', title_daifugo:'大富豪', title_fugo:'富豪', title_hinmin:'貧民', title_daihinmin:'大貧民',
       toast_flush:'場流し', toast_react:'⚡ 後出し！場を吹き飛ばした', toast_activate:'発動！', toast_bad_play:'その手は出せない',
       toast_transfer:'💣 押し付け！罰カード ×{0} を相手へ',
+      log_play:'{0} を出した',
+      log_pass:'パスした',
+      log_react:'後出しで場を吹き飛ばした',
+      log_activate:'発動した',
+      log_clear:'場が流れた',
+      log_transfer:'罰カード×{0}',
+      log_revolution:'革命',
+      log_finish:'上がり（{0}）',
       toast_charge_up:'⚡ 気が少し溜まった（{0}/{1}）', toast_charge_full:'⚡ 気が満タン！撃てるぞ（{0}/{1}）', toast_charge_already:'⚡ もう満タンだ（{0}/{1}）',
       choose_h2:'「指名」— 次に出す人を選べ', choose_btn:'{0}（{1}枚）',
       inspect_h2:'エンブレム能力 — カーソルを当てると能力が読めます', inspect_close:'◀ もどる', inspect_turnnow:'いまの手番',
@@ -4703,6 +4745,8 @@ const AUDIO = (function(){
       help5_b:'<ul><li>対戦ごとに<b>お題</b>が変わる。編成画面の上に表示される。</li><li><span style="color:#ef5350;font-weight:900;">天地無用</span>＝ずっと逆位（弱い札しか出せない）。<span style="color:#66bb6a;font-weight:900;">相席歓迎</span>＝同じ強さも重ねられる。</li><li><b>短期決戦</b>＝手札10枚で速攻決着。<b>大盤振舞／緊縮の掟</b>＝編成コストが増減。</li><li><b>お題を見てからビルドを組み替える</b>のがコツ。同じ構築でもお題で価値が変わる。</li></ul>',
       help6_h:'操作',
       help6_b:'<ul><li><b>方向キー / 左スティック</b>：選択を移動</li><li><b>A / Enter</b>：決定・装備・カード選択トグル</li><li><b>Space</b>：対戦＝<b>即出し</b>（選択済みならそれを／未選択ならフォーカス中の1枚を）。編成では Enter と同じ。</li><li><b>B / Esc</b>：戻る・メニュー</li><li><b>X</b>：対戦＝パス／編成＝スロット解除（<b>P</b>もパス）</li><li><b>I</b>：対戦中に<b>🔍しらべる</b>を開く（相手のエンブレム能力を確認）</li><li><b>Tab / Y</b>：編成でスロット⇄一覧。マウス/タップも可。</li><li>編成：スロットで<b>A</b>＝装備一覧へ／一覧で<b>B</b>＝スロットに戻る。</li></ul>',
+      help7_h:'ビルドの考え方',
+      help7_b:'<ul><li>まずは<b>1つの作戦</b>を決めると分かりやすい。</li><li><b>場を支配</b>：場流し・縛り・逆位で相手を止める。</li><li><b>手番を動かす</b>：加速・連撃・指名で自分の番を増やす。</li><li><b>大きな役</b>：ペア・階段・分裂・ボムでまとめて減らす。</li><li><b>手札を軽く</b>：弱い札を捨てて上がりやすくする。</li><li>迷ったら編成画面の<b>今の作戦</b>を見るか、<b>おすすめ構成</b>を使ってから少しずつ入れ替えよう。</li></ul>',
       /* 設定 */
       set_topbar:'せってい', set_close:'◀ もどる',
       set_sfx:'効果音', set_gfx:'画質', gfx_hi:'高品質', gfx_lite:'描画優先（標準）', set_rankmode:'強さルール', rankmode_2:'2 が最強（標準）', rankmode_a:'A が最強（変則）',
@@ -4810,6 +4854,20 @@ const AUDIO = (function(){
       build_guide_main:'Chọn một ô, rồi gắn biểu tượng',
       build_guide_sub:'Bấm vào ô "＋" hoặc ô trống để hiện biểu tượng gắn được',
       build_guide_remove:'🗑 Chế độ gỡ: chạm vào ô để gỡ hết biểu tượng (bấm X lần nữa để thoát)',
+      build_plan_head:'{0} Kế hoạch hiện tại: {1}',
+      plan_control:'Khống chế bãi',
+      plan_control_ds:'Dọn bãi, khóa chất và đảo vị để bóp lựa chọn của đối thủ.',
+      plan_tempo:'Giành nhịp lượt',
+      plan_tempo_ds:'Tăng tốc, liên kích và chỉ định để có thêm lượt đánh.',
+      plan_combo:'Tạo bộ lớn',
+      plan_combo_ds:'Dùng đôi, sảnh, phân liệt và bom để xả nhiều lá cùng lúc.',
+      plan_shed:'Làm nhẹ tay',
+      plan_shed_ds:'Bỏ lá yếu hoặc lá thừa để tay bài dễ về hơn.',
+      plan_counter:'Lật ngược thế',
+      plan_counter_ds:'Dùng bom, 3 chặn heo và hậu thủ để phá bãi mạnh của đối thủ.',
+      plan_plain:'Đánh cơ bản',
+      plan_plain_ds:'Chưa có trục rõ. Hãy dùng gợi ý hoặc thêm biểu tượng yêu thích.',
+      plan_sub:' Có thể phụ thêm hướng「{0}」.',
       palette_empty:'Không có biểu tượng nào gắn được vào ô này',
       toast_clear_all:'Đã gỡ tất cả',
       hint_slot:'<b>{0}</b>: danh sách ・ <b>{1}</b>: xóa ô này ・ <b>Mũi tên</b>: chuyển ô',
@@ -4841,6 +4899,14 @@ const AUDIO = (function(){
       place_n:'Hạng {0}', title_daifugo:'Đại Phú', title_fugo:'Phú', title_hinmin:'Bần', title_daihinmin:'Đại Bần',
       toast_flush:'Dọn bãi', toast_react:'⚡ Hậu thủ! Thổi bay bãi', toast_activate:'Kích hoạt!', toast_bad_play:'Nước này không đánh được',
       toast_transfer:'💣 Trao tay! Dồn {0} lá phạt cho đối thủ',
+      log_play:'Đánh {0}',
+      log_pass:'Bỏ lượt',
+      log_react:'Hậu thủ thổi bay bãi',
+      log_activate:'Kích hoạt',
+      log_clear:'Bãi được dọn',
+      log_transfer:'Phạt ×{0}',
+      log_revolution:'Cách mạng',
+      log_finish:'Về bài ({0})',
       toast_charge_up:'⚡ Nội lực tích thêm ({0}/{1})', toast_charge_full:'⚡ Nội lực đã đầy! Bắn được rồi ({0}/{1})', toast_charge_already:'⚡ Đã đầy sẵn rồi ({0}/{1})',
       choose_h2:'「Chỉ định」— Chọn người đánh kế', choose_btn:'{0} ({1} lá)',
       inspect_h2:'Năng lực Biểu Tượng — Trỏ con trỏ vào để đọc', inspect_close:'◀ Quay lại', inspect_turnnow:'Lượt hiện tại',
@@ -4954,6 +5020,8 @@ const AUDIO = (function(){
       help5_b:'<ul><li>Mỗi trận <b>đề bài</b> đổi khác. Hiện ở phía trên màn hình cấu hình.</li><li><span style="color:#ef5350;font-weight:900;">Đảo Lộn</span> = luôn đảo vị (chỉ đánh lá yếu). <span style="color:#66bb6a;font-weight:900;">Cùng Mạnh</span> = đè được cả lá mạnh ngang.</li><li><b>Tốc Chiến</b> = 10 lá, phân định nhanh. <b>Hào Phóng／Thắt Lưng</b> = ngân sách cấu hình tăng/giảm.</li><li>Mẹo là <b>xem đề bài rồi mới chỉnh cấu hình</b>. Cùng cấu hình nhưng đề bài khác thì giá trị khác.</li></ul>',
       help6_h:'Điều khiển',
       help6_b:'<ul><li><b>Phím mũi tên / cần trái</b>: Di chuyển lựa chọn</li><li><b>A / Enter</b>: Xác nhận · gắn · chọn lá</li><li><b>Space</b>: Trong trận = <b>đánh ngay</b> (đã chọn thì đánh lá đó / chưa chọn thì đánh lá đang trỏ). Ở cấu hình giống Enter.</li><li><b>B / Esc</b>: Quay lại · menu</li><li><b>X</b>: Trong trận = bỏ lượt / cấu hình = gỡ ô (<b>P</b> cũng bỏ lượt)</li><li><b>I</b>: Mở <b>🔍 Soi</b> trong trận (xem năng lực biểu tượng đối thủ)</li><li><b>Tab / Y</b>: Cấu hình, chuyển ô ⇄ danh sách. Chuột/chạm cũng được.</li><li>Cấu hình: ở ô bấm <b>A</b> = mở danh sách gắn / ở danh sách bấm <b>B</b> = về ô.</li></ul>',
+      help7_h:'Cách nghĩ về cấu hình',
+      help7_b:'<ul><li>Trước hết hãy chọn <b>một kế hoạch</b>.</li><li><b>Khống chế bãi</b>: dọn bãi, khóa chất, đảo vị để chặn đối thủ.</li><li><b>Giành nhịp lượt</b>: tăng tốc, liên kích, chỉ định để có thêm lượt.</li><li><b>Bộ lớn</b>: đôi, sảnh, phân liệt, bom để xả nhiều lá.</li><li><b>Làm nhẹ tay</b>: bỏ lá yếu để dễ về hơn.</li><li>Nếu phân vân, hãy xem <b>kế hoạch hiện tại</b> ở màn cấu hình hoặc dùng <b>gợi ý cấu hình</b>, rồi thay từng chút một.</li></ul>',
       set_topbar:'Cài Đặt', set_close:'◀ Quay lại',
       set_sfx:'Âm thanh', set_gfx:'Chất lượng', gfx_hi:'Cao cấp', gfx_lite:'Ưu tiên hiệu năng (chuẩn)', set_rankmode:'Luật mạnh yếu', rankmode_2:'Lá 2 (heo) mạnh nhất (chuẩn)', rankmode_a:'Lá A mạnh nhất (biến thể)',
       set_budget:'Ngân sách trận', set_budget_val:'Chi phí {0}', set_unlocked:'Biểu tượng mở khóa', set_unlocked_val:'{0} / {1} (tăng khi lữ hành)',
@@ -5806,6 +5874,8 @@ const AUDIO = (function(){
   function renderMap(){
     const run=MODE.run, m=run.map; if(!m) return;
     $('#map-title').textContent = T('map_title', run.act, run.depth, run.lives);
+    const rp=$('#map-runplan');
+    if(rp) rp.innerHTML=buildPlanHTML(effectiveRunBuild());
     const wrap=$('#map-rows'); wrap.innerHTML='';
     const last=m.rows.length-1;
     m.rows.forEach((row,ri)=>{
@@ -6338,7 +6408,7 @@ const AUDIO = (function(){
       this.matchId='m'+Date.now(); this.stateVer=0; this.paused=false; endedShown=false; busy=false; pendingChoose=null;
       this.conns.forEach(c=> this._send(c,{type:'start', matchId:this.matchId}));
       show('s-match'); $('#match-title').textContent=T('mt_online'); renderMatch();
-      matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false;
+      matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; resetMatchLog();
       setTimeout(()=>{ if(G&&currentScreen==='s-match')matchTalkEvent('greeting',G.turn,true); },350);
       scheduleMatchThemeTalk(6000);
       this.broadcast();
@@ -6658,6 +6728,29 @@ const AUDIO = (function(){
     RL.SUITS.forEach(s=> (build.suitSlots[s]||[]).forEach(add));
     return out;
   }
+  function buildPlanInfo(build){
+    const ids=buildUsedEmblemIds(build||RL.emptyBuild());
+    const has=id=>ids.includes(id), count=(arr)=>arr.reduce((n,id)=>n+(has(id)?1:0),0);
+    const scores=[
+      {key:'control', ico:'🔥', n:count(['aka01','aka03','aka04','aka12','aka14','ao08'])},
+      {key:'tempo', ico:'⏩', n:count(['ao01','ao02','ao03','ao04','ao07'])},
+      {key:'combo', ico:'🪜', n:count(['set2','set3','set4','mi05','mi06','mi08','aka05','aka06','aka06b'])},
+      {key:'shed', ico:'🧹', n:count(['ki01','ki02','ki03','ki04','ki05','ki06','mi02','mi03','mi04','mi09'])},
+      {key:'counter', ico:'💣', n:count(['aka06','aka06b','aka07','aka09','aka12','aka13','ao08'])}
+    ].sort((a,b)=>b.n-a.n);
+    const top=scores[0]&&scores[0].n>0?scores[0]:{key:'plain',ico:'🎴',n:0};
+    const sub=scores[1]&&scores[1].n>0&&scores[1].key!==top.key?scores[1]:null;
+    return {
+      key:top.key,
+      ico:top.ico,
+      title:T('plan_'+top.key),
+      body:T('plan_'+top.key+'_ds')+(sub?T('plan_sub', T('plan_'+sub.key)):'')
+    };
+  }
+  function buildPlanHTML(build){
+    const p=buildPlanInfo(build);
+    return '<div class="rp-head"><span>'+p.ico+'</span><span>'+worldEsc(p.title)+'</span></div><div class="rp-body">'+worldEsc(p.body)+'</div>';
+  }
   function applyRunCostDrift(run, usedIds){
     if(!run) return;
     const ids=runCostPoolIds(run);
@@ -6808,7 +6901,9 @@ const AUDIO = (function(){
   //   ※「日本式/ベトナム式」ワンタップ装填はロビー画面へ移設(NET.renderLobby の #lobby-style)。
   function setupBuildGuide(){
     const guide=$('#build-guide'); if(!guide) return;
-    guide.innerHTML = '<span class="bg-main" data-i18n="build_guide_main">'+T('build_guide_main')+'</span>';
+    const plan=buildPlanInfo(buildState && buildState.build);
+    guide.classList.add('plan');
+    guide.innerHTML = '<span class="bg-main">'+worldEsc(T('build_plan_head', plan.ico, plan.title))+'</span><span class="bg-sub">'+worldEsc(plan.body)+'</span>';
   }
   // ロビーでのスタイル装填(オンライン専用)。プリセットを所持フィルタ無しで丸ごと myBuild に反映＝未解放でも対戦できる。
   //   afterBuild がロビー再描画＋ホスト/ゲストへの同期(ready送信)まで行う。
@@ -6845,6 +6940,7 @@ const AUDIO = (function(){
   }
   function renderBuild(){
     const b=buildState.build;
+    setupBuildGuide();
     // お題バナー(今回の対戦に掛かる共通ルール)＋宿敵の標的宣言(メタ崩壊)
     renderMutatorBanner($('#build-mutator'));
     renderBanBanner($('#build-ban'));
@@ -6930,7 +7026,9 @@ const AUDIO = (function(){
     removeMode=!!on;
     const root=$('#s-build'); if(root) root.classList.toggle('removemode', removeMode);
     const btn=$('#build-clear'); if(btn){ btn.classList.toggle('on', removeMode); btn.textContent = removeMode ? T('build_clear_on') : T('build_clear'); }
-    const g=$('#build-guide')?.querySelector('.bg-main'); if(g) g.textContent = removeMode ? T('build_guide_remove') : T('build_guide_main');
+    if(removeMode){
+      const g=$('#build-guide')?.querySelector('.bg-main'); if(g) g.textContent = T('build_guide_remove');
+    } else setupBuildGuide();
   }
   function toggleRemoveMode(){ if(!buildState || currentScreen!=='s-build') return; setRemoveMode(!removeMode); AUDIO.confirm(); }
   // 指定スロットのエンブレムを全部はずす（解除モードのタップ用）。
@@ -7855,6 +7953,7 @@ const AUDIO = (function(){
     matchTalkLastAt=0;
     matchThemeTalkCount=0;
     matchStoryTalkShown=false;
+    resetMatchLog();
     MODE.matchBanNames = (MODE.kind==='run') ? banNames() : [];   // ★v0.22 この対戦で封じられた名前を控える(結果画面の宿敵レポート用・深度前進前)
     RIVAL.ensure();
     const human = { name:String(store.playerProfile?.name||T('you')).slice(0,12), isHuman:true, build: MODE.kind==='run' ? effectiveRunBuild() : cloneBuild(MODE.quickBuild) };
@@ -7901,7 +8000,7 @@ const AUDIO = (function(){
       budget: currentBudget(),
       livesAtStart: MODE.kind==='run' ? MODE.run.lives : 0,
       usedEmblems: buildUsedEmblemIds(MODE.kind==='run' ? manualCostBuild : human.build),
-      news:{plays:0,passes:0,reacts:0,activates:0,playerTurns:0,finishTurn:0,opponentCardsAtFinish:0,minOpponentHandAtFinish:99,maxOpponentHandAtFinish:0,maxCombo:0,revolutions:0,bombs:0,chooses:0,splits:0}
+      news:{plays:0,passes:0,reacts:0,activates:0,playerTurns:0,finishedByPlay:false,finishTurn:0,opponentCardsAtFinish:0,minOpponentHandAtFinish:99,maxOpponentHandAtFinish:0,maxCombo:0,revolutions:0,bombs:0,chooses:0,splits:0,matchRevolutions:0,matchBombs:0,matchReacts:0,fired:{}}
     };
     const defs=[ human, ...cpuDefs ];
     const seed = (Math.floor(Math.random()*1e9))>>>0;
@@ -8021,6 +8120,7 @@ const AUDIO = (function(){
     renderHand();
     renderActions();
     renderSelfFocusBuilds();
+    renderMatchLog();
   }
   function badge(ic,label,val,on){
     const b=el('div','stbadge'+(on?' on':'')); b.innerHTML='<span class="ic">'+ic+'</span>'+label+(LANG==='vi'?': ':'：')+val; return b;
@@ -8122,6 +8222,43 @@ const AUDIO = (function(){
     it.style.background = color||'#3949ab'; it.style.borderColor='#fff';
     t.appendChild(it);
     setTimeout(()=>{ it.style.transition='opacity .4s'; it.style.opacity='0'; setTimeout(()=>it.remove(),420); }, 900);
+  }
+  let matchLog=[];
+  function resetMatchLog(){ matchLog=[]; renderMatchLog(); }
+  function renderMatchLog(){
+    const host=$('#match-log'); if(!host) return;
+    host.innerHTML=(matchLog||[]).slice(-5).map(x=>'<div class="mlog"><div class="mwho">'+worldEsc(x.who||'')+'</div><div class="mtxt">'+worldEsc(x.text||'')+'</div></div>').join('');
+  }
+  function cardShort(c){ return c ? (String(c.rank||'')+(RL.SUIT_SYM[c.suit]||'')) : ''; }
+  function cardsShort(cards){ return (cards||[]).map(cardShort).join(' '); }
+  function eventNames(events){
+    const out=[], seen=new Set();
+    (events||[]).forEach(ev=>{
+      let s='';
+      if(ev.kind==='emb'){ const e=RL.emblem(ev.emb); if(e)s=embMark(e)+' '+embName(e)+(ev.n>1?'×'+ev.n:''); }
+      else if(ev.kind==='react')s=T('log_react');
+      else if(ev.kind==='activate'){ const e=RL.emblem(ev.emb); s=e?(embMark(e)+' '+embName(e)):T('log_activate'); }
+      else if(ev.kind==='clear'||ev.kind==='flush')s=T('log_clear');
+      else if(ev.kind==='transfer')s=T('log_transfer', ev.n);
+      else if(ev.kind==='revolution')s=T('log_revolution');
+      else if(ev.kind==='finish')s=T('log_finish', placeLabel(ev.place));
+      if(s&&!seen.has(s)){ seen.add(s); out.push(s); }
+    });
+    return out;
+  }
+  function pushMatchLog(actorIdx, action, result, cards){
+    if(!G||actorIdx==null||!G.players||!G.players[actorIdx])return;
+    const who=G.players[actorIdx].name||T('you');
+    const names=eventNames(result&&result.events);
+    let text='';
+    if(action==='pass') text=T('log_pass');
+    else if(action==='react') text=T('log_react');
+    else if(action==='activate') text=names[0]||T('log_activate');
+    else text=T('log_play', cardsShort(cards));
+    if(names.length && action!=='activate') text += ' / '+names.slice(0,3).join('・');
+    matchLog.push({who,text});
+    if(matchLog.length>10)matchLog=matchLog.slice(-10);
+    renderMatchLog();
   }
   const MATCH_TALK_NORMAL_GAP_MS=10000, MATCH_TALK_SPECIAL_GAP_MS=8000, MATCH_TALK_SPECIAL_CHANCE=1/3;
   let matchTalkLastAt=0, matchTalkSeen=[], matchThemeTalkCount=0, matchStoryTalkShown=false;
@@ -8238,6 +8375,12 @@ const AUDIO = (function(){
     const ev=(result&&result.events)||[], embIds=ev.filter(x=>x.kind==='emb'&&x.emb).map(x=>x.emb);
     const hasEff=eff=>embIds.some(id=>{ const e=RL.emblem(id); return e&&String(e.effect||'').split('+').includes(eff); });
     const rules=G.players[actorIdx]&&G.players[actorIdx].rules, playedCombo=cards&&cards.length?RL.classifyCombo(cards,rules):null, playedBomb=!!(playedCombo&&RL.isBomb(playedCombo,rules));
+    if(MODE.matchStats&&MODE.matchStats.news){
+      const all=MODE.matchStats.news;
+      if(playedBomb)all.matchBombs++;
+      if(ev.some(x=>x.kind==='revolution'))all.matchRevolutions++;
+      if(action==='react')all.matchReacts++;
+    }
     if(actorIdx===meIdx()){
       if(MODE.matchStats&&MODE.matchStats.news){
         const n=MODE.matchStats.news;
@@ -8247,6 +8390,7 @@ const AUDIO = (function(){
         if(ev.some(x=>x.kind==='revolution'))n.revolutions++;
         if(hasEff('CHOOSE_NEXT'))n.chooses++;
         if(embIds.includes('mi08'))n.splits++;
+        embIds.forEach(id=>{ n.fired[id]=(n.fired[id]||0)+1; });
       }
       let special='';
       if(playedBomb)special='ボムで場を返した';
@@ -8260,8 +8404,10 @@ const AUDIO = (function(){
     if(finish){
       if(actorIdx===meIdx()){
         if(MODE.matchStats&&MODE.matchStats.news){
-          const n=MODE.matchStats.news, others=G.players.filter((_,i)=>i!==actorIdx&&!G.players[i].finished).map(p=>p.hand.length);
-          n.finishTurn=n.playerTurns||0;
+          const n=MODE.matchStats.news, myPlace=Number(finish.place)||Number(G.players[actorIdx].place)||4;
+          // 終局時は最後の1人へ即座に順位が付くため、finished ではなく「自分より後の順位」で残り札を拾う。
+          const others=G.players.filter((p,i)=>i!==actorIdx&&(!p.place||p.place>myPlace)).map(p=>p.hand.length);
+          n.finishedByPlay=true; n.finishTurn=n.playerTurns||0;
           n.opponentCardsAtFinish=others.reduce((a,b)=>a+b,0);
           n.minOpponentHandAtFinish=others.length?Math.min(...others):99;
           n.maxOpponentHandAtFinish=others.length?Math.max(...others):0;
@@ -8348,6 +8494,7 @@ const AUDIO = (function(){
     const talkBefore=matchTalkSnapshot();
     const r=RL.applyPlay(G, meIdx(), cards, opts);
     incMatchAction();
+    pushMatchLog(meIdx(),'play',r,cards);
     renderMatch(); eventToast(r.events);
     matchTalkAfterAction(meIdx(),'play',r,talkBefore,cards);
     if(NET.active && NET.isHost) NET.broadcast();
@@ -8363,6 +8510,7 @@ const AUDIO = (function(){
     const talkBefore=matchTalkSnapshot();
     const r=RL.applyPass(G, meIdx());
     incMatchAction();
+    pushMatchLog(meIdx(),'pass',r);
     renderMatch(); eventToast(r.events);
     chargeFeedback(me, chgBefore, wasContested);   // 「気が溜まった／もう満タンだ」を本人にだけ知らせる
     matchTalkAfterAction(meIdx(),'pass',r,talkBefore);
@@ -8390,6 +8538,7 @@ const AUDIO = (function(){
     const talkBefore=matchTalkSnapshot();
     const r=RL.applyReact(G, meIdx());
     incMatchAction();
+    pushMatchLog(meIdx(),'react',r);
     renderMatch(); eventToast(r.events);
     matchTalkAfterAction(meIdx(),'react',r,talkBefore);
     if(NET.active && NET.isHost) NET.broadcast();
@@ -8402,6 +8551,7 @@ const AUDIO = (function(){
     // ホスト/オフライン: 発動の効果音は applyActivate が出す activate イベント経由で eventToast が鳴らす(二重再生防止)。
     const talkBefore=matchTalkSnapshot();
     const r=RL.applyActivate(G, meIdx(), eid);
+    pushMatchLog(meIdx(),'activate',r);
     renderMatch(); eventToast(r.events);
     matchTalkAfterAction(meIdx(),'activate',r,talkBefore);
     if(NET.active && NET.isHost) NET.broadcast();
@@ -8460,6 +8610,7 @@ const AUDIO = (function(){
     const fa=RL.cpuFreeAction(G, idx);
     if(fa){
       const fr = RL.applyActivate(G, idx, fa.emblem);
+      pushMatchLog(idx,'activate',fr);
       eventToast(fr.events);   // 発動の効果音は activate イベント経由(embFx)。
       if(G.gameOver){ renderMatch(); setTimeout(endMatch, 650); return; }
     }
@@ -8470,6 +8621,7 @@ const AUDIO = (function(){
     else if(mv.type==='react'){ AUDIO.flush(); r=RL.applyReact(G, idx); }
     else { AUDIO.play(); r=RL.applyPlay(G, idx, mv.cards, {nextPlayer:mv.nextPlayer}); }
     incMatchAction();
+    pushMatchLog(idx,mv.type,r,mv.cards);
     renderMatch(); eventToast(r.events);
     matchTalkAfterAction(idx,mv.type,r,talkBefore,mv.cards);
     if(G.gameOver){ setTimeout(endMatch, 650); return; }
@@ -8495,6 +8647,7 @@ const AUDIO = (function(){
     const fa=RL.cpuFreeAction(G, seat);   // 気経済: 本手の前に無料アクション(発動)を1回だけ
     if(fa){
       const fr = RL.applyActivate(G, seat, fa.emblem);
+      pushMatchLog(seat,'activate',fr);
       eventToast(fr.events); NET.broadcast();
       if(G.gameOver){ renderMatch(); setTimeout(endMatch, 650); return; }
     }
@@ -8502,6 +8655,7 @@ const AUDIO = (function(){
     const talkBefore=matchTalkSnapshot();
     let r; if(mv.type==='pass'){ r=RL.applyPass(G,seat); } else if(mv.type==='react'){ r=RL.applyReact(G,seat); } else { r=RL.applyPlay(G,seat,mv.cards,{nextPlayer:mv.nextPlayer}); }
     incMatchAction();
+    pushMatchLog(seat,mv.type,r,mv.cards);
     AUDIO.play(); renderMatch(); eventToast(r.events);
     matchTalkAfterAction(seat,mv.type,r,talkBefore,mv.cards);
     NET.broadcast();
@@ -8525,6 +8679,7 @@ const AUDIO = (function(){
       r=RL.applyPlay(G, seat, action.cards, {nextPlayer:action.next});
     }
     incMatchAction();
+    pushMatchLog(seat,talkKind,r,talkCards);
     renderMatch(); eventToast(r.events);
     matchTalkAfterAction(seat,talkKind,r,talkBefore,talkCards);
     NET.broadcast();
@@ -8560,7 +8715,7 @@ const AUDIO = (function(){
   function onNetState(state){
     const prev=G, entering=currentScreen!=='s-match';
     G = state;
-    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; scheduleMatchThemeTalk(6000); }
+    if(entering){ busy=false; show('s-match'); $('#match-title').textContent=T('mt_online'); matchTalkLastAt=0; matchThemeTalkCount=0; matchStoryTalkShown=false; resetMatchLog(); scheduleMatchThemeTalk(6000); }
     renderMatch();
     matchTalkNetDiff(entering?null:prev,state);
     clientAfter();
@@ -8596,7 +8751,7 @@ const AUDIO = (function(){
     if(place===1&&(n.minOpponentHandAtFinish||99)>=3&&((n.finishTurn||99)<=5||(n.opponentCardsAtFinish||0)>=18||(n.maxOpponentHandAtFinish||0)>=7))add('landslide',10);
     if(place<=2&&(n.finishTurn||0)>0&&((n.minOpponentHandAtFinish||99)<=1||(n.opponentCardsAtFinish||99)<=6))add('photo_finish',10);
     if(nodeType==='boss')add('boss',7); if(nodeType==='elite')add('elite',6); if(nodeType==='mutator')add('mutator',6);
-    if(n.revolutions)add('revolution',7); if(n.bombs)add('bomb',6); if(n.reacts)add('reaction',6); if(n.activates)add('activation',5);
+    if(n.matchRevolutions)add('revolution',7); if(n.matchBombs)add('bomb',6); if(n.matchReacts)add('reaction',6); if(n.activates)add('activation',5);
     if(n.chooses)add('choose',6); if(n.splits)add('split',6); if((MODE.rivalSeats||[]).length)add('rival',7);
     if((n.maxCombo||0)>=3)add('big_combo',6); if((stats&&stats.actions||0)<=12)add('fast',5); if((stats&&stats.actions||0)>=30)add('long',5);
     if((n.passes||0)===0)add('no_pass',4); if((stats&&stats.cost||0)<=55)add('low_cost',4); add('standard',1);
@@ -8606,33 +8761,82 @@ const AUDIO = (function(){
     return picked;
   }
   function newspaperFallback(condition,place){
-    const p=store.playerProfile?.name||T('you'), win=place===1?'制した':place===2?'2位に入った':'順位を落とした';
-    return {speaker:(place===1?p+'、巡業戦を制す':p+'、巡業戦を終える'),
-      text:'巡業の対戦が行われ、{player}は{place}となった。試合は「{rule}」の条件で進み、各選手が場の主導権を争った。{player}は{emblem}を軸に札を組み立て、{turns}回目の手番で勝負を決めて'+win+'。上がった時点で対戦相手には合計{opponentCards}枚が残っており、今回の焦点は「'+(NEWSPAPER_DEFS.find(x=>x[0]===condition)?.[1]||'巡業対戦')+'」だった。'};
+    const topic=NEWSPAPER_DEFS.find(x=>x[0]===condition)?.[1]||'巡業対戦';
+    const focus={
+      landslide:'相手に反撃の形を作らせず、最後まで大きな差を保った内容だった。',
+      photo_finish:'終盤まで誰が先に上がるか読めず、わずかな判断の差が順位へ表れた。',
+      revolution:'革命による強弱の反転が、札の残し方と出す順番を大きく変えた。',
+      bomb:'まとまった札を一度に動かす大役が、場の主導権を揺らした。',
+      reaction:'手番外からの反応が入り、予定どおりに進まない対戦となった。',
+      activation:'溜めた力を使うタイミングが、対戦の注目点になった。',
+      choose:'次の手番を選ぶ効果が、対戦相手の計画を崩した。',
+      split:'札の組み合わせを変える分裂が、通常とは違う返し方を生んだ。',
+      rival:'宿敵との直接対決となり、互いの編成と判断が比べられた。',
+      boss:'巡業の節目となるボス戦で、普段以上に重い一戦となった。',
+      elite:'強敵を相手に、札一枚ごとの判断が厳しく問われた。',
+      mutator:'特殊ルールへの対応が、通常の強さとは別の差を生んだ。',
+      big_combo:'三枚以上をまとめた大きな役が、試合の見せ場を作った。',
+      fast:'短い手数の中で主導権が決まり、迷いの少ない進行となった。',
+      long:'場の主導権が何度も動き、長い対戦を通して判断力が試された。',
+      no_pass:'パスを抑えて札を出し続けたことが、流れを渡さない形につながった。',
+      low_cost:'軽い編成で臨み、能力の量より札の扱いが問われた。'
+    }[condition]||'順位だけでなく、どの場面で札を残し、どこで動かしたかが記録に残る一戦だった。';
+    const heads=place===1?['{player}、巡業戦を制す','{player}が首位で決着','深度{depth}、{player}勝利']:['{player}、{place}で決着','深度{depth}の順位確定','巡業戦、{player}は{place}'];
+    const leads=[
+      '深度{depth}の巡業対戦が終了し、{player}は{place}となった。',
+      '「{rule}」のもとで行われた今回の対戦は、{player}が{place}で終えた。',
+      '{player}が挑んだ深度{depth}の一戦。その公式順位は{place}だった。'
+    ];
+    const details=['今回の紙面が取り上げるのは「'+topic+'」だ。'+focus,'記録を読み解くうえで外せないのが「'+topic+'」である。'+focus,focus+'大会記録では「'+topic+'」の一戦として整理された。'];
+    const closes=['発動記録では{emblem}。結果だけでは見えない札の使い方も、次戦へ向けた重要な資料になる。','確認された能力は{emblem}。対戦内容は、次の巡業で各選手がどう対策するかにも影響しそうだ。','対戦中の能力記録は{emblem}。同じ条件で再戦しても、まったく同じ流れにはならないだろう。'];
+    const i=Math.floor(Math.random()*3);
+    return {speaker:heads[i],text:leads[i]+'\n\n'+details[(i+1)%3]+'\n\n'+closes[(i+2)%3],target:'「次は別の形で流れを取りに行く」と語った。'};
   }
   function newspaperFill(text,data){
-    return String(text||'').replace(/\{(player|place|depth|rule|emblem|rival|turns|opponentCards|nearestOpponent|totalActions)\}/g,(_,k)=>String(data[k]??'—'));
+    return String(text||'').replace(/\{(player|place|depth|rule|emblem|rival|rivalPlace|turns|opponentCards|nearestOpponent|totalActions)\}/g,(_,k)=>String(data[k]??'—'));
   }
   function newspaperRemoveNumericGuess(text){
     // 事前生成文には数値の意味を解釈させない。数値プレースホルダーを含む文は捨て、
     // 正確な説明をゲーム側の recordParagraph で必ず補う。
     return String(text||'').replace(/[^。！？.!?\n]*\{(?:turns|opponentCards|nearestOpponent|totalActions)\}[^。！？.!?\n]*[。！？.!?]?/g,'').replace(/\n{3,}/g,'\n\n').trim();
   }
+  function newspaperCleanTemplate(text, hasRival){
+    let out=newspaperRemoveNumericGuess(text);
+    if(!hasRival)out=out.replace(/[^。！？.!?\n]*\{(?:rival|rivalPlace)\}[^。！？.!?\n]*[。！？.!?]?/g,'');
+    const allowed=new Set(['player','place','depth','rule','emblem','rival','rivalPlace']);
+    return out.replace(/\{([^{}\s]+)\}/g,(m,k)=>allowed.has(k)?m:'').replace(/\n{3,}/g,'\n\n').trim();
+  }
   function prepareNewspaper(place,depth,nodeType){
     const stats=MODE.matchStats||{}, condition=newspaperCondition(place,nodeType,stats), me=G.players[meIdx()];
-    const item=AIWorldDB.takeNews(condition)||newspaperFallback(condition,place);
-    const used=(stats.usedEmblems||[]).map(id=>RL.emblem(id)).filter(Boolean).slice(0,3).map(embName);
-    const rival=(MODE.rivalSeats||[])[0], ns=stats.news||{}, data={player:me.name||store.playerProfile?.name||T('you'),place:place+'位',depth:depth,rule:mutName(MODE.mutator),emblem:used.join('・')||'エンブレムなし',rival:rival?RIVAL.name(rival.idx):'巡業参加者',turns:ns.finishTurn||ns.playerTurns||'—',opponentCards:ns.opponentCardsAtFinish||0,nearestOpponent:(ns.minOpponentHandAtFinish>=0&&ns.minOpponentHandAtFinish<99)?ns.minOpponentHandAtFinish:'—',totalActions:stats.actions||0};
-    const rivalComment=rival?newspaperFill(newspaperRemoveNumericGuess(item.target)||'{rival}は「次はこのままでは終わらせない」と試合を振り返った。',data):'';
+    const ns=stats.news||{}, fired=Object.entries(ns.fired||{}).sort((a,b)=>b[1]-a[1]).map(([id])=>RL.emblem(id)).filter(Boolean).slice(0,3).map(embName);
+    const rivalSeat=(MODE.rivalSeats||[]).slice().sort((a,b)=>{
+      const ap=G.players[a.seat]?.place||9, bp=G.players[b.seat]?.place||9;
+      return Math.abs(ap-place)-Math.abs(bp-place);
+    })[0], rivalPlayer=rivalSeat&&G.players[rivalSeat.seat];
+    const data={player:me.name||store.playerProfile?.name||T('you'),place:place+'位',depth:depth,rule:mutName(MODE.mutator),
+      emblem:fired.length?'「'+fired.join('・')+'」の発動':'目立ったエンブレム発動は確認されなかった',
+      rival:rivalSeat?RIVAL.name(rivalSeat.idx):'巡業参加者',rivalPlace:rivalPlayer&&rivalPlayer.place?rivalPlayer.place+'位':'—',
+      turns:ns.finishedByPlay?(ns.finishTurn||0):'—',opponentCards:ns.finishedByPlay?(ns.opponentCardsAtFinish||0):'—',
+      nearestOpponent:(ns.minOpponentHandAtFinish>=0&&ns.minOpponentHandAtFinish<99)?ns.minOpponentHandAtFinish:'—',totalActions:stats.actions||0};
+    MODE.newspaper={condition,place,data,hasRival:!!rivalSeat};
+  }
+  function materializeNewspaper(n){
+    if(n.article&&n.headline)return n;
+    const item=AIWorldDB.takeNews(n.condition)||newspaperFallback(n.condition,n.place);
+    const data=n.data, rivalComment=n.hasRival?newspaperFill(newspaperCleanTemplate(item.target,true)||'「次はこのままでは終わらせない」と試合を振り返った。',data):'';
     const recordParagraph=data.turns==='—'
       ? '公式記録では、'+data.player+'は'+data.place+'。対戦全体では'+data.totalActions+'手が記録された。'
       : '公式記録では、'+data.player+'が上がるまでに使った手番は'+data.turns+'回。上がった時点で、まだ上がっていない相手の手札は合計'+data.opponentCards+'枚で、その中で最も手札が少ない相手は残り'+data.nearestOpponent+'枚だった。対戦全体では'+data.totalActions+'手が記録された。';
-    const article=newspaperFill(newspaperRemoveNumericGuess(item.text),data)+'\n\n'+recordParagraph+(rivalComment?'\n\n―― 宿敵コメント\n'+rivalComment:'');
-    const headlineTemplate=newspaperRemoveNumericGuess(item.speaker)||newspaperFallback(condition,place).speaker;
-    MODE.newspaper={condition,headline:newspaperFill(headlineTemplate,data),article,data};
+    let bodyTemplate=newspaperCleanTemplate(item.text,n.hasRival);
+    if(bodyTemplate.length<80)bodyTemplate=newspaperCleanTemplate(newspaperFallback(n.condition,n.place).text,n.hasRival);
+    const article=newspaperFill(bodyTemplate,data)+'\n\n'+recordParagraph+(rivalComment?'\n\n―― 宿敵コメント\n'+data.rival+'（'+data.rivalPlace+'）は'+rivalComment:'');
+    const headlineTemplate=newspaperCleanTemplate(item.speaker,n.hasRival)||newspaperFallback(n.condition,n.place).speaker;
+    n.headline=newspaperFill(headlineTemplate,data); n.article=article;
+    return n;
   }
   function openNewspaper(next){
     const n=MODE.newspaper; if(!n){ next(); return; }
+    materializeNewspaper(n);
     newspaperContinue=next;
     $('#newspaper-top').textContent=aiWorldLang()==='vi'?'Báo hành trình':'巡業新聞';
     $('#newspaper-name').textContent=aiWorldLang()==='vi'?'NHẬT BÁO RU-LE':'ルール日報';
@@ -8640,6 +8844,7 @@ const AUDIO = (function(){
     $('#newspaper-date').textContent=aiWorldDateLabel()+'　巡業深度 '+n.data.depth;
     $('#newspaper-headline').textContent=n.headline;
     $('#newspaper-article').textContent=n.article;
+    $('#newspaper-article').scrollTop=0;
     show('s-newspaper'); setTimeout(()=>setFocus($('#newspaper-next')),0);
     const task=NEWSPAPER_TASKS.find(x=>x.id==='newspaper_'+n.condition);
     if(task&&aiWorldTaskStock(task)<task.stockTarget){ aiWorldForcedTask=task; aiWorldNextAllowedAt=Date.now(); setTimeout(()=>aiWorldGenerateOnce(),0); }
@@ -9104,7 +9309,7 @@ const AUDIO = (function(){
   /* ============================================================
      HELP
      ============================================================ */
-  const HELP_LEN = 7;   // ヘルプ本文は i18n 辞書 help0_h/help0_b … help6_h/help6_b に保持
+  const HELP_LEN = 8;   // ヘルプ本文は i18n 辞書 help0_h/help0_b … help7_h/help7_b に保持
   let helpPage=0, helpReturn='s-title';
   function openHelp(ret){ helpReturn=ret||'s-title'; helpPage=0; renderHelp(); $('#ovl-pause').classList.remove('active'); show('s-help'); }
   function renderHelp(){
@@ -9214,7 +9419,7 @@ const AUDIO = (function(){
       },
       recent(n){ const db=load(), all=[]; TYPES.forEach(t=>(db[t]||[]).forEach(x=>all.push(x))); return all.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,n||6); },
       takeNews(condition){
-        const db=load(), tag='news:'+condition, pool=(db.news||[]).filter(x=>{ const tags=(x.tags||[]).map(String); return (x.lang||'ja')===aiWorldLang()&&tags.includes(tag)&&tags.includes('newspaper-format:3'); });
+        const db=load(), tag='news:'+condition, pool=(db.news||[]).filter(x=>{ const tags=(x.tags||[]).map(String); return (x.lang||'ja')===aiWorldLang()&&tags.includes(tag)&&tags.includes('newspaper-format:4'); });
         if(!pool.length)return null;
         const pick=pool[Math.floor(Math.random()*pool.length)];
         db.news=db.news.filter(x=>x.id!==pick.id); db._meta.useCycles={}; save(db);
@@ -9536,7 +9741,7 @@ const AUDIO = (function(){
   ];
   const NEWSPAPER_TASKS=NEWSPAPER_DEFS.map(([id,label])=>({
     id:'newspaper_'+id,type:'news',types:['news'],theme:'巡業新聞の'+label+'記事テンプレート',count:5,label:'新聞・'+label,
-    context:'result',stockTarget:5,tags:['newspaper','news:'+id,'newspaper-format:3','timeless'],newspaper:true
+    context:'result',stockTarget:5,tags:['newspaper','news:'+id,'newspaper-format:4','timeless'],newspaper:true
   }));
   const AI_WORLD_TASKS=[
     {id:'battle_open',type:'conversation',types:['conversation'],theme:'対戦開始と初手の自然な一言',count:24,label:'開始会話',context:'battle',stockTarget:60,tags:['battle','対戦','timeless'],sceneTags:['scene:greeting','scene:first_play']},
@@ -9670,6 +9875,8 @@ const AUDIO = (function(){
     '条件: '+task.theme,'必ず'+task.count+'件。',
     '各itemは type=news、context=result。speakerは22文字以内の大見出し、textは客観的な新聞本文を320〜600文字で書く。',
     '本文と見出しで使える差し込み記号は {player} {place} {depth} {rule} {emblem} {rival} だけ。固有名や勝敗を勝手に固定せず、必要な場所へ記号を残す。',
+    '{rival}は「宿敵との対戦」条件の記事本文だけで使う。他条件では宿敵が参加していない可能性があるため、本文と見出しに書かない。',
+    '{emblem}は、実際に発動した能力名をまとめた表現か、「目立ったエンブレム発動は確認されなかった」のどちらかになる。「{emblem}が勝負を決めた」と断定せず、「発動記録は{emblem}」のように文法がどちらでも成立する書き方にする。',
     '禁止: {turns} {opponentCards} {nearestOpponent} {totalActions} を本文・見出し・targetへ書かない。数字の説明はゲーム側が別段落で正確に追加する。',
     '重要: 「激闘・長期戦」は長期戦条件だけ、「短期決戦」は短期決戦条件だけ、「紙一重・接戦」は大接戦条件だけ、「圧勝・一方的」は圧勝条件だけで使う。それ以外の記事では決着の長短や差を断定しない。',
     '{opponentCards}が意味するのは、プレイヤーが上がった瞬間に、まだ上がっていない全対戦相手が手元に残していた札の合計である。対戦した札数、倒した札数、相手にした札数ではない。ただしAI本文ではこの値に一切触れない。',
@@ -9679,7 +9886,7 @@ const AUDIO = (function(){
     'ただし実況口調・本人の心情・詩的表現・事実にない逆転は禁止。記者が確認できる数字と試合経過から、勝負の価値を客観的に高く評価する。12歳でも分かる自然な日本語。',
     '5件は同じ文章構成にしない。順番に、①数字から始める記録記事、②勝負を分けた能力から始める戦術記事、③終盤の状況から始める決着記事、④特殊ルールから始める分析記事、⑤対戦相手側から見た人物記事、と入口を変える。',
     '結論→経過→評価の型を毎回なぞらない。短い段落、長めの段落、問いかける見出し、断定する見出しを混ぜ、同じ接続語や締め方を繰り返さない。',
-    'targetには宿敵がいた場合だけ使える短い試合後コメントを1つ入れる。「{rival}は『…』と語った」の形にし、一人称は使わない。冷静な分析、素直な称賛、警戒、次戦への宣言、意外だった一手など内容を5件で変える。勝敗は固定しない。',
+    'targetには宿敵がいた場合だけ使える短い試合後コメントの「台詞と語尾」だけを入れる。例: 「流れを取られた場面を見直したい」と語った。名前・順位・{rival}は書かず、一人称も使わない。冷静な分析、称賛、警戒、次戦への宣言、意外だった一手など内容を5件で変える。勝敗は固定しない。',
     '全itemのtagsに '+(task.tags||[]).join(', ')+' を付ける。memorySummaryは空文字でよい。'
   ].join('\n'); } const meta=AIWorldDB.meta(), recentItems=AIWorldDB.recent(30).filter(x=>(x.lang||'ja')===aiWorldLang()&&(x.day||0)<=task.day).slice(0,10), scenes=task.sceneTags||[]; if(aiWorldLang()==='vi'){ const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`Ngày ${x.day} ${x.speaker||'Người kể'}: ${x.text}`).join('\n'); return [`Day: ${task.day}`,`Ngày thực: ${task.dateLabel||aiWorldDateLabel()}`,`Chủ đề: ${task.theme}`,`Loại: ${task.type}`,`Nơi dùng: ${task.context||'general'}`,`Tag bắt buộc: ${(task.tags||[]).join(', ')}`,scenes.length?`Tag tình huống trận đấu: ${scenes.join(', ')}`:'',task.daily?'Gói riêng cho ngày đã chỉ định. Mọi item là trò chuyện liên quan tự nhiên tới chủ đề ngày đó qua thời tiết, đồ ăn, thị trấn, kế hoạch hoặc chuyện hôm trước. Không bắt mọi người nói thẳng tên chủ đề. Mỗi item phải có date tag đã cho và scene:chatter.':'',`Kho hiện tại: ${task.stockNow||0} / mục tiêu ${task.stockTarget||0}`,`Số item bắt buộc: ${task.count}`,'Không được trả items rỗng hoặc chỉ trả memorySummary.',scenes.length?'Chia đều các tag tình huống. Mỗi item chỉ dùng một tag scene phù hợp. scene:chatter là chuyện phiếm theo chủ đề; các scene khác phải phản ứng trực tiếp với sự việc. Không ghi tên người nói trong text.':'','Nhân vật cố định:',aiWorldCastPrompt(),'Dùng đúng tên, giới tính và nghề đã đặt. Không gọi nhân vật chính là "bạn" hay "người chơi".','Quan hệ hiện tại:',rel||'Chưa có','Quy tắc: Mỗi câu 8-45 ký tự, tiếng Việt đời thường, dễ hiểu, không từ cổ, không ví von vòng vo. Không tự quyết định thắng thua.','Mỗi item.context phải là title, battle, map hoặc result.','memorySummary chỉ giữ quan hệ và chuyện chưa kết thúc, viết dễ hiểu trong 120-220 ký tự.','relations có dạng [{"pair":"Hiệp sĩ-Thương nhân","state":"mô tả ngắn"}].',meta.summary?`Tóm tắt thế giới:\n${meta.summary}`:'Tóm tắt thế giới: Chưa có',recent?`Ký ức gần đây:\n${recent}`:'Ký ức gần đây: Chưa có'].filter(Boolean).join('\n'); } const rel=Object.entries(meta.relations||{}).map(([k,v])=>`${k}: ${v}`).join('\n'), recent=recentItems.map(x=>`${x.day}日 ${x.speaker||'語り手'}: ${x.text}`).join('\n'), dailyRule=task.daily?'指定日専用パック。全itemをその日のテーマに関係する雑談にする。ただし全員がテーマ名を直接言う不自然な文にはせず、天気・食べ物・町の様子・予定・前日からの話などへ自然に散らす。全itemのtagsに指定されたdateタグとscene:chatterを必ず入れる。':''; return [`Day: ${task.day}`,`対象の現実日付: ${task.dateLabel||aiWorldDateLabel()}`,`テーマ: ${task.theme}`,`種類: ${task.type}`,`使いどころ: ${task.context||'general'}`,`優先タグ: ${(task.tags||[]).join(', ')}`,scenes.length?`対戦場面タグ: ${scenes.join(', ')}`:'',dailyRule,`現在在庫: ${task.stockNow||0} / 目標 ${task.stockTarget||0}`,`必ず生成するitems件数: ${task.count}`,'最重要: itemsを空配列にしない。memorySummaryだけを返さない。指定件数の短文をitemsへ入れる。',scenes.length?'対戦場面タグを全種類ほぼ同じ件数ずつ作る。各itemのtagsには、内容に合う対戦場面タグを必ず1つだけそのまま入れる。scene:chatterだけは指定日のテーマに沿った軽い雑談にする。ほかは場面への直接の反応にする。話す人物も偏らせない。text内には話し手自身の名前を入れず、実際の対戦参加者が言っても自然な文にする。':'','固定人物:',aiWorldCastPrompt(),'人物名を優先して使い、主人公を「あなた」「プレイヤー」と呼ばない。設定済みの名前・性別・職業を矛盾させない。','現在の関係性:',rel||'なし','文章ルール: 現代の12歳が読んですぐ分かる言葉だけを使う。普段の会話のように書く。かっこよく見せようとしない。古い言い回し、詩的な表現、難しい漢語、回りくどい例えは禁止。短い文にする。','条件: 1件8〜45文字。昨日の話題を少し引き継いでよい。ゲームの勝敗を勝手に決めない。場面タグで示された出来事への感想は書いてよい。','これは読みに行く記事ではなく、タイトル/対戦/巡業マップ/結果画面で1件ずつ引っ張り出すストック。単体で短く成立する文にする。','各itemのcontextには title / battle / map / result のどれかを入れる。通常tagsには使いどころを混ぜる: 酒場, 王都, 旅, 巡業, 噂, 新聞 など。','memorySummaryには、関係性とまだ終わっていない話だけを、やさしい言葉で120〜220文字にまとめる。','relationsは変化した関係だけを [{"pair":"騎士-商人","state":"短くてやさしい説明"}] の形で返す。',meta.summary?`世界の要約:\n${meta.summary}`:'世界の要約: なし',recent?`最近の記憶:\n${recent}`:'最近の記憶: なし'].filter(Boolean).join('\n'); }
   function aiWorldParsePack(text){ const unpack=data=>{ const rel=Array.isArray(data?.relations)?Object.fromEntries(data.relations.filter(x=>x&&x.pair).map(x=>[String(x.pair),String(x.state||'')])):(data?.relations&&typeof data.relations==='object'?data.relations:null); return {items:Array.isArray(data?.items)?data.items:[],memorySummary:data?.memorySummary||'',relations:rel}; }; try{ return unpack(JSON.parse(text)); }catch(e){ const m=String(text||'').match(/\{[\s\S]*\}/); if(m){ try{ return unpack(JSON.parse(m[0])); }catch(_){} } } return {items:[],memorySummary:'',relations:null}; }
